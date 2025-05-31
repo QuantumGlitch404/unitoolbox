@@ -36,7 +36,7 @@ export default function PowerPointPdfConverterPage() {
     "Upload your file (PPTX or PDF). Max 25MB for client-side processing.",
     "Click the 'Convert File' button. The conversion happens directly in your browser.",
     "Once complete, a download link for the converted file will appear.",
-    "**PPTX to PDF**: This client-side conversion attempts to extract *only text content* from your .pptx file. All images, shapes, colors, layouts, and animations will be **lost**. The output will be a simple PDF containing the extracted text. For full fidelity, server-side conversion tools are typically required.",
+    "**PPTX to PDF**: Extracts text content from your .pptx file and generates a PDF. Images, shapes, colors, and complex layouts from the original PowerPoint are NOT preserved in this client-side conversion. The output is a text-based PDF.",
     "**PDF to PPTX**: Each page of your PDF will be converted into a static, non-editable image. These images will be placed onto individual slides in a new .pptx presentation. The content will not be editable as native PowerPoint elements."
   ];
 

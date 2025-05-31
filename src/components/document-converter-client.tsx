@@ -8,12 +8,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Download, Loader2, XCircle, ArrowRightLeft, FileText, FileSpreadsheet, Presentation, FileCode as FileCodeIcon, Info } from 'lucide-react';
+import { UploadCloud, Download, Loader2, XCircle, ArrowRightLeft, FileText, FileSpreadsheet, Presentation as PresentationIcon, FileCode as FileCodeIcon, Info } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import 'jspdf-autotable'; 
 import mammoth from 'mammoth';
 import * as XLSX from 'xlsx';
@@ -23,11 +23,17 @@ import { Document, Packer, Paragraph, TextRun } from 'docx';
 import html2canvas from 'html2canvas';
 import JSZip from 'jszip';
 
+// Configure PDF.js worker from CDN
+if (typeof window !== 'undefined') {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+
 const iconMap: { [key: string]: React.ElementType } = {
   FileText: FileText,
   FileCode: FileCodeIcon,
   FileSpreadsheet: FileSpreadsheet,
-  Presentation: Presentation,
+  Presentation: PresentationIcon,
   Info: Info,
 };
 
@@ -77,13 +83,6 @@ export function DocumentConverterClient({
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const currentConversion = conversionOptions.find(opt => opt.value === conversionType) || conversionOptions[0];
-
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
-      const workerSrcPath = `/pdf.worker.min.mjs`; 
-      pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrcPath;
-    }
-  }, []);
 
   useEffect(() => {
     try {
@@ -189,7 +188,7 @@ export function DocumentConverterClient({
     setConversionProgress(30);
     
     const { value: html } = await mammoth.convertToHtml({ arrayBuffer });
-    const styledHtml = `<style>body{color:black;font-family:sans-serif;margin:20px;}p{margin-bottom:10px;line-height:1.4;}h1,h2,h3,h4,h5,h6{margin-bottom:12px;margin-top:20px;}ul,ol{margin-left:20px;margin-bottom:10px;}table{border-collapse:collapse;width:100%;margin-bottom:10px;}th,td{border:1px solid #ccc;padding:4px;text-align:left;}</style>${html}`;
+    const styledHtml = `<style>body{color: black; font-family:sans-serif;margin:20px;}p{margin-bottom:10px;line-height:1.4;}h1,h2,h3,h4,h5,h6{margin-bottom:12px;margin-top:20px;}ul,ol{margin-left:20px;margin-bottom:10px;}table{border-collapse:collapse;width:100%;margin-bottom:10px;}th,td{border:1px solid #ccc;padding:4px;text-align:left;}</style>${html}`;
 
     setStatusMessage("Rendering HTML to PDF...");
     setConversionProgress(60);
@@ -218,9 +217,9 @@ export function DocumentConverterClient({
   };
 
   const handlePdfToDocx = async (file: File): Promise<Blob> => {
-    const arrayBuffer = await file.arrayBuffer();
     setStatusMessage("Extracting text from PDF...");
     setConversionProgress(20);
+    const arrayBuffer = await file.arrayBuffer();
     const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
     const paragraphs: Paragraph[] = [];
 
@@ -228,18 +227,17 @@ export function DocumentConverterClient({
       const page = await pdfDoc.getPage(i);
       const textContent = await page.getTextContent();
       let pageText = "";
-      textContent.items.forEach((item: any) => {
+      textContent.items.forEach((item: any) => { // item is TextItem
         pageText += item.str + (item.hasEOL ? "\n" : " ");
       });
       
-      // Split by lines, then create paragraphs
       const lines = pageText.split('\n').map(line => line.trim()).filter(line => line.length > 0);
       lines.forEach(line => {
         paragraphs.push(new Paragraph({ children: [new TextRun(line)] }));
       });
 
       if (i < pdfDoc.numPages) {
-         paragraphs.push(new Paragraph({ children: [new TextRun({ text: "", break: 1, type: "page" })]}));
+         paragraphs.push(new Paragraph({ children: [new TextRun({ text: "", break: 1 })]})); // Page break
       }
       setConversionProgress(20 + Math.floor((i / pdfDoc.numPages) * 60));
     }
@@ -284,13 +282,12 @@ export function DocumentConverterClient({
       const page = await pdfDoc.getPage(pageNum);
       const textContent = await page.getTextContent();
       
-      // Attempt to reconstruct lines based on y-coordinate
       const lines: { y: number, texts: { x: number, str: string }[] }[] = [];
-      textContent.items.forEach((item: any) => {
+      textContent.items.forEach((item: any) => { // item is TextItem
           const y = item.transform[5];
           const x = item.transform[4];
           const str = item.str;
-          let line = lines.find(l => Math.abs(l.y - y) < (item.height || 5) * 0.5); // Group texts on similar y-level
+          let line = lines.find(l => Math.abs(l.y - y) < ((item.height || 5) * 0.5) );
           if (!line) {
               line = { y, texts: [] };
               lines.push(line);
@@ -298,10 +295,9 @@ export function DocumentConverterClient({
           line.texts.push({ x, str });
       });
       
-      lines.sort((a, b) => b.y - a.y); // Sort lines from top to bottom (PDF coordinates)
+      lines.sort((a, b) => b.y - a.y); 
       lines.forEach(line => {
-          line.texts.sort((a, b) => a.x - b.x); // Sort texts within line from left to right
-          // Simple heuristic: treat each text item as a potential cell. More complex logic needed for real tables.
+          line.texts.sort((a, b) => a.x - b.x); 
           dataForExcel.push(line.texts.map(t => t.str.trim()));
       });
       setConversionProgress(30 + Math.floor((pageNum / pdfDoc.numPages) * 50));
@@ -316,111 +312,117 @@ export function DocumentConverterClient({
     return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   };
 
-  const extractTextFromSlideXml = (slideXml: string): string => {
-    let textContent = '';
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(slideXml, "application/xml");
-    const textNodes = xmlDoc.getElementsByTagNameNS("http://schemas.openxmlformats.org/drawingml/2006/main", "t");
-    for (let i = 0; i < textNodes.length; i++) {
-      textContent += (textNodes[i].textContent || '') + '\n';
+  const extractTextFromPptxSlideXml = (xmlContent: string): string => {
+    const textRegex = /<a:t[^>]*>([^<]*)<\/a:t>/g;
+    const texts: string[] = [];
+    let match;
+    while ((match = textRegex.exec(xmlContent)) !== null) {
+      texts.push(match[1]);
     }
-    return textContent.trim();
+    return texts.join(' '); // Join text pieces with a space
   };
   
   const handlePptxToPdf = async (file: File): Promise<Blob> => {
     setStatusMessage("Unzipping PPTX file...");
     setConversionProgress(10);
-    const zip = await JSZip.loadAsync(file);
-    setConversionProgress(20);
-
-    const slidesXml: string[] = [];
-    const slidePromises: Promise<void>[] = [];
-
-    for (let i = 1; i <= 100; i++) { // Check up to 100 slides
-        const slideFile = zip.file(`ppt/slides/slide${i}.xml`);
-        if (slideFile) {
-            slidePromises.push(
-                slideFile.async('text').then(xmlText => {
-                    slidesXml[i-1] = xmlText; // Keep order
-                })
-            );
-        } else {
-            // If slideN.xml is not found, check if we are beyond the last slide
-            if (i > 1 && !zip.file(`ppt/slides/slide${i-1}.xml`)) break; 
-        }
-    }
-    await Promise.all(slidePromises);
-    setConversionProgress(40);
-    
-    setStatusMessage("Extracting text and generating PDF...");
-    const pdf = new jsPDF();
-    let firstPage = true;
-
-    slidesXml.filter(Boolean).forEach((slideXmlContent, index) => {
-        if (!firstPage) {
-            pdf.addPage();
-        }
-        firstPage = false;
-        
-        const textContent = extractTextFromSlideXml(slideXmlContent);
-        const lines = pdf.splitTextToSize(textContent, pdf.internal.pageSize.getWidth() - 40); // 20 margin each side
-        
-        let yPosition = 20;
-        lines.forEach(line => {
-            if (yPosition + 10 > pdf.internal.pageSize.getHeight() - 20) { // Check for page overflow
-                pdf.addPage();
-                yPosition = 20;
-            }
-            pdf.text(line, 20, yPosition);
-            yPosition += 7; // Adjust line height as needed
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const zip = await JSZip.loadAsync(arrayBuffer);
+      setConversionProgress(20);
+      
+      const doc = new jsPDF();
+      let isFirstPage = true;
+      
+      const slideFiles = Object.keys(zip.files)
+        .filter(name => name.startsWith('ppt/slides/slide') && name.endsWith('.xml'))
+        .sort((a, b) => { // Ensure correct slide order
+            const numA = parseInt(a.match(/slide(\d+)\.xml/)![1]);
+            const numB = parseInt(b.match(/slide(\d+)\.xml/)![1]);
+            return numA - numB;
         });
-        setConversionProgress(40 + Math.floor(((index + 1) / slidesXml.filter(Boolean).length) * 50));
-    });
+      
+      if (slideFiles.length === 0) {
+        setStatusMessage("No slides found in PowerPoint file.");
+        throw new Error('No slides found in PowerPoint file');
+      }
+      
+      setStatusMessage(`Found ${slideFiles.length} slides. Extracting text...`);
+      let slideCount = 0;
+      for (const slideFileName of slideFiles) {
+        slideCount++;
+        setConversionProgress(20 + Math.floor((slideCount / slideFiles.length) * 60));
+        const slideXml = await zip.files[slideFileName].async('string');
+        const slideText = extractTextFromPptxSlideXml(slideXml);
+        
+        if (!isFirstPage) {
+          doc.addPage();
+        }
+        
+        const lines = doc.splitTextToSize(slideText || 'Empty slide', doc.internal.pageSize.getWidth() - 30); // 15 margin each side
+        doc.text(lines, 15, 20);
+        isFirstPage = false;
+      }
+      
+      setStatusMessage("Generating PDF...");
+      setConversionProgress(95);
+      return new Blob([doc.output('blob')], { type: 'application/pdf' });
 
-    if (slidesXml.filter(Boolean).length === 0) {
-        pdf.text("No text content could be extracted from the slides.", 20, 20);
-        toast({ title: "Content Note", description: "No text found in PPTX slides or slides could not be parsed.", variant: "default" });
+    } catch (error) {
+      console.error('PPTX to PDF conversion failed:', error);
+      setStatusMessage(`Error during PPTX to PDF: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`Failed to convert PPTX to PDF: ${error instanceof Error ? error.message : String(error)}`);
     }
-    setConversionProgress(95);
-    return pdf.output('blob');
   };
-
 
   const handlePdfToPptx = async (file: File): Promise<Blob> => {
     setStatusMessage("Loading PDF for PPTX conversion...");
     setConversionProgress(10);
-    const arrayBuffer = await file.arrayBuffer();
-    const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
-    const numPages = pdfDoc.numPages;
-    
-    const pptx = new PptxGenJS();
-    pptx.layout = 'LAYOUT_BLANK';
-    setStatusMessage("Converting PDF pages to slides...");
-
-    for (let i = 1; i <= numPages; i++) {
-      setConversionProgress(10 + Math.floor((i / numPages) * 80));
-      const page = await pdfDoc.getPage(i);
-      const viewport = page.getViewport({ scale: 1.5 }); // Adjust scale for quality/performance
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const numPages = pdf.numPages;
       
-      const tempCanvas = document.createElement('canvas');
-      const tempContext = tempCanvas.getContext('2d');
-      if (!tempContext) {
-        throw new Error(`Could not get canvas context for PDF page ${i}.`);
+      const pres = new PptxGenJS();
+      pres.layout = 'LAYOUT_BLANK';
+      setStatusMessage(`Converting ${numPages} PDF pages to slides...`);
+
+      for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+        setConversionProgress(10 + Math.floor(((pageNum -1) / numPages) * 80));
+        const page = await pdf.getPage(pageNum);
+        // Using a scale of 1.5 as 2.0 can lead to very large images and memory issues in browser
+        const viewport = page.getViewport({ scale: 1.5 }); 
+        
+        const tempCanvas = document.createElement('canvas');
+        const tempContext = tempCanvas.getContext('2d');
+        if (!tempContext) {
+          throw new Error(`Could not get canvas context for PDF page ${pageNum}.`);
+        }
+        tempCanvas.width = viewport.width;
+        tempCanvas.height = viewport.height;
+
+        await page.render({ canvasContext: tempContext, viewport: viewport }).promise;
+        const imageDataUrl = tempCanvas.toDataURL('image/png');
+
+        const slide = pres.addSlide();
+        slide.addImage({
+          data: imageDataUrl,
+          x: 0,
+          y: 0,
+          w: '100%',
+          h: '100%'
+        });
       }
-      tempCanvas.width = viewport.width;
-      tempCanvas.height = viewport.height;
+      
+      setStatusMessage("Generating PowerPoint file...");
+      setConversionProgress(95);
+      const pptxData = await pres.writeFile({ outputType: 'blob' }); // Correct way to get blob
+      return pptxData as Blob; // PptxGenJS types might not reflect Blob directly for writeFile
 
-      await page.render({ canvasContext: tempContext, viewport: viewport }).promise;
-      const imageDataUrl = tempCanvas.toDataURL('image/png');
-
-      const slide = pptx.addSlide();
-      slide.addImage({ data: imageDataUrl, x: 0, y: 0, w: '100%', h: '100%' });
+    } catch (error) {
+      console.error('PDF to PPTX conversion failed:', error);
+      setStatusMessage(`Error during PDF to PPTX: ${error instanceof Error ? error.message : String(error)}`);
+      throw new Error(`Failed to convert PDF to PPTX: ${error instanceof Error ? error.message : String(error)}`);
     }
-    
-    setStatusMessage("Generating PowerPoint file...");
-    setConversionProgress(95);
-    const pptxBlob = await pptx.write('blob') as Blob;
-    return pptxBlob;
   };
 
 
@@ -437,7 +439,7 @@ export function DocumentConverterClient({
 
     try {
       let convertedBlob: Blob | null = null;
-      let convertedFileName = `${selectedFile.name.split('.').slice(0, -1).join('.')}_converted.${currentConversion.targetFormat}`;
+      let convertedFileName = `${selectedFile.name.split('.').slice(0, -1).join('.') || 'converted'}.${currentConversion.targetFormat}`;
       
       if (currentConversion.value === 'docx-to-pdf') {
         convertedBlob = await handleDocxToPdf(selectedFile);
@@ -453,13 +455,12 @@ export function DocumentConverterClient({
         convertedBlob = await handlePdfToPptx(selectedFile);
       }
 
-
       if (convertedBlob) {
         setConversionProgress(100);
-        const dataUrl = URL.createObjectURL(convertedBlob); // For potential preview, though not used for direct download
+        const dataUrl = URL.createObjectURL(convertedBlob); 
         setStatusMessage("Conversion successful!");
         setResult({ name: convertedFileName, dataUrl: dataUrl, blob: convertedBlob });
-        triggerDownload(convertedBlob, convertedFileName); // Directly trigger download
+        triggerDownload(convertedBlob, convertedFileName); 
         addToHistory({
           fileName: selectedFile.name,
           originalFormat: currentConversion.sourceFormat,
@@ -572,7 +573,7 @@ export function DocumentConverterClient({
                   <div className="flex flex-col items-center justify-center text-center">
                     <SourceIconMapped className="h-16 w-16 text-muted-foreground" />
                      <p className="text-sm mt-2 text-muted-foreground">
-                      {currentConversion.sourceFormat === 'pdf' ? 'PDF Preview (first page, if small enough)' : 'No preview available for this file type.'}
+                      {currentConversion.sourceFormat === 'pdf' ? 'PDF Preview (first page, if small)' : 'No preview available for this file type.'}
                     </p>
                   </div>
                 )}
@@ -679,12 +680,13 @@ export function DocumentConverterClient({
         <AlertDescription>
           <ul className="list-disc pl-5 space-y-1 text-sm">
             <li>Conversions are processed directly in your browser. No files are uploaded to any server.</li>
-            <li>**Fidelity Limitations**: Client-side conversion of complex document formats can result in variations from the original.
-                For PPTX to PDF, text content is extracted from slides. Visuals and complex layouts are not preserved.
-                For PDF to PPTX, PDF pages are converted to images on slides; text is not editable as native PowerPoint elements.
-                Other conversions (Word/Excel to PDF, PDF to Word/Excel) also have limitations in preserving complex formatting perfectly.
+            <li>
+              **Fidelity & Limitations**: Client-side conversion of complex document formats can result in variations.
+              PPTX to PDF primarily extracts text content; visual fidelity is limited. PDF to PPTX converts pages to images on slides.
+              PDF to Word/Excel involves text extraction and basic structuring; complex layouts may not be fully preserved.
             </li>
             <li>**Performance**: Larger files or more complex documents may take longer to process and could impact browser performance. A 25MB file size limit is suggested.</li>
+             <li>**PDF.js Worker**: This tool uses a CDN-hosted worker for PDF processing. An internet connection is required for this component.</li>
           </ul>
         </AlertDescription>
       </Alert>

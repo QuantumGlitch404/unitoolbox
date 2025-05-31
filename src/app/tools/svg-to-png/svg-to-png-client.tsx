@@ -8,14 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Download, Loader2, RefreshCw, XCircle, Palette } from 'lucide-react';
+import { UploadCloud, Download, Loader2, XCircle, Palette } from 'lucide-react';
 
 interface ImageConverterClientProps {
   sourceFormat: string;
   targetFormat: string;
   accept: Accept;
   outputFileNameSuffix: string;
-  toolIcon?: React.ElementType;
 }
 
 export function SVGToPNGClient({
@@ -23,7 +22,6 @@ export function SVGToPNGClient({
   targetFormat = "PNG",
   accept = { 'image/svg+xml': ['.svg'] },
   outputFileNameSuffix = "_to_png.png",
-  toolIcon: ToolIcon = Palette,
 }: ImageConverterClientProps) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -85,17 +83,11 @@ export function SVGToPNGClient({
         setProgress(currentProgress);
       } else {
         clearInterval(progressInterval);
-        // Actual SVG to PNG conversion is complex. For simulation, we can't directly use the SVG data URI
-        // in an <Image> tag for the "converted" preview if we want to pretend it's a PNG.
-        // We'll use a placeholder or the SVG itself for download.
         const outputFileName = `${imageFile.name.split('.').slice(0, -1).join('.')}${outputFileNameSuffix}`;
         
-        // For a slightly better simulation, if we could render SVG to canvas then to PNG data URL:
-        // This requires more complex logic not suitable for quick setup.
-        // For now, we use the original preview as the "result" for download purposes.
         setResult({
           name: outputFileName,
-          dataUrl: imagePreview, // Simulating by providing the original SVG data URL for download as PNG
+          dataUrl: imagePreview, 
         });
         setIsLoading(false);
         toast({
@@ -129,7 +121,6 @@ export function SVGToPNGClient({
           {imagePreview && imageFile ? (
             <div className="space-y-4">
               <div className="relative aspect-video w-full max-w-md mx-auto border rounded-md overflow-hidden checkerboard-bg p-2">
-                {/* Display SVG using an img tag for preview */}
                 <Image src={imagePreview} alt={`${sourceFormat} image preview`} layout="fill" objectFit="contain" />
                 <Button
                   variant="destructive"
@@ -167,7 +158,7 @@ export function SVGToPNGClient({
           </CardHeader>
           <CardContent>
             <Button onClick={handleConvert} disabled={isLoading || !imageFile} className="w-full sm:w-auto">
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ToolIcon className="mr-2 h-4 w-4" />}
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Palette className="mr-2 h-4 w-4" />}
               Convert to {targetFormat}
             </Button>
             {isLoading && <Progress value={progress} className="w-full mt-2 h-2" />}
@@ -182,7 +173,6 @@ export function SVGToPNGClient({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative aspect-video w-full max-w-md mx-auto border rounded-md overflow-hidden checkerboard-bg p-2">
-              {/* For downloaded PNG, this preview is fine. Actual rendering depends on dataUrl content */}
               <Image src={result.dataUrl} alt={result.name} layout="fill" objectFit="contain" />
             </div>
             <Button
@@ -200,4 +190,3 @@ export function SVGToPNGClient({
     </div>
   );
 }
-

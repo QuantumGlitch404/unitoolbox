@@ -30,7 +30,6 @@ export default function SVGToPNGPage() {
         targetFormat="PNG"
         accept={{ 'image/svg+xml': ['.svg'] }}
         outputFileNameSuffix="_converted.png"
-        toolIcon={tool.icon || Palette}
       />
     </ToolPageTemplate>
   );

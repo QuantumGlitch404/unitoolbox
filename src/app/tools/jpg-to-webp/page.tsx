@@ -30,7 +30,6 @@ export default function JPGToWebPPage() {
         targetFormat="WebP"
         accept={{ 'image/jpeg': ['.jpg', '.jpeg'] }}
         outputFileNameSuffix="_converted.webp"
-        toolIcon={tool.icon || Replace}
       />
     </ToolPageTemplate>
   );

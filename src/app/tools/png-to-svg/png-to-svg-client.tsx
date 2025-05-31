@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Download, Loader2, RefreshCw, XCircle, Palette } from 'lucide-react';
+import { UploadCloud, Download, Loader2, XCircle, Palette } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 
@@ -17,7 +17,6 @@ interface ImageConverterClientProps {
   targetFormat: string;
   accept: Accept;
   outputFileNameSuffix: string;
-  toolIcon?: React.ElementType;
   isConceptual?: boolean;
 }
 
@@ -26,7 +25,6 @@ export function PNGToSVGClient({
   targetFormat = "SVG",
   accept = { 'image/png': ['.png'] },
   outputFileNameSuffix = "_to_svg.svg",
-  toolIcon: ToolIcon = Palette,
   isConceptual = true,
 }: ImageConverterClientProps) {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -90,9 +88,6 @@ export function PNGToSVGClient({
       } else {
         clearInterval(progressInterval);
         const outputFileName = `${imageFile.name.split('.').slice(0, -1).join('.')}${outputFileNameSuffix}`;
-        // Conceptual: PNG to SVG is hard. Download will be a placeholder or the original.
-        // For true conversion, an AI/tracing service would be needed.
-        // We'll create a very basic placeholder SVG.
         const placeholderSvgData = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="lightgray"/><text x="10" y="50" font-family="Arial" font-size="10" fill="black">Placeholder SVG from ${imageFile.name}</text></svg>`;
         const placeholderSvgDataUrl = `data:image/svg+xml;base64,${btoa(placeholderSvgData)}`;
 
@@ -178,7 +173,7 @@ export function PNGToSVGClient({
           </CardHeader>
           <CardContent>
             <Button onClick={handleConvert} disabled={isLoading || !imageFile} className="w-full sm:w-auto">
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ToolIcon className="mr-2 h-4 w-4" />}
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Palette className="mr-2 h-4 w-4" />}
               Convert to {targetFormat}
             </Button>
             {isLoading && <Progress value={progress} className="w-full mt-2 h-2" />}
@@ -193,7 +188,6 @@ export function PNGToSVGClient({
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative aspect-video w-full max-w-md mx-auto border rounded-md overflow-hidden checkerboard-bg p-2">
-              {/* SVG can be rendered in an img tag if it's a data URL */}
               <Image src={result.dataUrl} alt={result.name} layout="fill" objectFit="contain" />
             </div>
             <Button
@@ -211,4 +205,3 @@ export function PNGToSVGClient({
     </div>
   );
 }
-

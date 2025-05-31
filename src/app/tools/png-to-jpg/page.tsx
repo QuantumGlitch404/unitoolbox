@@ -30,7 +30,6 @@ export default function PNGToJPGPage() {
         targetFormat="JPG"
         accept={{ 'image/png': ['.png'] }}
         outputFileNameSuffix="_converted.jpg"
-        toolIcon={tool.icon || Replace}
       />
     </ToolPageTemplate>
   );

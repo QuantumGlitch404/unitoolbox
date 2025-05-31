@@ -8,14 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Download, Loader2, RefreshCw, XCircle, Replace } from 'lucide-react';
+import { UploadCloud, Download, Loader2, XCircle, Replace } from 'lucide-react';
 
 interface ImageConverterClientProps {
   sourceFormat: string;
   targetFormat: string;
   accept: Accept;
   outputFileNameSuffix: string;
-  toolIcon?: React.ElementType;
 }
 
 export function JPGToWebPClient({
@@ -23,7 +22,6 @@ export function JPGToWebPClient({
   targetFormat = "WebP",
   accept = { 'image/jpeg': ['.jpg', '.jpeg'] },
   outputFileNameSuffix = "_to_webp.webp",
-  toolIcon: ToolIcon = Replace,
 }: ImageConverterClientProps) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -159,7 +157,7 @@ export function JPGToWebPClient({
           </CardHeader>
           <CardContent>
             <Button onClick={handleConvert} disabled={isLoading || !imageFile} className="w-full sm:w-auto">
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ToolIcon className="mr-2 h-4 w-4" />}
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Replace className="mr-2 h-4 w-4" />}
               Convert to {targetFormat}
             </Button>
             {isLoading && <Progress value={progress} className="w-full mt-2 h-2" />}
@@ -191,4 +189,3 @@ export function JPGToWebPClient({
     </div>
   );
 }
-

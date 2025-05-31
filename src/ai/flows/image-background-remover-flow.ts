@@ -11,6 +11,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+// Public input schema for the flow
 const RemoveBackgroundInputSchema = z.object({
   photoDataUri: z
     .string()
@@ -19,6 +20,12 @@ const RemoveBackgroundInputSchema = z.object({
     ),
 });
 export type RemoveBackgroundInput = z.infer<typeof RemoveBackgroundInputSchema>;
+
+// Internal input schema for the Genkit prompt, including the extracted MIME type
+const RemoveBackgroundPromptInternalInputSchema = z.object({
+  photoDataUri: z.string().describe("The full photo data URI."),
+  mimeType: z.string().describe("The MIME type of the photo (e.g., 'image/png').")
+});
 
 const RemoveBackgroundOutputSchema = z.object({
   processedPhotoDataUri: z.string().describe('The processed photo as a data URI with the background removed/replaced by a plain one.'),
@@ -31,11 +38,11 @@ export async function removeBackground(input: RemoveBackgroundInput): Promise<Re
 
 const removeBackgroundGenkitPrompt = ai.definePrompt({
   name: 'removeBackgroundPrompt',
-  input: {schema: RemoveBackgroundInputSchema}, // Use the main input schema directly
+  input: {schema: RemoveBackgroundPromptInternalInputSchema}, // Use the internal schema here
   output: {schema: RemoveBackgroundOutputSchema},
   model: 'googleai/gemini-2.0-flash-exp', 
   prompt: [
-    {media: {url: '{{{photoDataUri}}}' }}, // Pass the full data URI
+    {media: {url: '{{{photoDataUri}}}', contentType: '{{{mimeType}}}' }}, // Pass full URI and explicit contentType
     {text: 'Isolate the main subject of this image. Remove the original background and replace it with a plain white background. Provide only the modified image.'},
   ],
   config: {
@@ -53,25 +60,38 @@ const removeBackgroundGenkitPrompt = ai.definePrompt({
 const removeBackgroundFlow = ai.defineFlow(
   {
     name: 'removeBackgroundFlow',
-    inputSchema: RemoveBackgroundInputSchema, 
+    inputSchema: RemoveBackgroundInputSchema, // Public flow uses this
     outputSchema: RemoveBackgroundOutputSchema,
   },
   async (input: RemoveBackgroundInput) => {
-    // The input 'photoDataUri' is already in the correct format for the prompt
-    const llmResponse = await removeBackgroundGenkitPrompt(input);
+    // Parse the data URI to extract the MIME type
+    const mimeTypeMatch = input.photoDataUri.match(/^data:(image\/[^;]+);base64,/);
+    if (!mimeTypeMatch || !mimeTypeMatch[1]) {
+      console.error('Invalid data URI format or could not extract MIME type from:', input.photoDataUri);
+      throw new Error('Invalid data URI format or could not extract MIME type.');
+    }
+    const mimeType = mimeTypeMatch[1];
+
+    // Call the prompt with the full data URI and the extracted MIME type
+    const llmResponse = await removeBackgroundGenkitPrompt({
+      photoDataUri: input.photoDataUri,
+      mimeType: mimeType,
+    });
+    
     const output = llmResponse.output;
 
-    if (!output?.processedPhotoDataUri && llmResponse.media?.url) {
+    // The model primarily returns the image via llmResponse.media.url for image generation/manipulation tasks
+    if (llmResponse.media?.url) {
       return { processedPhotoDataUri: llmResponse.media.url };
     }
-    if (!output?.processedPhotoDataUri) {
-        if (llmResponse.media?.url) {
-            return { processedPhotoDataUri: llmResponse.media.url };
-        }
-        console.error('Background removal failed to produce an image URL from output or media.', llmResponse);
-        throw new Error('AI did not return a processed image.');
+    
+    // Fallback if for some reason it's in the structured output (less likely for this model type)
+    if (output?.processedPhotoDataUri) {
+        return { processedPhotoDataUri: output.processedPhotoDataUri };
     }
-    return output;
+
+    console.error('Background removal failed. AI did not return a processed image in media.url or output.processedPhotoDataUri.', llmResponse);
+    throw new Error('AI did not return a processed image.');
   }
 );
 

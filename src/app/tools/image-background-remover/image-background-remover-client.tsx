@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Download, Loader2, Scissors as ScissorsIcon, XCircle } from 'lucide-react';
+import { UploadCloud, Download, Loader2, Wand2, XCircle } from 'lucide-react';
+import { removeBackground, type RemoveBackgroundInput } from '@/ai/flows/image-background-remover-flow';
 
 interface ProcessedImageResult {
   name: string;
@@ -29,7 +30,7 @@ export function ImageBackgroundRemoverClient() {
       if (!file.type.startsWith('image/')) {
         toast({
           title: "Invalid File Type",
-          description: "Please upload an image file.",
+          description: "Please upload an image file (e.g., JPG, PNG, WebP).",
           variant: "destructive",
         });
         return;
@@ -43,7 +44,7 @@ export function ImageBackgroundRemoverClient() {
       setResult(null);
       toast({
         title: "Image Selected",
-        description: `${file.name} is ready for background removal.`,
+        description: `${file.name} is ready for AI background removal.`,
       });
     }
   }, [toast]);
@@ -68,77 +69,48 @@ export function ImageBackgroundRemoverClient() {
     setProgress(0);
     setResult(null);
 
-    setProgress(30);
-
-    const img = document.createElement('img');
-    img.crossOrigin = "anonymous";
-
-    img.onload = () => {
-      setProgress(60);
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-
-      if (!ctx) {
-        toast({
-          title: "Canvas Error",
-          description: "Could not get canvas context.",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-        setProgress(0);
-        return;
+    let currentProgress = 0;
+    const progressInterval = setInterval(() => {
+      currentProgress += 5;
+      if (currentProgress < 90) {
+        setProgress(currentProgress);
+      } else {
+        clearInterval(progressInterval);
       }
+    }, 200);
 
-      ctx.drawImage(img, 0, 0);
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imageData.data;
-
-      const targetR = data[0];
-      const targetG = data[1];
-      const targetB = data[2];
-      const tolerance = 40; // Increased tolerance for broader color matching
-
-      for (let i = 0; i < data.length; i += 4) {
-        const r = data[i];
-        const g = data[i + 1];
-        const b = data[i + 2];
-
-        if (
-          Math.abs(r - targetR) <= tolerance &&
-          Math.abs(g - targetG) <= tolerance &&
-          Math.abs(b - targetB) <= tolerance
-        ) {
-          data[i + 3] = 0; 
-        }
-      }
-      ctx.putImageData(imageData, 0, 0);
+    try {
+      const input: RemoveBackgroundInput = { photoDataUri: imagePreview };
+      const aiResult = await removeBackground(input);
       
-      const processedDataUrl = canvas.toDataURL('image/png');
-      setResult({
-        name: `bg_removed_${imageFile.name.split('.')[0]}.png`,
-        dataUrl: processedDataUrl,
-      });
+      clearInterval(progressInterval);
       setProgress(100);
-      toast({
-        title: "Background Removal Attempted!",
-        description: "Basic background removal applied. Quality depends on image uniformity.",
-      });
-      setIsLoading(false);
-    };
 
-    img.onerror = () => {
+      if (aiResult.processedPhotoDataUri) {
+        setResult({
+          name: `bg_removed_${imageFile.name.split('.')[0]}.png`, // Assume PNG output from AI
+          dataUrl: aiResult.processedPhotoDataUri,
+        });
+        toast({
+          title: "Background Removed!",
+          description: "The AI has processed your image.",
+        });
+      } else {
+        throw new Error("AI did not return a processed image.");
+      }
+
+    } catch (error: any) {
+      clearInterval(progressInterval);
+      setProgress(0);
+      console.error("Error removing background with AI:", error);
       toast({
-        title: "Image Load Error",
-        description: "Could not load the image for processing.",
+        title: "AI Processing Error",
+        description: error.message || "Failed to remove background. Please try again.",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
-      setProgress(0);
-    };
-    
-    img.src = imagePreview;
+    }
   };
   
   const handleRemoveImage = () => {
@@ -158,7 +130,7 @@ export function ImageBackgroundRemoverClient() {
         <CardHeader>
           <CardTitle className="font-headline text-xl">Upload Image</CardTitle>
           <CardDescription>
-            Upload an image to attempt background removal. This non-AI tool works best with <strong>simple, fairly uniform backgrounds</strong>. It identifies the color of the <strong>top-left pixel</strong> and makes colors within a certain tolerance of it transparent. The effectiveness heavily depends on your image's background. For complex backgrounds, consider AI-powered solutions.
+            Upload an image and our AI will attempt to remove the background, replacing it with a plain white one.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -200,8 +172,8 @@ export function ImageBackgroundRemoverClient() {
           </CardHeader>
           <CardContent>
             <Button onClick={handleRemoveBackground} disabled={isLoading || !imageFile} className="w-full sm:w-auto">
-              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ScissorsIcon className="mr-2 h-4 w-4" />}
-              Remove Background
+              {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+              Remove Background (AI)
             </Button>
             {isLoading && <Progress value={progress} className="w-full mt-2 h-2" />}
           </CardContent>
@@ -211,8 +183,8 @@ export function ImageBackgroundRemoverClient() {
       {result && (
         <Card className="bg-secondary/30">
           <CardHeader>
-            <CardTitle className="font-headline text-xl">Processed Image</CardTitle>
-            <CardDescription>Image with background processed. Transparent areas are shown with a checkerboard pattern.</CardDescription>
+            <CardTitle className="font-headline text-xl">AI Processed Image</CardTitle>
+            <CardDescription>Image with background processed by AI. Transparent areas (if any) are shown with a checkerboard pattern, or background is replaced with white.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative aspect-video w-full max-w-md mx-auto border rounded-md overflow-hidden checkerboard-bg">
@@ -232,7 +204,7 @@ export function ImageBackgroundRemoverClient() {
               aria-label={`Download ${result.name}`}
             >
               <Download className="mr-2 h-4 w-4" />
-              Download Image
+              Download Processed Image
             </Button>
           </CardContent>
         </Card>

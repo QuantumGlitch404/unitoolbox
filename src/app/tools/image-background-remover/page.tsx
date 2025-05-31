@@ -11,11 +11,10 @@ export default function ImageBackgroundRemoverPage() {
   }
 
   const instructions = [
-    "Upload an image. For best results, choose one with a simple and fairly uniform background.",
-    "This tool identifies the color of the **top-left pixel** of your image.",
-    "Click 'Remove Background'. It will attempt to make pixels similar in color to the top-left pixel transparent.",
-    "Effectiveness varies greatly based on background complexity and the top-left pixel color. This tool is not suitable for intricate or varied backgrounds.",
-    "The processed image (with transparent areas on a checkerboard) can be downloaded."
+    "Upload an image (JPG, PNG, WebP).",
+    "Click the 'Remove Background (AI)' button.",
+    "The AI will process your image to identify the main subject and replace the background with plain white.",
+    "Preview the result. The processed image (with a white background) can be downloaded."
   ];
 
   return (

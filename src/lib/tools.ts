@@ -63,13 +63,13 @@ export const tools: Tool[] = [
   },
   {
     id: 'image-background-remover',
-    title: 'Background Remover',
-    description: 'Automatically remove backgrounds from images. Best for simple, uniform backgrounds.', // Updated description
+    title: 'AI Background Remover',
+    description: 'Automatically remove backgrounds from images using AI. Replaces background with white.',
     href: '/tools/image-background-remover',
     category: 'Image',
-    icon: BringToFront,
-    aiPowered: false, // Changed from true
-    tags: ['image', 'background', 'remove', 'basic'],
+    icon: Wand2, // Changed icon to Wand2 to signify AI
+    aiPowered: true, 
+    tags: ['image', 'background', 'remove', 'ai', 'edit'],
   },
   {
     id: 'image-to-text',
@@ -166,10 +166,8 @@ export const tools: Tool[] = [
     icon: Palette,
     tags: ['svg', 'png', 'image', 'converter', 'vector'],
   },
-  // Add more tools as needed, following the structure.
-  // This is a representative subset.
 ];
 
-export const featuredTools: Tool[] = tools.slice(0, 4); // Example: first 4 tools are featured
+export const featuredTools: Tool[] = tools.slice(0, 4); 
 
 export const getToolById = (id: string): Tool | undefined => tools.find(tool => tool.id === id);

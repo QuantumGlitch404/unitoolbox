@@ -38,11 +38,11 @@ export async function removeBackground(input: RemoveBackgroundInput): Promise<Re
 
 const removeBackgroundGenkitPrompt = ai.definePrompt({
   name: 'removeBackgroundPrompt',
-  input: {schema: RemoveBackgroundPromptInternalInputSchema}, // Use the internal schema here
+  input: {schema: RemoveBackgroundPromptInternalInputSchema},
   output: {schema: RemoveBackgroundOutputSchema},
   model: 'googleai/gemini-2.0-flash-exp', 
   prompt: [
-    {media: {url: '{{{photoDataUri}}}', contentType: '{{{mimeType}}}' }}, // Pass full URI and explicit contentType
+    {media: {url: '{{{photoDataUri}}}', contentType: '{{{mimeType}}}' }},
     {text: 'Isolate the main subject of this image. Remove the original background and replace it with a plain white background. Provide only the modified image.'},
   ],
   config: {
@@ -60,7 +60,7 @@ const removeBackgroundGenkitPrompt = ai.definePrompt({
 const removeBackgroundFlow = ai.defineFlow(
   {
     name: 'removeBackgroundFlow',
-    inputSchema: RemoveBackgroundInputSchema, // Public flow uses this
+    inputSchema: RemoveBackgroundInputSchema, 
     outputSchema: RemoveBackgroundOutputSchema,
   },
   async (input: RemoveBackgroundInput) => {
@@ -72,7 +72,6 @@ const removeBackgroundFlow = ai.defineFlow(
     }
     const mimeType = mimeTypeMatch[1];
 
-    // Call the prompt with the full data URI and the extracted MIME type
     const llmResponse = await removeBackgroundGenkitPrompt({
       photoDataUri: input.photoDataUri,
       mimeType: mimeType,
@@ -80,12 +79,10 @@ const removeBackgroundFlow = ai.defineFlow(
     
     const output = llmResponse.output;
 
-    // The model primarily returns the image via llmResponse.media.url for image generation/manipulation tasks
     if (llmResponse.media?.url) {
       return { processedPhotoDataUri: llmResponse.media.url };
     }
     
-    // Fallback if for some reason it's in the structured output (less likely for this model type)
     if (output?.processedPhotoDataUri) {
         return { processedPhotoDataUri: output.processedPhotoDataUri };
     }
@@ -94,4 +91,3 @@ const removeBackgroundFlow = ai.defineFlow(
     throw new Error('AI did not return a processed image.');
   }
 );
-

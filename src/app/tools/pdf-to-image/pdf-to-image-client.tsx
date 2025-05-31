@@ -26,11 +26,13 @@ export function PdfToImageClient() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Set workerSrc to the local path.
-    // IMPORTANT: You need to manually copy 'pdf.worker.min.js'
+    // IMPORTANT: You MUST manually copy 'pdf.worker.min.js'
     // from 'node_modules/pdfjs-dist/build/pdf.worker.min.js'
-    // to your 'public' folder for this to work.
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
+    // to your project's 'public' folder (at the root level) for this to work.
+    // For example, the file should be accessible at `your-app-url/pdf.worker.min.js`.
+    const workerSrcPath = `/pdf.worker.min.js`;
+    pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrcPath;
+    console.log(`PDF.js version: ${pdfjsLib.version}, Worker path set to: ${workerSrcPath}`);
   }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -109,7 +111,7 @@ export function PdfToImageClient() {
         toast({ title: "Conversion Complete!", description: `${pdf.numPages} page(s) converted to images.` });
       } catch (error: any) {
         console.error("Error converting PDF to images:", error);
-        toast({ title: "Conversion Error", description: error.message || "Failed to process PDF. Ensure the worker is correctly set up.", variant: "destructive" });
+        toast({ title: "Conversion Error", description: error.message || "Failed to process PDF. Ensure the worker file is in the /public directory and accessible.", variant: "destructive" });
       } finally {
         setIsLoading(false);
       }

@@ -12,9 +12,10 @@ export default function ImageBackgroundRemoverPage() {
 
   const instructions = [
     "Upload an image from which you want to remove the background.",
+    "The tool will use the color of the top-left pixel of your image as the target background color.",
     "Click the 'Remove Background' button.",
-    "The AI will process the image (simulated for now).",
-    "The image with the background removed will be displayed, along with a download link."
+    "Pixels similar to the target background color will be made transparent.",
+    "The processed image will be displayed with a checkerboard pattern for transparent areas. You can then download it."
   ];
 
   return (

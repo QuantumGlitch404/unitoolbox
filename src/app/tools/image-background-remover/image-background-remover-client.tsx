@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Download, Loader2, Scissors as ScissorsIcon, XCircle } from 'lucide-react'; // Changed Wand2 to ScissorsIcon
+import { UploadCloud, Download, Loader2, Scissors as ScissorsIcon, XCircle } from 'lucide-react';
 
 interface ProcessedImageResult {
   name: string;
@@ -68,11 +68,10 @@ export function ImageBackgroundRemoverClient() {
     setProgress(0);
     setResult(null);
 
-    // Simulate some progress
     setProgress(30);
 
     const img = document.createElement('img');
-    img.crossOrigin = "anonymous"; // Handle potential CORS issues if image source was external
+    img.crossOrigin = "anonymous";
 
     img.onload = () => {
       setProgress(60);
@@ -96,26 +95,22 @@ export function ImageBackgroundRemoverClient() {
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const data = imageData.data;
 
-      // Get the color of the top-left pixel as the target background color
       const targetR = data[0];
       const targetG = data[1];
       const targetB = data[2];
-      // Simple tolerance, can be adjusted. For exact match, set to 0.
-      const tolerance = 10; 
+      const tolerance = 30; // Increased tolerance
 
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
         const g = data[i + 1];
         const b = data[i + 2];
 
-        // Check if the pixel color is similar to the target background color (top-left pixel)
-        // A more sophisticated version would allow user to pick color or use a tolerance
         if (
           Math.abs(r - targetR) <= tolerance &&
           Math.abs(g - targetG) <= tolerance &&
           Math.abs(b - targetB) <= tolerance
         ) {
-          data[i + 3] = 0; // Set alpha to 0 (transparent)
+          data[i + 3] = 0; 
         }
       }
       ctx.putImageData(imageData, 0, 0);
@@ -143,7 +138,7 @@ export function ImageBackgroundRemoverClient() {
       setProgress(0);
     };
     
-    img.src = imagePreview; // imagePreview is a data URL
+    img.src = imagePreview;
   };
   
   const handleRemoveImage = () => {
@@ -162,7 +157,7 @@ export function ImageBackgroundRemoverClient() {
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-xl">Upload Image</CardTitle>
-          <CardDescription>Select image to remove background from. Best for images with simple, uniform backgrounds.</CardDescription>
+          <CardDescription>Select image to remove background from. This tool attempts to remove colors similar to the top-left pixel of the image.</CardDescription>
         </CardHeader>
         <CardContent>
           {imagePreview ? (
@@ -215,10 +210,10 @@ export function ImageBackgroundRemoverClient() {
         <Card className="bg-secondary/30">
           <CardHeader>
             <CardTitle className="font-headline text-xl">Processed Image</CardTitle>
-            <CardDescription>Image with background processed.</CardDescription>
+            <CardDescription>Image with background processed. Transparent areas are shown with a checkerboard pattern.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="relative aspect-video w-full max-w-md mx-auto border rounded-md overflow-hidden">
+            <div className="relative aspect-video w-full max-w-md mx-auto border rounded-md overflow-hidden checkerboard-bg">
               <Image src={result.dataUrl} alt={result.name} layout="fill" objectFit="contain" />
             </div>
             <Button 

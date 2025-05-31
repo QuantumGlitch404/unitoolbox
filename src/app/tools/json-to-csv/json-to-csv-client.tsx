@@ -17,9 +17,7 @@ const escapeCsvCell = (value: any): string => {
     return '';
   }
   const stringValue = String(value);
-  // If the stringValue contains a comma, a double quote, or a newline/carriage return character
   if (/[",\r\n]/.test(stringValue)) {
-    // Enclose in double quotes and replace any internal double quotes with two double quotes
     return `"${stringValue.replace(/"/g, '""')}"`;
   }
   return stringValue;
@@ -34,7 +32,7 @@ const flattenObject = (obj: any, prefix: string = ''): Record<string, any> => {
       if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
         Object.assign(result, flattenObject(obj[key], newPrefix));
       } else if (Array.isArray(obj[key])) {
-        result[newPrefix] = JSON.stringify(obj[key]); // Arrays are stringified
+        result[newPrefix] = JSON.stringify(obj[key]);
       } else {
         result[newPrefix] = obj[key];
       }
@@ -49,53 +47,55 @@ const convertJsonToCsv = (jsonData: any): string => {
   if (Array.isArray(jsonData)) {
     dataArray = jsonData;
   } else if (typeof jsonData === 'object' && jsonData !== null) {
-    dataArray = [jsonData]; // Wrap single object in an array
+    dataArray = [jsonData];
   } else {
-    // Handle cases where jsonData is not an array or object (e.g., primitive, though less useful for CSV)
-    // For simplicity, we'll try to create a single-value CSV or throw an error.
-    // This scenario should ideally be caught earlier or handled with more specific UI.
-    if (jsonData === null || jsonData === undefined || typeof jsonData === 'function' || typeof jsonData === 'symbol') {
-       throw new Error("Input JSON data must be an array of objects or a single object.");
+    if (jsonData === null) {
+      throw new Error("Input JSON 'null' cannot be meaningfully converted to CSV. Please provide an array of objects or a single object.");
     }
-     // For a single primitive value, create a CSV with one header 'value' and one row.
+    // For other primitives (string, number, boolean) parsed from JSON
     return `value\n${escapeCsvCell(jsonData)}`;
   }
   
   if (dataArray.length === 0) {
-    return ''; // Return empty string for empty array
+    return ''; // Return empty string for empty JSON array []
   }
 
-  // Process each item to ensure it's an object and flatten it
   const flattenedData = dataArray.map(item => {
     if (typeof item === 'object' && item !== null) {
       return flattenObject(item);
     }
-    // If item is not an object (e.g. array of primitives), represent it as a single-column object
+    // If item in array is not an object (e.g. [1, "a", {"k":"v"}]), treat it as a single value.
     return { 'value': item }; 
   });
 
-  // Collect all unique headers from all flattened objects
   const headersSet = new Set<string>();
   flattenedData.forEach(obj => {
-    Object.keys(obj).forEach(key => headersSet.add(key));
+    if (typeof obj === 'object' && obj !== null) {
+      Object.keys(obj).forEach(key => headersSet.add(key));
+    }
   });
-  const headers = Array.from(headersSet).sort(); // Sort for consistent column order
+  const headers = Array.from(headersSet).sort(); 
 
-  if (headers.length === 0 && flattenedData.length > 0 && flattenedData.every(item => typeof item.value !== 'undefined' && Object.keys(item).length === 1)) {
-      // This case handles an array of primitives like [1,2,3] or ["a","b","c"]
-      // which were converted to [{value:1},{value:2},{value:3}]
+  // Handles cases like input [1,2,3] which becomes [{value:1},{value:2},{value:3}]
+  // and we want the header to be 'value'.
+  if (headers.length === 1 && headers[0] === 'value' && 
+      flattenedData.every(item => typeof item === 'object' && item !== null && Object.keys(item).length === 1 && 'value' in item)) {
       const csvRows = [
-        "value", // Header row
+        "value", 
         ...flattenedData.map(rowObj => escapeCsvCell(rowObj.value))
       ];
       return csvRows.join('\n');
   }
 
+  // If headers is empty (e.g., from input `[{}, null]`), produce CSV with no headers and appropriate number of empty lines.
+  if (headers.length === 0) {
+    return flattenedData.map(() => "").join('\n'); // Each item results in a blank line.
+  }
 
   const csvRows = [
-    headers.map(header => escapeCsvCell(header)).join(','), // Header row
+    headers.map(header => escapeCsvCell(header)).join(','), 
     ...flattenedData.map(obj =>
-      headers.map(header => escapeCsvCell(obj[header])).join(',')
+      headers.map(header => escapeCsvCell(obj ? obj[header] : '')).join(',')
     )
   ];
 
@@ -144,11 +144,11 @@ export function JsonToCsvClient() {
       });
     } catch (error: any) {
       console.error("Error converting JSON to CSV:", error);
-      let errorMessage = "Failed to convert JSON to CSV. Please check the data format.";
+      let errorMessage = "Failed to convert JSON to CSV. Please check the data format and structure.";
       if (error instanceof Error && error.message) {
         errorMessage = error.message;
       }
-      setCsvData(null); // Clear any potentially wrong CSV data on error
+      setCsvData(null);
       toast({
         title: "Conversion Error",
         description: errorMessage,
@@ -165,7 +165,7 @@ export function JsonToCsvClient() {
         .then(() => toast({ title: "Copied!", description: "CSV data copied to clipboard." }))
         .catch(() => toast({ title: "Copy Failed", description: "Could not copy CSV data.", variant: "destructive" }));
     } else {
-       toast({ title: "Nothing to Copy", description: "CSV output is empty or contains only an error message.", variant: "destructive"});
+       toast({ title: "Nothing to Copy", description: "CSV output is empty.", variant: "default"});
     }
   };
 
@@ -180,10 +180,10 @@ export function JsonToCsvClient() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url); // Clean up the object URL
+      URL.revokeObjectURL(url); 
       toast({ title: "Download Started", description: "CSV file download initiated." });
     } else {
-      toast({ title: "Nothing to Download", description: "CSV output is empty or contains only an error message.", variant: "destructive"});
+      toast({ title: "Nothing to Download", description: "CSV output is empty.", variant: "default"});
     }
   };
 
@@ -220,7 +220,7 @@ export function JsonToCsvClient() {
         </form>
       </Form>
 
-      {csvData !== null && ( // Show card even if csvData is an empty string (e.g. for empty JSON array input)
+      {csvData !== null && (
         <Card className="mt-6 bg-secondary/30">
           <CardHeader>
             <CardTitle className="font-headline text-xl">Generated CSV Data</CardTitle>
@@ -228,16 +228,16 @@ export function JsonToCsvClient() {
           </CardHeader>
           <CardContent>
             <Textarea
-              value={csvData} // Display empty string or error string if conversion failed
+              value={csvData} 
               readOnly
               className="min-h-[200px] resize-y text-base font-code bg-background/50"
               aria-label="Generated CSV output"
             />
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button onClick={handleCopyCsv} variant="outline" size="sm" disabled={!csvData || csvData.trim() === ""}>
+              <Button onClick={handleCopyCsv} variant="outline" size="sm" disabled={!csvData}>
                 <Copy className="mr-2 h-4 w-4" /> Copy CSV
               </Button>
-              <Button onClick={handleDownloadCsv} variant="outline" size="sm" disabled={!csvData || csvData.trim() === ""}>
+              <Button onClick={handleDownloadCsv} variant="outline" size="sm" disabled={!csvData}>
                 <Download className="mr-2 h-4 w-4" /> Download CSV
               </Button>
             </div>

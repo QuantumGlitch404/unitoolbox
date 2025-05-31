@@ -26,9 +26,11 @@ export function PdfToImageClient() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // pdf.js worker configuration
+    // In Next.js, the worker file needs to be in the /public folder.
     const workerSrcPath = `/pdf.worker.min.js`;
     pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrcPath;
-    console.log(`PDF.js version: ${pdfjsLib.version}, Worker path set to: ${workerSrcPath}`);
+    console.log(`PDF.js version: ${pdfjsLib.version}. Attempting to set worker path for PDF.js to: ${workerSrcPath}. This file MUST be in your /public directory and your dev server may need a restart.`);
   }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -53,6 +55,16 @@ export function PdfToImageClient() {
   });
 
   const handleConvertPdfToImages = async () => {
+    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
+        toast({
+            title: "Worker Configuration Error",
+            description: "PDF.js workerSrc not set. This indicates an issue with component initialization.",
+            variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+    }
+
     if (!pdfFile) {
       toast({ title: "No PDF", description: "Please upload a PDF file first.", variant: "destructive" });
       return;
@@ -71,9 +83,7 @@ export function PdfToImageClient() {
       }
       
       try {
-        console.log('Current pdfjsLib.GlobalWorkerOptions.workerSrc:', pdfjsLib.GlobalWorkerOptions.workerSrc);
         const typedArray = new Uint8Array(event.target.result as ArrayBuffer);
-        // Corrected: Pass typedArray as { data: typedArray }
         const loadingTask = pdfjsLib.getDocument({ data: typedArray });
         const pdf = await loadingTask.promise;
         setTotalPages(pdf.numPages);
@@ -206,3 +216,5 @@ export function PdfToImageClient() {
     </div>
   );
 }
+
+    

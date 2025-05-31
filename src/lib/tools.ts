@@ -2,7 +2,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   Scissors, FileText, Languages, Image as ImageIcon, FileJson, Database, AudioLines, Film, Palette, Type, Settings2, Wand2, FileType2, FileUp, FileDown,
-  Replace, Rows, Columns, SlidersHorizontal, TextSearch, Link, BoxSelect, Blend, BringToFront, Sparkles, FileVideo, Edit3, Combine
+  Replace, Rows, Columns, SlidersHorizontal, TextSearch, Link, BoxSelect, Blend, BringToFront, Sparkles, FileVideo, Edit3, Combine, FileCode, ArrowRightLeft
 } from 'lucide-react';
 
 export type ToolCategory = 'Image' | 'Document & Data' | 'Text & AI' | 'Media' | 'Converter';
@@ -239,8 +239,38 @@ export const tools: Tool[] = [
     icon: Palette,
     tags: ['png', 'svg', 'image', 'converter', 'vector', 'conceptual'],
   },
+  // New Advanced Document Converters (Frontend Stubs)
+  {
+    id: 'pdf-word-converter',
+    title: 'PDF <=> Word Converter',
+    description: 'Convert PDF files to Word documents (.docx) and vice-versa. Backend Firebase Function required for actual conversion.',
+    href: '/tools/pdf-word-converter',
+    category: 'Converter',
+    icon: ArrowRightLeft,
+    tags: ['pdf', 'word', 'docx', 'converter', 'document', 'backend-required'],
+  },
+  {
+    id: 'excel-pdf-converter',
+    title: 'Excel <=> PDF Converter',
+    description: 'Convert Excel spreadsheets (.xlsx) to PDF files and vice-versa. Backend Firebase Function required.',
+    href: '/tools/excel-pdf-converter',
+    category: 'Converter',
+    icon: ArrowRightLeft,
+    tags: ['excel', 'xlsx', 'pdf', 'converter', 'document', 'backend-required'],
+  },
+  {
+    id: 'powerpoint-pdf-converter',
+    title: 'PowerPoint <=> PDF Converter',
+    description: 'Convert PowerPoint presentations (.pptx) to PDF files and vice-versa. Backend Firebase Function required.',
+    href: '/tools/powerpoint-pdf-converter',
+    category: 'Converter',
+    icon: ArrowRightLeft,
+    tags: ['powerpoint', 'pptx', 'pdf', 'converter', 'document', 'backend-required'],
+  },
 ];
 
 export const featuredTools: Tool[] = tools.filter(tool => ['essay-summarizer', 'language-translator', 'image-background-remover', 'image-compressor'].includes(tool.id)).slice(0, 4);
 
 export const getToolById = (id: string): Tool | undefined => tools.find(tool => tool.id === id);
+
+export const getToolsByCategory = (category: ToolCategory): Tool[] => tools.filter(tool => tool.category === category);

@@ -21,7 +21,7 @@ export function PNGToJPGClient({
   sourceFormat = "PNG",
   targetFormat = "JPG",
   accept = { 'image/png': ['.png'] },
-  outputFileNameSuffix = "_to_jpg.jpg",
+  outputFileNameSuffix = "_converted.jpg",
 }: ImageConverterClientProps) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -64,11 +64,7 @@ export function PNGToJPGClient({
 
   const handleConvert = async () => {
     if (!imageFile || !imagePreview) {
-      toast({
-        title: "No Image",
-        description: `Please upload a ${sourceFormat} image first.`,
-        variant: "destructive",
-      });
+      toast({ title: "No Image", description: `Please upload a ${sourceFormat} image first.`, variant: "destructive" });
       return;
     }
 
@@ -78,28 +74,57 @@ export function PNGToJPGClient({
 
     let currentProgress = 0;
     const progressInterval = setInterval(() => {
-      currentProgress += 10;
-      if (currentProgress <= 100) {
-        setProgress(currentProgress);
-      } else {
-        clearInterval(progressInterval);
+      currentProgress += 20;
+      if (currentProgress < 80) setProgress(currentProgress);
+      else clearInterval(progressInterval);
+    }, 100);
+
+    try {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+          throw new Error("Could not get canvas context for image conversion.");
+        }
+        
+        // For PNG to JPG, if PNG has transparency, fill with white background
+        ctx.fillStyle = '#ffffff'; // White background
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        
+        const targetMimeType = 'image/jpeg';
+        const convertedDataUrl = canvas.toDataURL(targetMimeType, 0.9); // 0.9 quality for JPG
+
+        if (!convertedDataUrl || convertedDataUrl === "data:,") {
+            throw new Error(`Failed to convert image to ${targetFormat}. Canvas returned empty data.`);
+        }
+
         const outputFileName = `${imageFile.name.split('.').slice(0, -1).join('.')}${outputFileNameSuffix}`;
-        setResult({
-          name: outputFileName,
-          dataUrl: imagePreview, 
-        });
-        setIsLoading(false);
-        toast({
-          title: "Conversion Complete!",
-          description: `Image successfully converted to ${targetFormat} (simulated).`,
-        });
-      }
-    }, 150);
+        setResult({ name: outputFileName, dataUrl: convertedDataUrl });
+        setProgress(100);
+        toast({ title: "Conversion Complete!", description: `Image successfully converted to ${targetFormat}.` });
+      };
+      img.onerror = () => {
+        throw new Error("Failed to load the image for conversion. The file might be corrupt or in an unsupported format.");
+      };
+      img.src = imagePreview;
+
+    } catch (error: any) {
+      console.error(`Error converting ${sourceFormat} to ${targetFormat}:`, error);
+      toast({ title: "Conversion Error", description: error.message || `An unexpected error occurred during conversion.`, variant: "destructive" });
+      setProgress(0);
+    } finally {
+      clearInterval(progressInterval);
+      setIsLoading(false);
+    }
   };
 
   const handleRemoveImage = () => {
     setImageFile(null);
-    if(imagePreview) URL.revokeObjectURL(imagePreview);
     setImagePreview(null);
     setResult(null);
     setProgress(0);
@@ -171,7 +196,7 @@ export function PNGToJPGClient({
             <CardTitle className="font-headline text-xl">Converted {targetFormat} Image</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="relative aspect-video w-full max-w-md mx-auto border rounded-md overflow-hidden checkerboard-bg">
+            <div className="relative aspect-video w-full max-w-md mx-auto border rounded-md overflow-hidden">
               <Image src={result.dataUrl} alt={result.name} layout="fill" objectFit="contain" />
             </div>
             <Button

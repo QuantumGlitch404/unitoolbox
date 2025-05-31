@@ -24,7 +24,7 @@ export function PNGToSVGClient({
   sourceFormat = "PNG",
   targetFormat = "SVG",
   accept = { 'image/png': ['.png'] },
-  outputFileNameSuffix = "_to_svg.svg",
+  outputFileNameSuffix = "_converted.svg",
   isConceptual = true,
 }: ImageConverterClientProps) {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -68,11 +68,7 @@ export function PNGToSVGClient({
 
   const handleConvert = async () => {
     if (!imageFile || !imagePreview) {
-      toast({
-        title: "No Image",
-        description: `Please upload a ${sourceFormat} image first.`,
-        variant: "destructive",
-      });
+      toast({ title: "No Image", description: `Please upload a ${sourceFormat} image first.`, variant: "destructive" });
       return;
     }
 
@@ -82,31 +78,55 @@ export function PNGToSVGClient({
 
     let currentProgress = 0;
     const progressInterval = setInterval(() => {
-      currentProgress += 10;
-      if (currentProgress <= 100) {
-        setProgress(currentProgress);
-      } else {
-        clearInterval(progressInterval);
+      currentProgress += 20;
+      if (currentProgress < 80) setProgress(currentProgress);
+      else clearInterval(progressInterval);
+    }, 100);
+    
+    try {
+      const img = new window.Image();
+      img.onload = () => {
         const outputFileName = `${imageFile.name.split('.').slice(0, -1).join('.')}${outputFileNameSuffix}`;
-        const placeholderSvgData = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="lightgray"/><text x="10" y="50" font-family="Arial" font-size="10" fill="black">Placeholder SVG from ${imageFile.name}</text></svg>`;
-        const placeholderSvgDataUrl = `data:image/svg+xml;base64,${btoa(placeholderSvgData)}`;
+        
+        // Create a placeholder SVG that embeds the original PNG
+        const placeholderSvgData = `
+<svg xmlns="http://www.w3.org/2000/svg" width="${img.naturalWidth}" height="${img.naturalHeight}" viewBox="0 0 ${img.naturalWidth} ${img.naturalHeight}">
+  <title>Conceptual PNG to SVG: ${imageFile.name}</title>
+  <rect width="100%" height="100%" fill="#f0f0f0"/>
+  <image href="${imagePreview}" x="0" y="0" width="${img.naturalWidth}" height="${img.naturalHeight}" />
+  <text x="10" y="20" font-family="sans-serif" font-size="12" fill="#333" style="paint-order: stroke; stroke: #fff; stroke-width: 2px; stroke-linejoin: round;">
+    Conceptual PNG to SVG Conversion
+  </text>
+  <text x="10" y="40" font-family="sans-serif" font-size="10" fill="#555" style="paint-order: stroke; stroke: #fff; stroke-width: 2px; stroke-linejoin: round;">
+    Original PNG embedded. Not a true vectorization.
+  </text>
+</svg>`;
+        const placeholderSvgDataUrl = `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(placeholderSvgData)))}`;
 
-        setResult({
-          name: outputFileName,
-          dataUrl: isConceptual ? placeholderSvgDataUrl : imagePreview, 
-        });
-        setIsLoading(false);
+        setResult({ name: outputFileName, dataUrl: placeholderSvgDataUrl });
+        setProgress(100);
         toast({
           title: "Conceptual Conversion Complete!",
-          description: `Image conceptually 'converted' to ${targetFormat}. True vectorization is complex.`,
+          description: `Generated a placeholder SVG embedding the ${sourceFormat}. True vectorization is complex.`,
         });
-      }
-    }, 150);
+      };
+      img.onerror = () => {
+        throw new Error("Failed to load the image for placeholder generation.");
+      };
+      img.src = imagePreview;
+
+    } catch (error: any) {
+      console.error(`Error during conceptual conversion to ${targetFormat}:`, error);
+      toast({ title: "Conversion Error", description: error.message || `An unexpected error occurred.`, variant: "destructive" });
+      setProgress(0);
+    } finally {
+        clearInterval(progressInterval);
+        setIsLoading(false);
+    }
   };
 
   const handleRemoveImage = () => {
     setImageFile(null);
-    if(imagePreview) URL.revokeObjectURL(imagePreview);
     setImagePreview(null);
     setResult(null);
     setProgress(0);
@@ -123,14 +143,14 @@ export function PNGToSVGClient({
           <Terminal className="h-4 w-4" />
           <AlertTitle>Conceptual Tool</AlertTitle>
           <AlertDescription>
-            Converting raster images (like PNG) to vector graphics (SVG) is a complex process called vectorization or tracing, often requiring AI or sophisticated algorithms. This tool simulates the UI for such a converter. The downloaded SVG will be a placeholder.
+            Converting raster images (like PNG) to true vector graphics (SVG) is a complex process called vectorization, often requiring AI or sophisticated algorithms. This tool creates an SVG file that embeds your PNG image. It does not perform true vectorization.
           </AlertDescription>
         </Alert>
       )}
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-xl">Upload {sourceFormat} Image</CardTitle>
-          <CardDescription>Select a {sourceFormat} file to convert to {targetFormat}.</CardDescription>
+          <CardDescription>Select a {sourceFormat} file to conceptually convert to {targetFormat}.</CardDescription>
         </CardHeader>
         <CardContent>
           {imagePreview && imageFile ? (
@@ -184,10 +204,12 @@ export function PNGToSVGClient({
       {result && (
         <Card className="mt-6 bg-secondary/30">
           <CardHeader>
-            <CardTitle className="font-headline text-xl">Converted {targetFormat} Image</CardTitle>
+            <CardTitle className="font-headline text-xl">Generated {targetFormat} (Conceptual)</CardTitle>
+             <CardDescription>This SVG embeds the original PNG. It is not a vectorized image.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="relative aspect-video w-full max-w-md mx-auto border rounded-md overflow-hidden checkerboard-bg p-2">
+              {/* Use an img tag to preview SVG, browsers render it */}
               <Image src={result.dataUrl} alt={result.name} layout="fill" objectFit="contain" />
             </div>
             <Button

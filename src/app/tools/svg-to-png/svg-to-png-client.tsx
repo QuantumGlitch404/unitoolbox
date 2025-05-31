@@ -21,10 +21,10 @@ export function SVGToPNGClient({
   sourceFormat = "SVG",
   targetFormat = "PNG",
   accept = { 'image/svg+xml': ['.svg'] },
-  outputFileNameSuffix = "_to_png.png",
+  outputFileNameSuffix = "_converted.png",
 }: ImageConverterClientProps) {
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null); // This will be the SVG data URI
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<{ name: string; dataUrl: string } | null>(null);
@@ -45,7 +45,7 @@ export function SVGToPNGClient({
       setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string); // This will be the SVG data URI
+        setImagePreview(reader.result as string); 
       };
       reader.readAsDataURL(file);
       setResult(null);
@@ -64,11 +64,7 @@ export function SVGToPNGClient({
 
   const handleConvert = async () => {
     if (!imageFile || !imagePreview) {
-      toast({
-        title: "No Image",
-        description: `Please upload a ${sourceFormat} image first.`,
-        variant: "destructive",
-      });
+      toast({ title: "No Image", description: `Please upload a ${sourceFormat} image first.`, variant: "destructive" });
       return;
     }
 
@@ -78,29 +74,59 @@ export function SVGToPNGClient({
 
     let currentProgress = 0;
     const progressInterval = setInterval(() => {
-      currentProgress += 10;
-      if (currentProgress <= 100) {
-        setProgress(currentProgress);
-      } else {
-        clearInterval(progressInterval);
-        const outputFileName = `${imageFile.name.split('.').slice(0, -1).join('.')}${outputFileNameSuffix}`;
+      currentProgress += 20;
+      if (currentProgress < 80) setProgress(currentProgress);
+      else clearInterval(progressInterval);
+    }, 100);
+
+    try {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        // For SVG, we might want to control rendered size, or use its natural dimensions if available
+        // For simplicity, using natural dimensions if possible, otherwise default.
+        // Note: SVG's naturalWidth/Height might be 0 if not specified in SVG.
+        // A more robust solution might parse SVG for width/height or allow user input.
+        canvas.width = img.naturalWidth || 300; // Default width if naturalWidth is 0
+        canvas.height = img.naturalHeight || 150; // Default height if naturalHeight is 0
         
-        setResult({
-          name: outputFileName,
-          dataUrl: imagePreview, 
-        });
-        setIsLoading(false);
-        toast({
-          title: "Conversion Complete!",
-          description: `Image successfully converted to ${targetFormat} (simulated).`,
-        });
-      }
-    }, 150);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          throw new Error("Could not get canvas context for image conversion.");
+        }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        const targetMimeType = 'image/png';
+        const convertedDataUrl = canvas.toDataURL(targetMimeType);
+
+        if (!convertedDataUrl || convertedDataUrl === "data:,") {
+            throw new Error(`Failed to convert image to ${targetFormat}. Canvas returned empty data.`);
+        }
+        
+        const outputFileName = `${imageFile.name.split('.').slice(0, -1).join('.')}${outputFileNameSuffix}`;
+        setResult({ name: outputFileName, dataUrl: convertedDataUrl });
+        setProgress(100);
+        toast({ title: "Conversion Complete!", description: `Image successfully converted to ${targetFormat}.` });
+      };
+      img.onerror = (e) => {
+        // SVG loading errors can be tricky.
+        console.error("SVG loading error:", e);
+        throw new Error("Failed to load the SVG for conversion. It might be invalid or contain unsupported features.");
+      };
+      img.src = imagePreview; // imagePreview is the SVG data URI
+
+    } catch (error: any) {
+      console.error(`Error converting ${sourceFormat} to ${targetFormat}:`, error);
+      toast({ title: "Conversion Error", description: error.message || `An unexpected error occurred during conversion.`, variant: "destructive" });
+      setProgress(0);
+    } finally {
+      clearInterval(progressInterval);
+      setIsLoading(false);
+    }
   };
 
   const handleRemoveImage = () => {
     setImageFile(null);
-    if(imagePreview) URL.revokeObjectURL(imagePreview);
     setImagePreview(null);
     setResult(null);
     setProgress(0);
@@ -121,6 +147,7 @@ export function SVGToPNGClient({
           {imagePreview && imageFile ? (
             <div className="space-y-4">
               <div className="relative aspect-video w-full max-w-md mx-auto border rounded-md overflow-hidden checkerboard-bg p-2">
+                {/* Display SVG using img tag; browser handles rendering */}
                 <Image src={imagePreview} alt={`${sourceFormat} image preview`} layout="fill" objectFit="contain" />
                 <Button
                   variant="destructive"
@@ -169,10 +196,10 @@ export function SVGToPNGClient({
       {result && (
         <Card className="mt-6 bg-secondary/30">
           <CardHeader>
-            <CardTitle className="font-headline text-xl">Converted {targetFormat} Image (Preview may show original)</CardTitle>
+            <CardTitle className="font-headline text-xl">Converted {targetFormat} Image</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="relative aspect-video w-full max-w-md mx-auto border rounded-md overflow-hidden checkerboard-bg p-2">
+            <div className="relative aspect-video w-full max-w-md mx-auto border rounded-md overflow-hidden checkerboard-bg">
               <Image src={result.dataUrl} alt={result.name} layout="fill" objectFit="contain" />
             </div>
             <Button

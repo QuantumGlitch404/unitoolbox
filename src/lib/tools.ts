@@ -1,3 +1,4 @@
+
 import type { LucideIcon } from 'lucide-react';
 import {
   Scissors, FileText, Languages, Image, FileJson, Database, AudioLines, Film, Palette, Type, Settings2, Wand2, FileType2, FileUp, FileDown,
@@ -63,12 +64,12 @@ export const tools: Tool[] = [
   {
     id: 'image-background-remover',
     title: 'Background Remover',
-    description: 'Automatically remove backgrounds from images.',
+    description: 'Automatically remove backgrounds from images. Best for simple, uniform backgrounds.', // Updated description
     href: '/tools/image-background-remover',
     category: 'Image',
     icon: BringToFront,
-    aiPowered: true,
-    tags: ['image', 'background', 'remove', 'ai'],
+    aiPowered: false, // Changed from true
+    tags: ['image', 'background', 'remove', 'basic'],
   },
   {
     id: 'image-to-text',

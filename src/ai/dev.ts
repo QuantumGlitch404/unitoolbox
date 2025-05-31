@@ -4,4 +4,4 @@ config();
 
 import '@/ai/flows/language-translator.ts';
 import '@/ai/flows/essay-summarizer.ts';
-import '@/ai/flows/image-background-remover-flow.ts';
+// import '@/ai/flows/image-background-remover-flow.ts'; // Removed as the tool is now non-AI

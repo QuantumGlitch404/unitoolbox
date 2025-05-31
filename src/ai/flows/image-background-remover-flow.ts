@@ -26,9 +26,11 @@ const RemoveBackgroundOutputSchema = z.object({
 });
 export type RemoveBackgroundOutput = z.infer<typeof RemoveBackgroundOutputSchema>;
 
-// Internal input schema for the Genkit prompt, including the extracted mimeType
+// Internal input schema for the Genkit prompt, separating base64 data and mimeType
 const RemoveBackgroundPromptInternalInputSchema = z.object({
-  photoDataUri: z.string().describe('The full data URI of the photo.'),
+  base64Data: z
+    .string()
+    .describe("The Base64 encoded data of the photo, without the 'data:mimetype;base64,' prefix."),
   mimeType: z.string().describe('The MIME type of the photo (e.g., image/png).'),
 });
 
@@ -42,8 +44,8 @@ const removeBackgroundGenkitPrompt = ai.definePrompt({
   output: {schema: RemoveBackgroundOutputSchema},
   model: 'googleai/gemini-2.0-flash-exp',
   prompt: [
-    // The model needs both the data URI for the url and the explicit contentType
-    {media: {url: '{{{photoDataUri}}}', contentType: '{{{mimeType}}}'}},
+    // The model needs both the data URI (as base64Data here) for the url and the explicit contentType
+    {media: {url: '{{{base64Data}}}', contentType: '{{{mimeType}}}'}},
     {text: 'Isolate the main subject of this image. Remove the original background and replace it with a plain white background. Provide only the modified image.'},
   ],
   config: {
@@ -65,16 +67,24 @@ const removeBackgroundFlow = ai.defineFlow(
     outputSchema: RemoveBackgroundOutputSchema,
   },
   async (input: RemoveBackgroundInput) => {
-    // Extract mimeType from the data URI
-    const mimeTypeMatch = input.photoDataUri.match(/^data:(image\/\w+);base64,/);
-    if (!mimeTypeMatch || !mimeTypeMatch[1]) {
+    const dataUri = input.photoDataUri;
+    
+    const mimeTypeMatch = dataUri.match(/^data:(image\/\w+);base64,/);
+    if (!mimeTypeMatch || mimeTypeMatch.length < 2) {
       throw new Error('Invalid data URI format or could not extract MIME type.');
     }
-    const mimeType = mimeTypeMatch[1];
+    const mimeType = mimeTypeMatch[1]; // e.g., "image/png"
+    
+    // Extract the base64 data part (everything after "data:<mimetype>;base64,")
+    const base64Data = dataUri.substring(mimeTypeMatch[0].length);
+
+    if (!base64Data) {
+        throw new Error('Could not extract base64 data from URI.');
+    }
 
     // Call the prompt with the parsed and structured data
     const llmResponse = await removeBackgroundGenkitPrompt({
-      photoDataUri: input.photoDataUri,
+      base64Data: base64Data,
       mimeType: mimeType,
     });
 
@@ -82,7 +92,15 @@ const removeBackgroundFlow = ai.defineFlow(
 
     // Prioritize llmResponse.media.url for image generation/manipulation tasks
     if (llmResponse.media?.url) {
-      return { processedPhotoDataUri: llmResponse.media.url };
+      // The AI model might return base64 data directly in media.url for images.
+      // We need to reconstruct the full data URI if it's not already.
+      let resultDataUri = llmResponse.media.url;
+      if (!resultDataUri.startsWith('data:')) {
+        // Assuming the model returns PNG if it doesn't specify, or use original mimeType
+        const outputMimeType = llmResponse.media.contentType || 'image/png'; 
+        resultDataUri = `data:${outputMimeType};base64,${resultDataUri}`;
+      }
+      return { processedPhotoDataUri: resultDataUri };
     }
 
     // Fallback if the image URL is in the structured output for some reason
@@ -90,7 +108,8 @@ const removeBackgroundFlow = ai.defineFlow(
         return { processedPhotoDataUri: output.processedPhotoDataUri };
     }
 
-    console.error('Background removal failed. AI did not return a processed image in media.url or output.processedPhotoDataUri.', llmResponse);
+    console.error('Background removal failed. AI did not return a processed image in media.url or output.processedPhotoDataUri.', { response: llmResponse });
     throw new Error('AI did not return a processed image.');
   }
 );
+

@@ -98,7 +98,7 @@ export function ImageBackgroundRemoverClient() {
       const targetR = data[0];
       const targetG = data[1];
       const targetB = data[2];
-      const tolerance = 30; // Increased tolerance
+      const tolerance = 40; // Increased tolerance for broader color matching
 
       for (let i = 0; i < data.length; i += 4) {
         const r = data[i];
@@ -122,8 +122,8 @@ export function ImageBackgroundRemoverClient() {
       });
       setProgress(100);
       toast({
-        title: "Background Removed!",
-        description: "Basic background removal applied. Quality may vary.",
+        title: "Background Removal Attempted!",
+        description: "Basic background removal applied. Quality depends on image uniformity.",
       });
       setIsLoading(false);
     };
@@ -157,7 +157,9 @@ export function ImageBackgroundRemoverClient() {
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-xl">Upload Image</CardTitle>
-          <CardDescription>Select image to remove background from. This tool attempts to remove colors similar to the top-left pixel of the image.</CardDescription>
+          <CardDescription>
+            Upload an image to attempt background removal. This non-AI tool works best with <strong>simple, fairly uniform backgrounds</strong>. It identifies the color of the <strong>top-left pixel</strong> and makes colors within a certain tolerance of it transparent. The effectiveness heavily depends on your image's background. For complex backgrounds, consider AI-powered solutions.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {imagePreview ? (

@@ -9,7 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Loader2, TextSearch as TextSearchIcon, Wand2, Copy, XCircle } from 'lucide-react';
+import { UploadCloud, Loader2, Wand2, Copy, XCircle } from 'lucide-react';
+import { extractTextFromImage, type ImageToTextInput } from '@/ai/flows/image-to-text-flow';
 
 export function ImageToTextClient() {
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -51,7 +52,7 @@ export function ImageToTextClient() {
   });
 
   const handleExtractText = async () => {
-    if (!imageFile) {
+    if (!imageFile || !imagePreview) {
       toast({
         title: "No Image",
         description: "Please upload an image first.",
@@ -64,24 +65,39 @@ export function ImageToTextClient() {
     setProgress(0);
     setExtractedText(null);
 
-    // Simulate AI OCR process
+    // Simulate progress for user feedback
     let currentProgress = 0;
-    const interval = setInterval(() => {
+    const progressInterval = setInterval(() => {
       currentProgress += 10;
-      if (currentProgress <= 100) {
+      if (currentProgress < 90) { // Stop before 100 to let AI finish
         setProgress(currentProgress);
       } else {
-        clearInterval(interval);
-        // Placeholder: In a real app, this would be the result from an OCR AI service.
-        const placeholderText = `Simulated extracted text from ${imageFile.name}:\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.`;
-        setExtractedText(placeholderText);
-        setIsLoading(false);
-        toast({
-          title: "Text Extracted!",
-          description: "Text has been extracted from the image (simulated).",
-        });
+        clearInterval(progressInterval);
       }
-    }, 200);
+    }, 150);
+
+    try {
+      const input: ImageToTextInput = { photoDataUri: imagePreview };
+      const result = await extractTextFromImage(input);
+      setExtractedText(result.extractedText);
+      setProgress(100);
+      toast({
+        title: "Text Extracted!",
+        description: "Text has been successfully extracted from the image by AI.",
+      });
+    } catch (error: any) {
+      console.error("Error extracting text with AI:", error);
+      setExtractedText("Failed to extract text. Please try again or use a clearer image.");
+      setProgress(0);
+      toast({
+        title: "AI OCR Error",
+        description: error.message || "Could not extract text from the image.",
+        variant: "destructive",
+      });
+    } finally {
+      clearInterval(progressInterval);
+      setIsLoading(false);
+    }
   };
 
   const handleCopyText = () => {
@@ -108,16 +124,16 @@ export function ImageToTextClient() {
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-xl">Upload Image</CardTitle>
-          <CardDescription>Select image to extract text from.</CardDescription>
+          <CardDescription>Select an image file (JPG, PNG, WebP) to extract text from using AI OCR.</CardDescription>
         </CardHeader>
         <CardContent>
           {imagePreview ? (
              <div className="space-y-4">
               <div className="relative aspect-video w-full max-w-md mx-auto border rounded-md overflow-hidden">
                 <Image src={imagePreview} alt="Selected image preview" layout="fill" objectFit="contain" />
-                 <Button 
-                    variant="destructive" 
-                    size="icon" 
+                 <Button
+                    variant="destructive"
+                    size="icon"
                     className="absolute top-2 right-2 z-10 rounded-full h-7 w-7"
                     onClick={handleRemoveImage}
                     aria-label="Remove image"
@@ -150,7 +166,7 @@ export function ImageToTextClient() {
           <CardContent>
             <Button onClick={handleExtractText} disabled={isLoading || !imageFile} className="w-full sm:w-auto">
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-              Extract Text (OCR)
+              Extract Text with AI
             </Button>
             {isLoading && <Progress value={progress} className="w-full mt-2 h-2" />}
           </CardContent>
@@ -160,7 +176,7 @@ export function ImageToTextClient() {
       {extractedText && (
         <Card className="mt-6 bg-secondary/30">
           <CardHeader>
-            <CardTitle className="font-headline text-xl">Extracted Text</CardTitle>
+            <CardTitle className="font-headline text-xl">Extracted Text (AI OCR)</CardTitle>
           </CardHeader>
           <CardContent>
             <Textarea

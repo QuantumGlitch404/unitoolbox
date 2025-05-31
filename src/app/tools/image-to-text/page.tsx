@@ -11,10 +11,10 @@ export default function ImageToTextPage() {
   }
 
   const instructions = [
-    "Upload an image containing text you want to extract.",
-    "Click the 'Extract Text' button.",
-    "The AI will perform OCR on the image (simulated).",
-    "The extracted text will appear in the text area below."
+    "Upload an image (JPG, PNG, WebP) containing text you want to extract.",
+    "Click the 'Extract Text with AI' button.",
+    "The AI will perform OCR (Optical Character Recognition) on the image.",
+    "The extracted text will appear in the text area below, ready to be copied."
   ];
 
   return (

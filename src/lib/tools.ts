@@ -67,8 +67,8 @@ export const tools: Tool[] = [
     description: 'Automatically remove backgrounds from images using AI. Replaces background with white.',
     href: '/tools/image-background-remover',
     category: 'Image',
-    icon: Wand2, // Changed icon to Wand2 to signify AI
-    aiPowered: true, 
+    icon: Wand2,
+    aiPowered: true,
     tags: ['image', 'background', 'remove', 'ai', 'edit'],
   },
   {
@@ -94,11 +94,11 @@ export const tools: Tool[] = [
   {
     id: 'json-to-csv',
     title: 'JSON to CSV Converter',
-    description: 'Convert JSON data format to CSV.',
+    description: 'Convert JSON data format to CSV. Handles nested objects and denormalizes arrays of objects.',
     href: '/tools/json-to-csv',
     category: 'Document & Data',
     icon: FileJson,
-    tags: ['json', 'csv', 'converter', 'data'],
+    tags: ['json', 'csv', 'converter', 'data', 'denormalize'],
   },
   {
     id: 'csv-to-json',
@@ -138,7 +138,7 @@ export const tools: Tool[] = [
     aiPowered: true,
     tags: ['audio', 'speech', 'text', 'transcription', 'ai'],
   },
-  // Converters (catch-all for many specific format conversions)
+  // Converters
   {
     id: 'webp-to-jpg',
     title: 'WebP to JPG',
@@ -147,6 +147,15 @@ export const tools: Tool[] = [
     category: 'Converter',
     icon: FileType2,
     tags: ['webp', 'jpg', 'image', 'converter'],
+  },
+  {
+    id: 'jpg-to-webp',
+    title: 'JPG to WebP Converter',
+    description: 'Convert JPG images to the modern WebP format.',
+    href: '/tools/jpg-to-webp',
+    category: 'Converter',
+    icon: Replace,
+    tags: ['jpg', 'jpeg', 'webp', 'image', 'converter'],
   },
   {
     id: 'png-to-jpg',
@@ -158,6 +167,15 @@ export const tools: Tool[] = [
     tags: ['png', 'jpg', 'image', 'converter'],
   },
   {
+    id: 'jpg-to-png',
+    title: 'JPG to PNG Converter',
+    description: 'Convert JPG images to PNG format.',
+    href: '/tools/jpg-to-png',
+    category: 'Converter',
+    icon: FileType2,
+    tags: ['jpg', 'jpeg', 'png', 'image', 'converter'],
+  },
+  {
     id: 'svg-to-png',
     title: 'SVG to PNG',
     description: 'Convert SVG vector graphics to PNG images.',
@@ -166,8 +184,17 @@ export const tools: Tool[] = [
     icon: Palette,
     tags: ['svg', 'png', 'image', 'converter', 'vector'],
   },
+  {
+    id: 'png-to-svg',
+    title: 'PNG to SVG Converter (Conceptual)',
+    description: 'Conceptual tool to convert PNG images to SVG vector format. (Note: True vectorization is complex; UI placeholder).',
+    href: '/tools/png-to-svg',
+    category: 'Converter',
+    icon: Palette,
+    tags: ['png', 'svg', 'image', 'converter', 'vector', 'conceptual'],
+  },
 ];
 
-export const featuredTools: Tool[] = tools.slice(0, 4); 
+export const featuredTools: Tool[] = tools.filter(tool => ['essay-summarizer', 'language-translator', 'image-background-remover', 'image-compressor'].includes(tool.id)).slice(0, 4);
 
 export const getToolById = (id: string): Tool | undefined => tools.find(tool => tool.id === id);

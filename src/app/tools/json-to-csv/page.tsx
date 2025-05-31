@@ -1,3 +1,4 @@
+
 import { ToolPageTemplate } from '@/components/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { JsonToCsvClient } from './json-to-csv-client';
@@ -11,10 +12,11 @@ export default function JsonToCsvPage() {
   }
 
   const instructions = [
-    "Paste your JSON data into the input area.",
-    "Ensure your JSON is valid. An array of objects is typical for CSV conversion.",
+    "Paste your JSON data (either an array of objects or a single object) into the input area.",
+    "Ensure your JSON is valid. Nested objects will be flattened (e.g., 'user.name').",
+    "Arrays within objects will be represented as JSON strings in their cells.",
     "Click 'Convert to CSV'.",
-    "The generated CSV data will appear in the output area. You can then copy or download it."
+    "The generated CSV data will appear. You can then copy or download it."
   ];
 
   return (

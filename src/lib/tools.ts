@@ -1,8 +1,8 @@
 
 import type { LucideIcon } from 'lucide-react';
 import {
-  Scissors, FileText, Languages, Image, FileJson, Database, AudioLines, Film, Palette, Type, Settings2, Wand2, FileType2, FileUp, FileDown,
-  Replace, Rows, Columns, SlidersHorizontal, TextSearch, Link, BoxSelect, Blend, BringToFront, Sparkles, FileVideo
+  Scissors, FileText, Languages, Image as ImageIcon Lucide, FileJson, Database, AudioLines, Film, Palette, Type, Settings2, Wand2, FileType2, FileUp, FileDown,
+  Replace, Rows, Columns, SlidersHorizontal, TextSearch, Link, BoxSelect, Blend, BringToFront, Sparkles, FileVideo, Edit3, Combine
 } from 'lucide-react';
 
 export type ToolCategory = 'Image' | 'Document & Data' | 'Text & AI' | 'Media' | 'Converter';
@@ -81,6 +81,15 @@ export const tools: Tool[] = [
     aiPowered: true,
     tags: ['image', 'text', 'ocr', 'extract'],
   },
+  {
+    id: 'image-to-ico',
+    title: 'Image to Icon (ICO) Converter',
+    description: 'Convert images to a standard icon size (PNG format) downloadable as a .ico file.',
+    href: '/tools/image-to-ico',
+    category: 'Image',
+    icon: BoxSelect,
+    tags: ['image', 'icon', 'ico', 'converter'],
+  },
   // Document & Data Tools
   {
     id: 'text-to-pdf',
@@ -109,6 +118,25 @@ export const tools: Tool[] = [
     icon: Database,
     tags: ['csv', 'json', 'converter', 'data'],
   },
+  {
+    id: 'image-to-pdf',
+    title: 'Image to PDF Converter',
+    description: 'Combine multiple images (JPG, PNG) into a single PDF document.',
+    href: '/tools/image-to-pdf',
+    category: 'Document & Data',
+    icon: Combine,
+    tags: ['image', 'pdf', 'converter', 'document', 'merge'],
+  },
+   {
+    id: 'pdf-to-image',
+    title: 'PDF to Image Converter',
+    description: 'Convert each page of a PDF document into individual image files (PNG).',
+    href: '/tools/pdf-to-image',
+    category: 'Document & Data',
+    icon: FileDown,
+    tags: ['pdf', 'image', 'converter', 'extract', 'pages'],
+  },
+  // Text & AI Tools (continued)
    {
     id: 'ascii-to-text',
     title: 'ASCII to Text',
@@ -118,11 +146,20 @@ export const tools: Tool[] = [
     icon: Type,
     tags: ['ascii', 'text', 'decoder'],
   },
+  {
+    id: 'text-to-handwriting',
+    title: 'Text to Handwriting Converter',
+    description: 'Convert typed text into a handwriting-style image using various fonts.',
+    href: '/tools/text-to-handwriting',
+    category: 'Text & AI',
+    icon: Edit3,
+    tags: ['text', 'handwriting', 'image', 'font', 'style'],
+  },
   // Media Tools
   {
     id: 'video-compressor',
     title: 'Video Compressor',
-    description: 'Client-side video re-encoding. Reduce file size by scaling resolution. Audio preservation varies by browser.',
+    description: 'Client-side video re-encoding to help reduce file size, primarily by scaling resolution. Audio preservation depends on browser support.',
     href: '/tools/video-compressor',
     category: 'Media',
     icon: FileVideo,
@@ -196,7 +233,7 @@ export const tools: Tool[] = [
   {
     id: 'png-to-svg',
     title: 'PNG to SVG Converter (Conceptual)',
-    description: 'Conceptual tool to convert PNG images to SVG vector format. (Note: True vectorization is complex; UI placeholder).',
+    description: 'Conceptual tool to convert PNG images to SVG vector format by embedding the PNG. True vectorization is complex.',
     href: '/tools/png-to-svg',
     category: 'Converter',
     icon: Palette,

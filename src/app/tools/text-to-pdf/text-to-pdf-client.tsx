@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -12,17 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, FileText as FileTextIcon, Download } from 'lucide-react';
-
-// Basic PDF generation simulation (client-side for demo)
-// For real PDF generation, a library like jsPDF would be needed.
-const generatePdfPlaceholder = (text: string, options: { fontSize: number, font: string }) => {
-  // This is a placeholder. In a real app, you'd use a PDF library.
-  const blob = new Blob([
-    `PDF Content (Font: ${options.font}, Size: ${options.fontSize}pt):\n\n${text}`
-  ], { type: 'application/pdf' });
-  return URL.createObjectURL(blob);
-};
-
+import jsPDF from 'jspdf';
 
 const formSchema = z.object({
   text: z.string().min(1, "Text content cannot be empty."),
@@ -52,22 +43,62 @@ export function TextToPdfClient() {
   const onSubmit: SubmitHandler<TextToPdfFormData> = async (data) => {
     setIsLoading(true);
     setPdfUrl(null);
-
-    // Simulate PDF generation
-    await new Promise(resolve => setTimeout(resolve, 1000)); 
+    
+    // Short delay to show loading state, actual PDF generation is quick
+    await new Promise(resolve => setTimeout(resolve, 100)); 
     
     try {
-      const generatedUrl = generatePdfPlaceholder(data.text, { fontSize: data.fontSize, font: data.font });
-      setPdfUrl(generatedUrl);
+      const doc = new jsPDF({
+        orientation: 'p', // portrait
+        unit: 'pt', // points for font size and margins
+        format: 'a4', // page format
+      });
+
+      let pdfFontName = 'helvetica'; // Default jsPDF font
+      if (data.font === 'Times New Roman' || data.font === 'Georgia') {
+        pdfFontName = 'times';
+      } else if (data.font === 'Courier New') {
+        pdfFontName = 'courier';
+      }
+      // 'Arial' and 'Verdana' will use the default 'helvetica'
+
+      doc.setFont(pdfFontName);
+      doc.setFontSize(data.fontSize);
+
+      const pageHeight = doc.internal.pageSize.height;
+      const pageWidth = doc.internal.pageSize.width;
+      const margin = 40; // 40pt margin on all sides
+      const usableWidth = pageWidth - 2 * margin;
+      let currentY = margin;
+      const lineHeight = data.fontSize * 1.2; // 1.2 line spacing factor
+
+      // Split text into lines that fit the page width
+      const lines = doc.splitTextToSize(data.text, usableWidth);
+
+      lines.forEach((line: string) => {
+        if (currentY + lineHeight > pageHeight - margin) { // Check if new line exceeds page height
+          doc.addPage();
+          currentY = margin; // Reset Y to top margin on new page
+        }
+        doc.text(line, margin, currentY);
+        currentY += lineHeight; // Move to next line position
+      });
+      
+      const pdfBlob = doc.output('blob');
+      const generatedUrl = URL.createObjectURL(pdfBlob);
+      
+      setPdfUrl(generatedUrl); // This URL will be used for the download link
+      
       toast({
         title: "PDF Generated!",
         description: `${data.filename} is ready for download.`,
       });
-    } catch (error) {
+
+    } catch (error: any) {
       console.error("Error generating PDF:", error);
       toast({
         title: "Error",
-        description: "Failed to generate PDF. Please try again.",
+        description: error.message || "Failed to generate PDF. Please try again.",
         variant: "destructive",
       });
     } finally {

@@ -8,22 +8,27 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Download, Loader2, XCircle, AlertTriangle, ArrowRightLeft, FileText, FileSpreadsheet, FilePresentation } from 'lucide-react';
+import { UploadCloud, Download, Loader2, XCircle, AlertTriangle, ArrowRightLeft, FileText, FileSpreadsheet, FilePresentation, FileCode as FileCodeIcon } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import * as pdfjsLib from 'pdfjs-dist';
-// import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage"; // Placeholder for Firebase
-// import { storage } from "@/lib/firebase"; // Placeholder for Firebase config
+
+const iconMap: { [key: string]: React.ElementType } = {
+  FileText: FileText,
+  FileCode: FileCodeIcon,
+  FileSpreadsheet: FileSpreadsheet,
+  FilePresentation: FilePresentation,
+};
 
 interface ConversionOption {
   label: string;
-  value: string; // e.g., "pdf-to-docx"
-  sourceFormat: string; // e.g., "pdf"
-  targetFormat: string; // e.g., "docx"
+  value: string; 
+  sourceFormat: string; 
+  targetFormat: string; 
   accept: Accept;
-  sourceIcon: React.ElementType;
-  targetIcon: React.ElementType;
+  sourceIconName: string;
+  targetIconName: string;
 }
 
 interface DocumentConverterClientProps {
@@ -39,11 +44,10 @@ interface ConversionHistoryItem {
   targetFormat: string;
   status: 'success' | 'error';
   timestamp: number;
-  downloadUrl?: string; // Placeholder
+  downloadUrl?: string; 
   error?: string;
 }
 
-// Simulate Firebase Storage upload
 const simulateUploadToFirebaseStorage = (
   file: File,
   onProgress: (progress: number) => void,
@@ -59,30 +63,21 @@ const simulateUploadToFirebaseStorage = (
       onProgress(progress);
     } else {
       clearInterval(interval);
-      // Simulate completion with a dummy file path
       onComplete(`uploads/${file.name}`);
     }
-  }, 300); // Simulate upload chunks
-
-  // To simulate an error, you could add:
-  // setTimeout(() => { clearInterval(interval); onError(new Error("Simulated upload failed")); }, 1000);
+  }, 300); 
 };
 
-// Simulate Firebase Function call
 const simulateFirebaseFunctionCall = async (
   filePath: string,
   targetFormat: string
 ): Promise<{ downloadUrl: string; convertedFileName: string }> => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      // Simulate a successful conversion
       const randomId = Math.random().toString(36).substring(7);
       const convertedFileName = `${filePath.split('/').pop()?.split('.')[0]}_converted_${randomId}.${targetFormat}`;
       resolve({ downloadUrl: `https://placehold.co/100x100.png?text=Converted+${targetFormat.toUpperCase()}`, convertedFileName });
-
-      // To simulate an error:
-      // reject(new Error("Simulated backend conversion failed."));
-    }, 3000 + Math.random() * 2000); // Simulate processing time 3-5 seconds
+    }, 1500 + Math.random() * 1000); 
   });
 };
 
@@ -93,10 +88,10 @@ export function DocumentConverterClient({
   defaultConversionValue,
 }: DocumentConverterClientProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [filePreview, setFilePreview] = useState<string | null>(null); // For PDF preview
+  const [filePreview, setFilePreview] = useState<string | null>(null); 
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [conversionProgress, setConversionProgress] = useState(0); // 0-100 for processing
+  const [conversionProgress, setConversionProgress] = useState(0); 
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [result, setResult] = useState<{ name: string; dataUrl: string } | null>(null);
   const [conversionType, setConversionType] = useState<string>(defaultConversionValue);
@@ -106,6 +101,14 @@ export function DocumentConverterClient({
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const currentConversion = conversionOptions.find(opt => opt.value === conversionType) || conversionOptions[0];
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+        const workerSrcPath = `/pdf.worker.min.mjs`; 
+        pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrcPath;
+    }
+  }, []);
+
 
   useEffect(() => {
     try {
@@ -124,7 +127,7 @@ export function DocumentConverterClient({
       const newHistory = [
         { ...item, id: Date.now().toString(), timestamp: Date.now() },
         ...prev,
-      ].slice(0, 5); // Keep last 5 items
+      ].slice(0, 5); 
       try {
         localStorage.setItem(`${toolName}-conversionHistory`, JSON.stringify(newHistory));
       } catch (error) {
@@ -137,7 +140,6 @@ export function DocumentConverterClient({
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
-      // Basic file size limit (e.g., 50MB) - server should also validate
       if (file.size > 50 * 1024 * 1024) {
         toast({
           title: "File Too Large",
@@ -153,7 +155,7 @@ export function DocumentConverterClient({
       setUploadProgress(0);
       setConversionProgress(0);
 
-      if (file.type === 'application/pdf') {
+      if (file.type === 'application/pdf' && file.size < 10 * 1024 * 1024) { // Limit preview for large PDFs
         const reader = new FileReader();
         reader.onload = async (e) => {
           if (e.target?.result && canvasRef.current) {
@@ -162,7 +164,7 @@ export function DocumentConverterClient({
               const loadingTask = pdfjsLib.getDocument({ data: typedArray });
               const pdf = await loadingTask.promise;
               const page = await pdf.getPage(1);
-              const viewport = page.getViewport({ scale: 1 });
+              const viewport = page.getViewport({ scale: 0.5 }); // Reduced scale for faster preview
               const canvas = canvasRef.current;
               const context = canvas.getContext('2d');
               if (!context) return;
@@ -173,14 +175,19 @@ export function DocumentConverterClient({
               setFilePreview(canvas.toDataURL());
             } catch (pdfError) {
               console.error("Error rendering PDF preview:", pdfError);
-              setFilePreview(null); // Fallback if preview fails
-              toast({ title: "PDF Preview Error", description: "Could not generate PDF preview.", variant: "default" });
+              setFilePreview(null); 
+              toast({ title: "PDF Preview Error", description: "Could not generate PDF preview for this file.", variant: "default" });
             }
           }
         };
         reader.readAsArrayBuffer(file);
-      } else {
-        setFilePreview(null); // No preview for non-PDFs initially
+      } else if (file.type === 'application/pdf') {
+        setFilePreview(null);
+        toast({ title: "PDF Preview Skipped", description: "Preview is skipped for large PDF files to improve performance.", variant: "default" });
+      }
+      
+      else {
+        setFilePreview(null); 
       }
 
       toast({
@@ -208,16 +215,13 @@ export function DocumentConverterClient({
     setUploadProgress(0);
     setConversionProgress(0);
 
-    // Simulate upload to Firebase Storage
     simulateUploadToFirebaseStorage(
       selectedFile,
       (progress) => setUploadProgress(progress),
       async (filePath) => {
-        // Upload complete
         setUploadProgress(100);
         setStatusMessage(`Processing with backend (simulated)...`);
         
-        // Simulate Firebase Function call
         try {
           const { downloadUrl, convertedFileName } = await simulateFirebaseFunctionCall(filePath, currentConversion.targetFormat);
           setConversionProgress(100);
@@ -247,7 +251,6 @@ export function DocumentConverterClient({
         }
       },
       (error) => {
-        // Upload failed
         setStatusMessage(`Upload failed: ${error.message}`);
         setIsLoading(false);
         setUploadProgress(0);
@@ -285,8 +288,9 @@ export function DocumentConverterClient({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
   };
 
-  const SourceIcon = currentConversion.sourceIcon;
-  const TargetIcon = currentConversion.targetIcon;
+  const SourceIconMapped = iconMap[currentConversion.sourceIconName] || FileText;
+  const TargetIconMapped = iconMap[currentConversion.targetIconName] || FileText;
+
 
   return (
     <div className="space-y-6">
@@ -295,7 +299,7 @@ export function DocumentConverterClient({
         <AlertTitle className="font-semibold text-primary">Backend Implementation Required</AlertTitle>
         <AlertDescription className="text-primary/80">
           This tool provides the frontend UI for document conversion.
-          Actual conversion requires implementing a Firebase Function with a third-party API (e.g., Aspose, GroupDocs, Adobe PDF Services) as outlined in your architectural proposal.
+          Actual conversion requires implementing a Firebase Function with a third-party API (e.g., Aspose, GroupDocs, Adobe PDF Services).
           The current "Convert" button simulates this backend process.
         </AlertDescription>
       </Alert>
@@ -310,25 +314,29 @@ export function DocumentConverterClient({
             value={conversionType}
             onValueChange={(value) => {
               setConversionType(value);
-              setSelectedFile(null); // Reset file on type change
+              setSelectedFile(null); 
               setFilePreview(null);
               setResult(null);
             }}
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
-            {conversionOptions.map(opt => (
-              <Label
-                key={opt.value}
-                htmlFor={opt.value}
-                className="flex items-center space-x-3 p-4 border rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer has-[input:checked]:bg-accent has-[input:checked]:text-accent-foreground has-[input:checked]:border-primary"
-              >
-                <RadioGroupItem value={opt.value} id={opt.value} className="sr-only" />
-                <opt.sourceIcon className="h-6 w-6" />
-                <ArrowRightLeft className="h-5 w-5 text-muted-foreground" />
-                <opt.targetIcon className="h-6 w-6" />
-                <span className="font-medium flex-1">{opt.label}</span>
-              </Label>
-            ))}
+            {conversionOptions.map(opt => {
+              const OptSourceIcon = iconMap[opt.sourceIconName] || FileText;
+              const OptTargetIcon = iconMap[opt.targetIconName] || FileText;
+              return (
+                <Label
+                  key={opt.value}
+                  htmlFor={opt.value}
+                  className="flex items-center space-x-3 p-4 border rounded-md hover:bg-accent hover:text-accent-foreground cursor-pointer has-[input:checked]:bg-accent has-[input:checked]:text-accent-foreground has-[input:checked]:border-primary"
+                >
+                  <RadioGroupItem value={opt.value} id={opt.value} className="sr-only" />
+                  <OptSourceIcon className="h-6 w-6" />
+                  <ArrowRightLeft className="h-5 w-5 text-muted-foreground" />
+                  <OptTargetIcon className="h-6 w-6" />
+                  <span className="font-medium flex-1">{opt.label}</span>
+                </Label>
+              );
+            })}
           </RadioGroup>
         </CardContent>
       </Card>
@@ -341,13 +349,15 @@ export function DocumentConverterClient({
         <CardContent>
           {selectedFile ? (
             <div className="space-y-4">
-              <div className="relative w-full max-w-md mx-auto border rounded-md p-4 bg-muted/20">
+              <div className="relative w-full max-w-sm mx-auto border rounded-md p-4 bg-muted/20 min-h-[200px] flex items-center justify-center">
                 {filePreview ? (
-                  <Image src={filePreview} alt={`${currentConversion.sourceFormat} preview`} width={200} height={280} className="mx-auto border shadow-sm" />
+                  <Image src={filePreview} alt={`${currentConversion.sourceFormat} preview`} width={150} height={210} className="mx-auto border shadow-sm object-contain" />
                 ) : (
-                  <div className="flex flex-col items-center justify-center h-48">
-                    <SourceIcon className="h-16 w-16 text-muted-foreground" />
-                    <p className="text-sm mt-2 text-muted-foreground">No preview available for this file type.</p>
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <SourceIconMapped className="h-16 w-16 text-muted-foreground" />
+                    <p className="text-sm mt-2 text-muted-foreground">
+                      {selectedFile.type === 'application/pdf' ? 'Preview skipped or unavailable.' : 'No preview for this file type.'}
+                    </p>
                   </div>
                 )}
                 <Button
@@ -398,7 +408,7 @@ export function DocumentConverterClient({
               <div className="mt-4 space-y-2">
                 <p className="text-sm text-muted-foreground">{statusMessage}</p>
                 {uploadProgress < 100 && uploadProgress > 0 && <Progress value={uploadProgress} className="w-full h-2" />}
-                {uploadProgress === 100 && conversionProgress < 100 && <Progress value={conversionProgress} className="w-full h-2" />}
+                {uploadProgress === 100 && conversionProgress < 100 && <Progress value={conversionProgress} className="w-full h-2 bg-accent" />}
               </div>
             )}
           </CardContent>
@@ -411,7 +421,7 @@ export function DocumentConverterClient({
             <CardTitle className="font-headline text-xl">Conversion Result</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-center">
-            <TargetIcon className="h-16 w-16 text-primary mx-auto" />
+            <TargetIconMapped className="h-16 w-16 text-primary mx-auto" />
             <p className="font-medium">{result.name}</p>
             <Button
               asChild

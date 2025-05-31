@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { DocumentConverterClient } from '@/components/document-converter-client';
-import { FileText, FilePresentation } from 'lucide-react';
+// Icons are now handled by the client component via string names
 
 const conversionOptions = [
   {
@@ -11,8 +11,8 @@ const conversionOptions = [
     sourceFormat: "pptx",
     targetFormat: "pdf",
     accept: { 'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'] },
-    sourceIcon: FilePresentation,
-    targetIcon: FileText,
+    sourceIconName: "FilePresentation",
+    targetIconName: "FileText",
   },
   {
     label: "PDF to PowerPoint (.pptx)",
@@ -20,8 +20,8 @@ const conversionOptions = [
     sourceFormat: "pdf",
     targetFormat: "pptx",
     accept: { 'application/pdf': ['.pdf'] },
-    sourceIcon: FileText,
-    targetIcon: FilePresentation,
+    sourceIconName: "FileText",
+    targetIconName: "FilePresentation",
   }
 ];
 
@@ -34,9 +34,9 @@ export default function PowerPointPdfConverterPage() {
 
   const instructions = [
     "Select the conversion direction (e.g., PowerPoint to PDF or PDF to PowerPoint).",
-    `Upload your file (accepted types: ${conversionOptions.map(opt => Object.values(opt.accept).flat().join('/')).join(', ')}).`,
+    `Upload your file.`,
     "Click the 'Convert File' button.",
-    "The system will simulate uploading and processing with a (hypothetical) backend Firebase Function.",
+    "The system will simulate uploading and processing.",
     "Once complete, a download link for the (placeholder) converted file will appear.",
     "Note: Actual conversion requires backend implementation."
   ];

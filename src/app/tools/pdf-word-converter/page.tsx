@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { DocumentConverterClient } from '@/components/document-converter-client';
-import { FileText, FileSpreadsheet, FilePresentation, FileCode, FileIcon } from 'lucide-react'; // FileCode can represent DOCX
+// Icons are now handled by the client component via string names
 
 const conversionOptions = [
   {
@@ -11,8 +11,8 @@ const conversionOptions = [
     sourceFormat: "pdf",
     targetFormat: "docx",
     accept: { 'application/pdf': ['.pdf'] },
-    sourceIcon: FileText,
-    targetIcon: FileCode, // Using FileCode for DOCX, replace if a better one exists
+    sourceIconName: "FileText",
+    targetIconName: "FileCode",
   },
   {
     label: "Word (.docx) to PDF",
@@ -20,8 +20,8 @@ const conversionOptions = [
     sourceFormat: "docx",
     targetFormat: "pdf",
     accept: { 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'] },
-    sourceIcon: FileCode,
-    targetIcon: FileText,
+    sourceIconName: "FileCode",
+    targetIconName: "FileText",
   }
 ];
 
@@ -34,11 +34,11 @@ export default function PdfWordConverterPage() {
 
   const instructions = [
     "Select the conversion direction (e.g., PDF to Word or Word to PDF).",
-    `Upload your file (accepted types: ${conversionOptions.map(opt => Object.values(opt.accept).flat().join('/')).join(', ')}).`,
+    `Upload your file.`,
     "Click the 'Convert File' button.",
-    "The system will simulate uploading and processing with a (hypothetical) backend Firebase Function.",
+    "The system will simulate uploading and processing.",
     "Once complete, a download link for the (placeholder) converted file will appear.",
-    "Note: Actual conversion requires backend implementation."
+    "Note: Actual conversion requires backend Firebase Function implementation."
   ];
 
   return (

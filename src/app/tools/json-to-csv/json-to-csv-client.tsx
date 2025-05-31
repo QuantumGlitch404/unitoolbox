@@ -44,58 +44,71 @@ const flattenObject = (obj: any, prefix: string = ''): Record<string, any> => {
 const convertJsonToCsv = (jsonData: any): string => {
   let dataArray: any[];
 
-  if (Array.isArray(jsonData)) {
-    dataArray = jsonData;
-  } else if (typeof jsonData === 'object' && jsonData !== null) {
-    dataArray = [jsonData];
+  // If jsonData is an object with a single key whose value is an array,
+  // use that inner array as the basis for CSV rows.
+  if (typeof jsonData === 'object' && jsonData !== null && !Array.isArray(jsonData)) {
+    const keys = Object.keys(jsonData);
+    if (keys.length === 1 && Array.isArray(jsonData[keys[0]])) {
+      dataArray = jsonData[keys[0]]; // Use the array of items (e.g., students)
+    } else {
+      dataArray = [jsonData]; // Treat the single complex object as one row
+    }
+  } else if (Array.isArray(jsonData)) {
+    dataArray = jsonData; // It's already an array of objects
   } else {
+    // Handle primitive JSON values (string, number, boolean, null)
     if (jsonData === null) {
       throw new Error("Input JSON 'null' cannot be meaningfully converted to CSV. Please provide an array of objects or a single object.");
     }
-    // For other primitives (string, number, boolean) parsed from JSON
+    // For other primitives, create a single-value CSV
     return `value\n${escapeCsvCell(jsonData)}`;
   }
   
   if (dataArray.length === 0) {
-    return ''; // Return empty string for empty JSON array []
+    return ''; // Return empty string for empty JSON array [] or {"key": []}
   }
 
+  // Flatten each object in the dataArray
   const flattenedData = dataArray.map(item => {
     if (typeof item === 'object' && item !== null) {
       return flattenObject(item);
     }
-    // If item in array is not an object (e.g. [1, "a", {"k":"v"}]), treat it as a single value.
+    // If an item in the array is not an object (e.g., [1, "a", {"k":"v"}]),
+    // wrap it to have a 'value' key for consistent processing.
     return { 'value': item }; 
   });
 
+  // Collect all unique headers from the flattened data
   const headersSet = new Set<string>();
   flattenedData.forEach(obj => {
     if (typeof obj === 'object' && obj !== null) {
       Object.keys(obj).forEach(key => headersSet.add(key));
     }
   });
-  const headers = Array.from(headersSet).sort(); 
+  const headers = Array.from(headersSet).sort(); // Sort headers alphabetically for consistency
 
-  // Handles cases like input [1,2,3] which becomes [{value:1},{value:2},{value:3}]
-  // and we want the header to be 'value'.
+  // Special case: if the original JSON was a simple array of primitives (e.g. [1,2,3])
+  // which became [{value:1},{value:2},{value:3}], the header should be 'value'.
   if (headers.length === 1 && headers[0] === 'value' && 
       flattenedData.every(item => typeof item === 'object' && item !== null && Object.keys(item).length === 1 && 'value' in item)) {
       const csvRows = [
-        "value", 
-        ...flattenedData.map(rowObj => escapeCsvCell(rowObj.value))
+        "value", // Header
+        ...flattenedData.map(rowObj => escapeCsvCell(rowObj.value)) // Rows
       ];
       return csvRows.join('\n');
   }
 
-  // If headers is empty (e.g., from input `[{}, null]`), produce CSV with no headers and appropriate number of empty lines.
+  // If headers is empty (e.g., from input `[{}, null]` which becomes `[{ }, {value: null}]`),
+  // produce CSV with no headers and appropriate number of empty lines.
   if (headers.length === 0) {
-    return flattenedData.map(() => "").join('\n'); // Each item results in a blank line.
+    return flattenedData.map(() => "").join('\n'); // Each item results in a blank line if no headers.
   }
 
+  // Construct CSV rows
   const csvRows = [
-    headers.map(header => escapeCsvCell(header)).join(','), 
+    headers.map(header => escapeCsvCell(header)).join(','), // Header row
     ...flattenedData.map(obj =>
-      headers.map(header => escapeCsvCell(obj ? obj[header] : '')).join(',')
+      headers.map(header => escapeCsvCell(obj ? obj[header] : '')).join(',') // Data rows
     )
   ];
 
@@ -144,7 +157,7 @@ export function JsonToCsvClient() {
       });
     } catch (error: any) {
       console.error("Error converting JSON to CSV:", error);
-      let errorMessage = "Failed to convert JSON to CSV. Please check the data format and structure.";
+      let errorMessage = "Failed to convert JSON to CSV. Please check the data format and structure. Some complex structures might not be ideally representable in CSV.";
       if (error instanceof Error && error.message) {
         errorMessage = error.message;
       }
@@ -199,7 +212,7 @@ export function JsonToCsvClient() {
                 <FormLabel className="text-lg font-semibold">JSON Data</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder='Paste your JSON data here. e.g., [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 24}] or {"id":1, "data":{"value": "test"}}'
+                    placeholder='Paste your JSON data here. e.g., [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 24}] or {"items": [{"id":1, "value":"A"}]}'
                     className="min-h-[200px] resize-y text-base font-code"
                     {...field}
                     aria-label="JSON input area"
@@ -234,10 +247,10 @@ export function JsonToCsvClient() {
               aria-label="Generated CSV output"
             />
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button onClick={handleCopyCsv} variant="outline" size="sm" disabled={!csvData}>
+              <Button onClick={handleCopyCsv} variant="outline" size="sm" disabled={!csvData && csvData !== ""}>
                 <Copy className="mr-2 h-4 w-4" /> Copy CSV
               </Button>
-              <Button onClick={handleDownloadCsv} variant="outline" size="sm" disabled={!csvData}>
+              <Button onClick={handleDownloadCsv} variant="outline" size="sm" disabled={!csvData && csvData !== ""}>
                 <Download className="mr-2 h-4 w-4" /> Download CSV
               </Button>
             </div>

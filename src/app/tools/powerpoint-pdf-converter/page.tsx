@@ -36,7 +36,8 @@ export default function PowerPointPdfConverterPage() {
     "Upload your file (PPTX or PDF). Max 25MB for client-side processing.",
     "Click the 'Convert File' button. The conversion happens directly in your browser.",
     "Once complete, a download link for the converted file will appear.",
-    "Note: PPTX to PDF conversion extracts basic text content; visuals and exact slide structure are lost. PDF to PPTX creates a presentation with each PDF page as a static, non-editable image."
+    "PPTX to PDF: Extracts basic text content into a PDF; visuals, animations, and exact slide structure are generally lost.",
+    "PDF to PPTX: Creates a .pptx presentation where each PDF page is converted into a static, non-editable image on a slide."
   ];
 
   return (

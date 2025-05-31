@@ -2,7 +2,6 @@
 import { ToolPageTemplate } from '@/components/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { DocumentConverterClient } from '@/components/document-converter-client';
-// Icons are now handled by the client component via string names
 
 const conversionOptions = [
   {
@@ -18,7 +17,7 @@ const conversionOptions = [
     label: "PDF to Excel (.xlsx)",
     value: "pdf-to-xlsx",
     sourceFormat: "pdf",
-    targetFormat: "xlsx", // Will output .csv
+    targetFormat: "xlsx", 
     accept: { 'application/pdf': ['.pdf'] },
     sourceIconName: "FileText",
     targetIconName: "FileSpreadsheet",
@@ -37,7 +36,8 @@ export default function ExcelPdfConverterPage() {
     "Upload your file (XLSX or PDF). Max 25MB for client-side processing.",
     "Click the 'Convert File' button. The conversion happens directly in your browser.",
     "Once complete, a download link for the converted file will appear.",
-    "Note: PDF to Excel conversion attempts to extract tabular data into CSV format; success varies with PDF structure. Excel to PDF converts the first sheet; complex formatting might not be fully preserved."
+    "PDF to Excel: Attempts to extract text-based table data into an .xlsx file. Success varies with PDF structure and complexity. Formatting is not preserved.",
+    "Excel to PDF: Converts the first sheet of your .xlsx to .pdf, focusing on tabular data layout."
   ];
 
   return (

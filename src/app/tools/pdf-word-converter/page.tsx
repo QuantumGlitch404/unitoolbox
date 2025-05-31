@@ -2,14 +2,13 @@
 import { ToolPageTemplate } from '@/components/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { DocumentConverterClient } from '@/components/document-converter-client';
-// Icons are now handled by the client component via string names
 
 const conversionOptions = [
   {
     label: "PDF to Word (.docx)",
     value: "pdf-to-docx",
     sourceFormat: "pdf",
-    targetFormat: "docx", // Will output .txt
+    targetFormat: "docx",
     accept: { 'application/pdf': ['.pdf'] },
     sourceIconName: "FileText",
     targetIconName: "FileCode",
@@ -37,7 +36,8 @@ export default function PdfWordConverterPage() {
     "Upload your file (PDF or DOCX). Max 25MB for client-side processing.",
     "Click the 'Convert File' button. The conversion happens directly in your browser.",
     "Once complete, a download link for the converted file will appear.",
-    "Note: PDF to Word conversion extracts text content into a .txt file; original formatting and layout are not preserved. Word to PDF conversion quality depends on document complexity."
+    "PDF to Word: Extracts text and creates a .docx file with basic paragraph structure. Complex formatting from the PDF is generally not preserved.",
+    "Word to PDF: Converts your .docx to .pdf. Formatting preservation depends on document complexity; uses HTML rendering to an image for the PDF."
   ];
 
   return (

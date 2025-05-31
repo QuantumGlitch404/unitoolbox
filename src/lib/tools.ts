@@ -121,12 +121,12 @@ export const tools: Tool[] = [
   // Media Tools
   {
     id: 'video-compressor',
-    title: 'Video Compressor (Experimental)',
-    description: 'Re-encode videos client-side, potentially reducing size by changing resolution. Quality and audio preservation may vary.',
+    title: 'Video Compressor',
+    description: 'Client-side video re-encoding. Reduce file size by scaling resolution. Audio preservation varies by browser.',
     href: '/tools/video-compressor',
     category: 'Media',
     icon: FileVideo,
-    tags: ['video', 'compression', 'reduce size', 're-encode', 'experimental'],
+    tags: ['video', 'compression', 'reduce size', 're-encode', 'client-side'],
   },
   {
     id: 'video-to-gif',

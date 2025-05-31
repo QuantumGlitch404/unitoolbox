@@ -17,7 +17,7 @@ export default function VideoCompressorPage() {
     "Click the 'Re-encode Video' button.",
     "Wait for the re-encoding to complete. This can be slow for large videos.",
     "The tool will display original and new file sizes, and new dimensions.",
-    "Download your re-encoded video. Audio preservation is experimental and may not work."
+    "Download your re-encoded video. Audio preservation depends on browser capabilities and may not always work."
   ];
 
   return (

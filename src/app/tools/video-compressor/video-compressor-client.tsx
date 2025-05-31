@@ -10,8 +10,6 @@ import { Progress } from '@/components/ui/progress';
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UploadCloud, Download, Loader2, XCircle, Settings2 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Terminal } from 'lucide-react';
 
 interface EncodingResult {
   name: string;
@@ -128,44 +126,33 @@ export function VideoCompressorClient() {
       canvasElement.width = newWidth;
       canvasElement.height = newHeight;
 
-      const frameRate = 25; // Target frame rate
+      const frameRate = 25; 
       const canvasStream = canvasElement.captureStream(frameRate);
       
-      // Attempt to add audio track - this is experimental and might not work reliably or at all
       let combinedStream = canvasStream;
-      if (typeof (videoElement as any).captureStream === 'function') {
-        const videoAudioStream = (videoElement as any).captureStream();
+      const videoAudioStream = (videoElement as any).captureStream?.() || (videoElement as any).mozCaptureStream?.();
+      
+      if (videoAudioStream) {
         const audioTracks = videoAudioStream.getAudioTracks();
         if (audioTracks.length > 0) {
             console.log("Attempting to add audio track to re-encoded video.");
             combinedStream = new MediaStream([...canvasStream.getVideoTracks(), ...audioTracks]);
         } else {
-            console.warn("No audio tracks found in original video or captureStream not fully supported for audio.");
-        }
-      } else if (typeof (videoElement as any).mozCaptureStream === 'function') { // Firefox
-         const videoAudioStream = (videoElement as any).mozCaptureStream();
-         const audioTracks = videoAudioStream.getAudioTracks();
-        if (audioTracks.length > 0) {
-            console.log("Attempting to add audio track (Firefox) to re-encoded video.");
-            combinedStream = new MediaStream([...canvasStream.getVideoTracks(), ...audioTracks]);
-        } else {
-            console.warn("No audio tracks found in original video (Firefox) or captureStream not fully supported for audio.");
+            console.warn("No audio tracks found in original video or captureStream did not provide them.");
         }
       } else {
         console.warn("Video element captureStream for audio not available. Video will likely be silent.");
       }
 
-
       try {
-        mediaRecorderRef.current = new MediaRecorder(combinedStream, { mimeType: 'video/webm; codecs=vp9' }); // Try WebM VP9
+        mediaRecorderRef.current = new MediaRecorder(combinedStream, { mimeType: 'video/webm; codecs=vp9' }); 
       } catch (e) {
         console.warn("WebM VP9 not supported, trying default MediaRecorder config.", e);
         try {
-          mediaRecorderRef.current = new MediaRecorder(combinedStream, { mimeType: 'video/webm' }); // Fallback to generic WebM
+          mediaRecorderRef.current = new MediaRecorder(combinedStream, { mimeType: 'video/webm' }); 
         } catch (e2) {
-           console.error("MediaRecorder setup failed for WebM. Trying MP4 if browser supports it for MediaRecorder.", e2);
+           console.error("MediaRecorder setup failed for WebM. Trying MP4 if browser supports it.", e2);
            try {
-             // MP4 support in MediaRecorder is less common and often restricted
              mediaRecorderRef.current = new MediaRecorder(combinedStream, { mimeType: 'video/mp4' });
            } catch (e3) {
             toast({ title: "Encoding Error", description: "MediaRecorder could not be initialized with supported codecs.", variant: "destructive" });
@@ -198,7 +185,7 @@ export function VideoCompressorClient() {
           newWidth,
           newHeight,
         });
-        toast({ title: "Re-encoding Complete!", description: `Video processed to ${newWidth}x${newHeight}. Audio preservation is experimental.` });
+        toast({ title: "Re-encoding Complete!", description: `Video processed to ${newWidth}x${newHeight}. Audio preservation depends on browser support.` });
         cleanup();
       };
       
@@ -209,7 +196,7 @@ export function VideoCompressorClient() {
       };
 
       videoElement.currentTime = 0;
-      videoElement.muted = true; // Mute playback during processing to avoid echo if audio is captured
+      videoElement.muted = true; 
       videoElement.play().catch(e => {
         console.error("Error playing video for processing:", e);
         toast({title: "Playback Error", description: "Could not start video processing.", variant: "destructive"});
@@ -267,14 +254,6 @@ export function VideoCompressorClient() {
 
   return (
     <div className="space-y-6">
-      <Alert variant="default" className="border-amber-500 text-amber-700 dark:border-amber-400 dark:text-amber-300 [&>svg]:text-amber-500 dark:[&>svg]:text-amber-400">
-        <Terminal className="h-4 w-4" />
-        <AlertTitle>Experimental Tool</AlertTitle>
-        <AlertDescription>
-          This tool attempts client-side video re-encoding. It can be slow and quality/file size reduction may vary. Audio preservation is experimental and may not work. For best results, use dedicated video software.
-        </AlertDescription>
-      </Alert>
-      
       <video ref={videoRef} style={{ display: 'none' }} crossOrigin="anonymous"></video>
       <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
 
@@ -377,4 +356,3 @@ export function VideoCompressorClient() {
     </div>
   );
 }
-

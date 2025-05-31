@@ -1,34 +1,48 @@
 
 "use client";
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Download, Loader2, FileVideo as VideoIcon, XCircle, Settings2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { UploadCloud, Download, Loader2, XCircle, Settings2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Terminal } from 'lucide-react';
 
-interface SimulatedCompressionResult {
+interface EncodingResult {
   name: string;
   originalSize: number;
-  compressedSize: number;
+  newSize: number;
   reductionPercent: number;
-  dataUrl: string; // Original video URL for download
+  dataUrl: string;
+  newWidth: number;
+  newHeight: number;
 }
+
+const resolutionScales = [
+  { label: "Original", value: 1.0 },
+  { label: "75%", value: 0.75 },
+  { label: "50%", value: 0.5 },
+  { label: "25% (Fastest, Smallest)", value: 0.25 },
+];
 
 export function VideoCompressorClient() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
-  const [compressionQuality, setCompressionQuality] = useState(70); // Simulated quality
+  const [resolutionScale, setResolutionScale] = useState(0.75);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [result, setResult] = useState<SimulatedCompressionResult | null>(null);
+  const [result, setResult] = useState<EncodingResult | null>(null);
   const { toast } = useToast();
+
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
@@ -43,33 +57,48 @@ export function VideoCompressorClient() {
         return;
       }
       setVideoFile(file);
+      if (videoPreview) URL.revokeObjectURL(videoPreview); // Revoke previous preview
       setVideoPreview(URL.createObjectURL(file));
       setResult(null);
+      setProgress(0);
       toast({
         title: "Video Selected",
-        description: `${file.name} is ready for simulated compression.`,
+        description: `${file.name} is ready for re-encoding.`,
       });
     }
-  }, [toast]);
+  }, [toast, videoPreview]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { 
-        'video/mp4': ['.mp4'],
-        'video/webm': ['.webm'],
-        'video/ogg': ['.ogg'],
-        'video/quicktime': ['.mov'],
-        'video/x-msvideo': ['.avi'],
-        'video/x-matroska': ['.mkv'],
+    accept: {
+      'video/mp4': ['.mp4'],
+      'video/webm': ['.webm'],
+      'video/ogg': ['.ogg'],
+      'video/quicktime': ['.mov'],
+      'video/x-msvideo': ['.avi'],
+      'video/x-matroska': ['.mkv'],
     },
     multiple: false,
   });
 
-  const handleCompressVideo = async () => {
-    if (!videoFile || !videoPreview) {
+  const cleanup = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      mediaRecorderRef.current.stop();
+    }
+    mediaRecorderRef.current = null;
+    recordedChunksRef.current = [];
+    if (videoRef.current) {
+      videoRef.current.pause();
+      videoRef.current.src = ""; // Release resources
+    }
+    setIsLoading(false);
+  };
+
+  const handleReEncodeVideo = async () => {
+    if (!videoFile || !videoRef.current || !canvasRef.current) {
       toast({
-        title: "No Video File",
-        description: "Please upload a video file first.",
+        title: "Error",
+        description: "Video file or necessary elements not ready.",
         variant: "destructive",
       });
       return;
@@ -78,34 +107,140 @@ export function VideoCompressorClient() {
     setIsLoading(true);
     setProgress(0);
     setResult(null);
+    recordedChunksRef.current = [];
 
-    let currentProgress = 0;
-    const progressInterval = setInterval(() => {
-      currentProgress += 10;
-      if (currentProgress <= 100) {
-        setProgress(currentProgress);
+    const videoElement = videoRef.current;
+    const canvasElement = canvasRef.current;
+    const ctx = canvasElement.getContext('2d');
+
+    if (!ctx) {
+      toast({ title: "Canvas Error", description: "Could not get canvas context.", variant: "destructive" });
+      cleanup();
+      return;
+    }
+
+    videoElement.onloadedmetadata = () => {
+      const originalWidth = videoElement.videoWidth;
+      const originalHeight = videoElement.videoHeight;
+      const newWidth = Math.floor(originalWidth * resolutionScale);
+      const newHeight = Math.floor(originalHeight * resolutionScale);
+
+      canvasElement.width = newWidth;
+      canvasElement.height = newHeight;
+
+      const frameRate = 25; // Target frame rate
+      const canvasStream = canvasElement.captureStream(frameRate);
+      
+      // Attempt to add audio track - this is experimental and might not work reliably or at all
+      let combinedStream = canvasStream;
+      if (typeof (videoElement as any).captureStream === 'function') {
+        const videoAudioStream = (videoElement as any).captureStream();
+        const audioTracks = videoAudioStream.getAudioTracks();
+        if (audioTracks.length > 0) {
+            console.log("Attempting to add audio track to re-encoded video.");
+            combinedStream = new MediaStream([...canvasStream.getVideoTracks(), ...audioTracks]);
+        } else {
+            console.warn("No audio tracks found in original video or captureStream not fully supported for audio.");
+        }
+      } else if (typeof (videoElement as any).mozCaptureStream === 'function') { // Firefox
+         const videoAudioStream = (videoElement as any).mozCaptureStream();
+         const audioTracks = videoAudioStream.getAudioTracks();
+        if (audioTracks.length > 0) {
+            console.log("Attempting to add audio track (Firefox) to re-encoded video.");
+            combinedStream = new MediaStream([...canvasStream.getVideoTracks(), ...audioTracks]);
+        } else {
+            console.warn("No audio tracks found in original video (Firefox) or captureStream not fully supported for audio.");
+        }
       } else {
-        clearInterval(progressInterval);
-        const originalSize = videoFile.size;
-        // Simulate compression: higher "quality" means less reduction
-        const reductionFactor = (100 - compressionQuality + 10) / 100; // e.g. 70 quality -> 0.4 reduction
-        const compressedSize = Math.max(Math.floor(originalSize * reductionFactor), Math.floor(originalSize * 0.1)); // Ensure some reduction, at least 10%
-        const reductionPercent = ((originalSize - compressedSize) / originalSize) * 100;
+        console.warn("Video element captureStream for audio not available. Video will likely be silent.");
+      }
+
+
+      try {
+        mediaRecorderRef.current = new MediaRecorder(combinedStream, { mimeType: 'video/webm; codecs=vp9' }); // Try WebM VP9
+      } catch (e) {
+        console.warn("WebM VP9 not supported, trying default MediaRecorder config.", e);
+        try {
+          mediaRecorderRef.current = new MediaRecorder(combinedStream, { mimeType: 'video/webm' }); // Fallback to generic WebM
+        } catch (e2) {
+           console.error("MediaRecorder setup failed for WebM. Trying MP4 if browser supports it for MediaRecorder.", e2);
+           try {
+             // MP4 support in MediaRecorder is less common and often restricted
+             mediaRecorderRef.current = new MediaRecorder(combinedStream, { mimeType: 'video/mp4' });
+           } catch (e3) {
+            toast({ title: "Encoding Error", description: "MediaRecorder could not be initialized with supported codecs.", variant: "destructive" });
+            cleanup();
+            return;
+           }
+        }
+      }
+      
+      const recorder = mediaRecorderRef.current;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const blob = new Blob(recordedChunksRef.current, { type: recorder.mimeType });
+        const dataUrl = URL.createObjectURL(blob);
+        const newSize = blob.size;
+        const reductionPercent = ((videoFile.size - newSize) / videoFile.size) * 100;
 
         setResult({
-          name: `compressed_sim_${videoFile.name}`,
-          originalSize,
-          compressedSize,
+          name: `reencoded_${videoFile.name.split('.')[0]}.${recorder.mimeType.split('/')[1].split(';')[0]}`,
+          originalSize: videoFile.size,
+          newSize,
           reductionPercent: parseFloat(reductionPercent.toFixed(2)),
-          dataUrl: videoPreview, // For download, use the original video URL
+          dataUrl,
+          newWidth,
+          newHeight,
         });
-        setIsLoading(false);
-        toast({
-          title: "Simulated Compression Complete!",
-          description: "Video 'compression' process finished.",
-        });
-      }
-    }, 250); // Slower interval for video
+        toast({ title: "Re-encoding Complete!", description: `Video processed to ${newWidth}x${newHeight}. Audio preservation is experimental.` });
+        cleanup();
+      };
+      
+      recorder.onerror = (event) => {
+        console.error("MediaRecorder error:", event);
+        toast({title: "Encoding Error", description: `MediaRecorder encountered an error.`, variant: "destructive"});
+        cleanup();
+      };
+
+      videoElement.currentTime = 0;
+      videoElement.muted = true; // Mute playback during processing to avoid echo if audio is captured
+      videoElement.play().catch(e => {
+        console.error("Error playing video for processing:", e);
+        toast({title: "Playback Error", description: "Could not start video processing.", variant: "destructive"});
+        cleanup();
+      });
+      recorder.start();
+
+      const drawFrame = () => {
+        if (videoElement.paused || videoElement.ended || recorder.state === "inactive") {
+          if (recorder.state === "recording") recorder.stop();
+          return;
+        }
+        ctx.drawImage(videoElement, 0, 0, newWidth, newHeight);
+        setProgress((videoElement.currentTime / videoElement.duration) * 100);
+        requestAnimationFrame(drawFrame);
+      };
+      requestAnimationFrame(drawFrame);
+    };
+    
+    videoElement.onerror = (e) => {
+        console.error("Error loading video metadata:", e);
+        toast({title: "Video Load Error", description: "Could not load video metadata for processing.", variant: "destructive"});
+        cleanup();
+    };
+
+    if (videoPreview) {
+      videoElement.src = videoPreview;
+    } else {
+      toast({title: "File Error", description: "No video preview available to process.", variant: "destructive"});
+      cleanup();
+    }
   };
 
   const handleRemoveVideo = () => {
@@ -114,6 +249,7 @@ export function VideoCompressorClient() {
     setVideoPreview(null);
     setResult(null);
     setProgress(0);
+    cleanup();
     toast({
       title: "Video Removed",
       description: "You can now upload a new video.",
@@ -131,18 +267,21 @@ export function VideoCompressorClient() {
 
   return (
     <div className="space-y-6">
-       <Alert variant="default" className="border-amber-500 text-amber-700 dark:border-amber-400 dark:text-amber-300 [&>svg]:text-amber-500 dark:[&>svg]:text-amber-400">
+      <Alert variant="default" className="border-amber-500 text-amber-700 dark:border-amber-400 dark:text-amber-300 [&>svg]:text-amber-500 dark:[&>svg]:text-amber-400">
         <Terminal className="h-4 w-4" />
-        <AlertTitle>Simulation Note</AlertTitle>
+        <AlertTitle>Experimental Tool</AlertTitle>
         <AlertDescription>
-          Effective client-side video compression is complex. This tool demonstrates the UI and flow for video compression, but the actual compression is **simulated**. The downloaded file will be the original.
+          This tool attempts client-side video re-encoding. It can be slow and quality/file size reduction may vary. Audio preservation is experimental and may not work. For best results, use dedicated video software.
         </AlertDescription>
       </Alert>
+      
+      <video ref={videoRef} style={{ display: 'none' }} crossOrigin="anonymous"></video>
+      <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
 
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-xl">Upload Video File</CardTitle>
-          <CardDescription>Select a video to 'compress'. Supported: MP4, WebM, MOV, AVI, MKV.</CardDescription>
+          <CardDescription>Select a video to re-encode. Supported: MP4, WebM, MOV, AVI, MKV.</CardDescription>
         </CardHeader>
         <CardContent>
           {videoPreview && videoFile ? (
@@ -179,25 +318,32 @@ export function VideoCompressorClient() {
       {videoFile && (
         <Card>
           <CardHeader>
-            <CardTitle className="font-headline text-xl">Simulated Compression Settings</CardTitle>
+            <CardTitle className="font-headline text-xl">Re-encoding Settings</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <Label htmlFor="compressionQuality" className="mb-2 block">Simulated Quality: {compressionQuality}% (Higher = Larger Size)</Label>
-              <Slider
-                id="compressionQuality"
-                defaultValue={[compressionQuality]}
-                max={100}
-                min={10} // Minimum "quality"
-                step={1}
-                onValueChange={(value) => setCompressionQuality(value[0])}
+              <Label htmlFor="resolutionScale">Resolution Scale</Label>
+              <Select
+                value={resolutionScale.toString()}
+                onValueChange={(value) => setResolutionScale(parseFloat(value))}
                 disabled={isLoading}
-                aria-label="Simulated compression quality slider"
-              />
+              >
+                <SelectTrigger id="resolutionScale" aria-label="Resolution scale">
+                  <SelectValue placeholder="Select scale" />
+                </SelectTrigger>
+                <SelectContent>
+                  {resolutionScales.map(scale => (
+                    <SelectItem key={scale.value} value={scale.value.toString()}>
+                      {scale.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">Lower scale reduces file size and processing time, but also quality.</p>
             </div>
-            <Button onClick={handleCompressVideo} disabled={isLoading || !videoFile} className="w-full sm:w-auto">
+            <Button onClick={handleReEncodeVideo} disabled={isLoading || !videoFile} className="w-full sm:w-auto">
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Settings2 className="mr-2 h-4 w-4" />}
-              Compress Video (Simulated)
+              Re-encode Video
             </Button>
             {isLoading && <Progress value={progress} className="w-full mt-2 h-2" />}
           </CardContent>
@@ -207,21 +353,22 @@ export function VideoCompressorClient() {
       {result && (
         <Card className="bg-secondary/30">
           <CardHeader>
-            <CardTitle className="font-headline text-xl">Simulated Compression Result</CardTitle>
+            <CardTitle className="font-headline text-xl">Re-encoding Result</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p><strong>File Name:</strong> {result.name}</p>
             <p><strong>Original Size:</strong> {formatBytes(result.originalSize)}</p>
-            <p><strong>Simulated Compressed Size:</strong> {formatBytes(result.compressedSize)}</p>
-            <p><strong>Simulated Reduction:</strong> <span className="text-green-500">{result.reductionPercent}%</span></p>
+            <p><strong>New Size:</strong> {formatBytes(result.newSize)}</p>
+            <p><strong>Reduction:</strong> <span className={result.reductionPercent > 0 ? "text-green-500" : "text-red-500"}>{result.reductionPercent.toFixed(2)}%</span></p>
+            <p><strong>New Dimensions:</strong> {result.newWidth}x{result.newHeight}</p>
             <Button
               asChild
               className="w-full sm:w-auto"
-              aria-label={`Download ${result.name} (original file)`}
+              aria-label={`Download ${result.name}`}
             >
-              <a href={result.dataUrl} download={videoFile?.name || 'original_video'}>
+              <a href={result.dataUrl} download={result.name}>
                 <Download className="mr-2 h-4 w-4" />
-                Download Video (Original)
+                Download Re-encoded Video
               </a>
             </Button>
           </CardContent>
@@ -230,3 +377,4 @@ export function VideoCompressorClient() {
     </div>
   );
 }
+

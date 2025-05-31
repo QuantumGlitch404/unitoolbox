@@ -12,12 +12,12 @@ export default function VideoCompressorPage() {
   }
 
   const instructions = [
-    "Upload your video file (e.g., MP4, WebM).",
-    "Adjust the (simulated) compression settings like quality or resolution.",
-    "Click the 'Compress Video' button.",
-    "Wait for the (simulated) compression to complete.",
-    "The tool will display original and (simulated) new file sizes.",
-    "Download your 'compressed' video (this will be the original file in this simulation)."
+    "Upload your video file (e.g., MP4, WebM, MOV).",
+    "Select a resolution scale. Smaller scales process faster and result in smaller files, but reduce quality.",
+    "Click the 'Re-encode Video' button.",
+    "Wait for the re-encoding to complete. This can be slow for large videos.",
+    "The tool will display original and new file sizes, and new dimensions.",
+    "Download your re-encoded video. Audio preservation is experimental and may not work."
   ];
 
   return (

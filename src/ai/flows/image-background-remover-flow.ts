@@ -36,30 +36,18 @@ const removeBackgroundFlow = ai.defineFlow(
     outputSchema: RemoveBackgroundOutputSchema,
   },
   async (input: RemoveBackgroundInput) => {
-    const dataUri = input.photoDataUri;
+    const fullDataUri = input.photoDataUri;
     
-    const mimeTypeMatch = dataUri.match(/^data:(image\/\w+);base64,/);
-    if (!mimeTypeMatch || mimeTypeMatch.length < 2) {
-      throw new Error('Invalid data URI format or could not extract MIME type.');
-    }
-    const mimeType = mimeTypeMatch[1]; // e.g., "image/png"
-    
-    const base64Data = dataUri.substring(mimeTypeMatch[0].length);
-
-    if (!base64Data) {
-        throw new Error('Could not extract base64 data from URI.');
-    }
-
     // Call ai.generate directly
     const llmResponse = await ai.generate({
-        model: 'googleai/gemini-2.0-flash-exp',
+        model: 'googleai/gemini-2.0-flash-exp', // This model supports image generation/manipulation
         prompt: [
-            { media: { url: base64Data, contentType: mimeType } },
+            { media: { url: fullDataUri } }, // Pass the full data URI here
             { text: 'Isolate the main subject of this image. Remove the original background and replace it with a plain white background. Provide only the modified image.' },
         ],
         config: {
-            responseModalities: ['TEXT', 'IMAGE'],
-            safetySettings: [
+            responseModalities: ['TEXT', 'IMAGE'], // Important: specify that image output is expected
+            safetySettings: [ // Optional: Adjust safety settings if needed
               { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' },
               { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
               { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
@@ -68,15 +56,19 @@ const removeBackgroundFlow = ai.defineFlow(
         },
     });
     
+    // The processed image should be in llmResponse.media.url
     if (llmResponse.media?.url) {
       let resultDataUri = llmResponse.media.url;
+      // Ensure the result is a full data URI if it's not already
       if (!resultDataUri.startsWith('data:')) {
+        // Attempt to get mime type from response, default to png if not available
         const outputMimeType = llmResponse.media.contentType || 'image/png'; 
         resultDataUri = `data:${outputMimeType};base64,${resultDataUri}`;
       }
       return { processedPhotoDataUri: resultDataUri };
     }
 
+    // Fallback: check if the model put the data URI in the structured output (less common for image generation)
     const structuredOutput = llmResponse.output as RemoveBackgroundOutput | undefined;
     if (structuredOutput?.processedPhotoDataUri) {
         return { processedPhotoDataUri: structuredOutput.processedPhotoDataUri };
@@ -86,3 +78,4 @@ const removeBackgroundFlow = ai.defineFlow(
     throw new Error('AI did not return a processed image.');
   }
 );
+

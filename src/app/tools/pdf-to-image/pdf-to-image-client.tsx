@@ -27,10 +27,17 @@ export function PdfToImageClient() {
 
   useEffect(() => {
     // pdf.js worker configuration
-    // In Next.js, the worker file needs to be in the /public folder.
-    const workerSrcPath = `/pdf.worker.min.js`;
+    // IMPORTANT: Ensure `pdf.worker.min.mjs` (or .js) is in your /public directory.
+    // The version might need to match your installed pdfjs-dist version.
+    const workerSrcPath = `/pdf.worker.min.mjs`; // Updated to .mjs
     pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrcPath;
-    console.log(`PDF.js version: ${pdfjsLib.version}. Attempting to set worker path for PDF.js to: ${workerSrcPath}. This file MUST be in your /public directory and your dev server may need a restart.`);
+    console.log(
+      `PDF.js version: ${pdfjsLib.version}. Attempting to set worker path for PDF.js to: ${workerSrcPath}.
+      Please ensure 'pdf.worker.min.mjs' (or .js if that's your file) is in your project's /public directory.
+      If issues persist, verify the worker file version matches your 'pdfjs-dist' package version (${pdfjsLib.version}).
+      You might need to copy it from 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs'.
+      A server restart and browser hard refresh might be needed after adding/changing the worker file.`
+    );
   }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -58,7 +65,7 @@ export function PdfToImageClient() {
     if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
         toast({
             title: "Worker Configuration Error",
-            description: "PDF.js workerSrc not set. This indicates an issue with component initialization.",
+            description: "PDF.js workerSrc not set. This indicates an issue with component initialization or the worker file is missing from /public.",
             variant: "destructive",
         });
         setIsLoading(false);
@@ -216,5 +223,3 @@ export function PdfToImageClient() {
     </div>
   );
 }
-
-    

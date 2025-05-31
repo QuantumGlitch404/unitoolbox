@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { LifeBuoy, MessageSquareQuestion, Mail } from 'lucide-react';
+import { LifeBuoy, MessageSquareQuote, Mail } from 'lucide-react';
 
 export default function SupportPage() {
   return (
@@ -17,7 +17,7 @@ export default function SupportPage() {
       <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
         <Card className="shadow-lg hover:shadow-xl transition-shadow">
           <CardHeader className="flex flex-row items-center gap-4">
-            <MessageSquareQuestion className="h-10 w-10 text-accent" />
+            <MessageSquareQuote className="h-10 w-10 text-accent" />
             <div>
               <CardTitle className="font-headline text-2xl">FAQ</CardTitle>
               <CardDescription>Find quick answers to common questions.</CardDescription>

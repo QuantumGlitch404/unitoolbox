@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Download, Loader2, XCircle, AlertTriangle, ArrowRightLeft, FileText, FileSpreadsheet, FilePresentation, FileCode as FileCodeIcon } from 'lucide-react';
+import { UploadCloud, Download, Loader2, XCircle, AlertTriangle, ArrowRightLeft, FileText, FileSpreadsheet, Presentation, FileCode as FileCodeIcon } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -18,14 +18,14 @@ const iconMap: { [key: string]: React.ElementType } = {
   FileText: FileText,
   FileCode: FileCodeIcon,
   FileSpreadsheet: FileSpreadsheet,
-  FilePresentation: FilePresentation,
+  Presentation: Presentation, // Corrected from FilePresentation
 };
 
 interface ConversionOption {
   label: string;
-  value: string; 
-  sourceFormat: string; 
-  targetFormat: string; 
+  value: string;
+  sourceFormat: string;
+  targetFormat: string;
   accept: Accept;
   sourceIconName: string;
   targetIconName: string;
@@ -44,7 +44,7 @@ interface ConversionHistoryItem {
   targetFormat: string;
   status: 'success' | 'error';
   timestamp: number;
-  downloadUrl?: string; 
+  downloadUrl?: string;
   error?: string;
 }
 
@@ -65,7 +65,7 @@ const simulateUploadToFirebaseStorage = (
       clearInterval(interval);
       onComplete(`uploads/${file.name}`);
     }
-  }, 300); 
+  }, 300);
 };
 
 const simulateFirebaseFunctionCall = async (
@@ -77,7 +77,7 @@ const simulateFirebaseFunctionCall = async (
       const randomId = Math.random().toString(36).substring(7);
       const convertedFileName = `${filePath.split('/').pop()?.split('.')[0]}_converted_${randomId}.${targetFormat}`;
       resolve({ downloadUrl: `https://placehold.co/100x100.png?text=Converted+${targetFormat.toUpperCase()}`, convertedFileName });
-    }, 1500 + Math.random() * 1000); 
+    }, 1500 + Math.random() * 1000);
   });
 };
 
@@ -88,10 +88,10 @@ export function DocumentConverterClient({
   defaultConversionValue,
 }: DocumentConverterClientProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [filePreview, setFilePreview] = useState<string | null>(null); 
+  const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [conversionProgress, setConversionProgress] = useState(0); 
+  const [conversionProgress, setConversionProgress] = useState(0);
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [result, setResult] = useState<{ name: string; dataUrl: string } | null>(null);
   const [conversionType, setConversionType] = useState<string>(defaultConversionValue);
@@ -101,10 +101,10 @@ export function DocumentConverterClient({
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const currentConversion = conversionOptions.find(opt => opt.value === conversionType) || conversionOptions[0];
-  
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
-        const workerSrcPath = `/pdf.worker.min.mjs`; 
+        const workerSrcPath = `/pdf.worker.min.mjs`;
         pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrcPath;
     }
   }, []);
@@ -127,7 +127,7 @@ export function DocumentConverterClient({
       const newHistory = [
         { ...item, id: Date.now().toString(), timestamp: Date.now() },
         ...prev,
-      ].slice(0, 5); 
+      ].slice(0, 5);
       try {
         localStorage.setItem(`${toolName}-conversionHistory`, JSON.stringify(newHistory));
       } catch (error) {
@@ -140,7 +140,7 @@ export function DocumentConverterClient({
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
-      if (file.size > 50 * 1024 * 1024) {
+      if (file.size > 50 * 1024 * 1024) { // 50MB limit
         toast({
           title: "File Too Large",
           description: "Please upload a file smaller than 50MB.",
@@ -164,7 +164,7 @@ export function DocumentConverterClient({
               const loadingTask = pdfjsLib.getDocument({ data: typedArray });
               const pdf = await loadingTask.promise;
               const page = await pdf.getPage(1);
-              const viewport = page.getViewport({ scale: 0.5 }); // Reduced scale for faster preview
+              const viewport = page.getViewport({ scale: 0.5 });
               const canvas = canvasRef.current;
               const context = canvas.getContext('2d');
               if (!context) return;
@@ -175,7 +175,7 @@ export function DocumentConverterClient({
               setFilePreview(canvas.toDataURL());
             } catch (pdfError) {
               console.error("Error rendering PDF preview:", pdfError);
-              setFilePreview(null); 
+              setFilePreview(null);
               toast({ title: "PDF Preview Error", description: "Could not generate PDF preview for this file.", variant: "default" });
             }
           }
@@ -185,9 +185,9 @@ export function DocumentConverterClient({
         setFilePreview(null);
         toast({ title: "PDF Preview Skipped", description: "Preview is skipped for large PDF files to improve performance.", variant: "default" });
       }
-      
+
       else {
-        setFilePreview(null); 
+        setFilePreview(null);
       }
 
       toast({
@@ -221,7 +221,7 @@ export function DocumentConverterClient({
       async (filePath) => {
         setUploadProgress(100);
         setStatusMessage(`Processing with backend (simulated)...`);
-        
+
         try {
           const { downloadUrl, convertedFileName } = await simulateFirebaseFunctionCall(filePath, currentConversion.targetFormat);
           setConversionProgress(100);
@@ -278,7 +278,7 @@ export function DocumentConverterClient({
       description: `You can now upload a new file.`,
     });
   };
-  
+
   const formatBytes = (bytes: number, decimals = 2) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -314,7 +314,7 @@ export function DocumentConverterClient({
             value={conversionType}
             onValueChange={(value) => {
               setConversionType(value);
-              setSelectedFile(null); 
+              setSelectedFile(null);
               setFilePreview(null);
               setResult(null);
             }}
@@ -469,3 +469,5 @@ export function DocumentConverterClient({
     </div>
   );
 }
+
+    

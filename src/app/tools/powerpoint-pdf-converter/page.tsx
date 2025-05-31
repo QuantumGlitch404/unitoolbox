@@ -2,7 +2,6 @@
 import { ToolPageTemplate } from '@/components/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { DocumentConverterClient } from '@/components/document-converter-client';
-// Icons are now handled by the client component via string names
 
 const conversionOptions = [
   {
@@ -11,7 +10,7 @@ const conversionOptions = [
     sourceFormat: "pptx",
     targetFormat: "pdf",
     accept: { 'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'] },
-    sourceIconName: "FilePresentation",
+    sourceIconName: "Presentation", // Corrected
     targetIconName: "FileText",
   },
   {
@@ -21,7 +20,7 @@ const conversionOptions = [
     targetFormat: "pptx",
     accept: { 'application/pdf': ['.pdf'] },
     sourceIconName: "FileText",
-    targetIconName: "FilePresentation",
+    targetIconName: "Presentation", // Corrected
   }
 ];
 
@@ -56,3 +55,5 @@ export default function PowerPointPdfConverterPage() {
     </ToolPageTemplate>
   );
 }
+
+    

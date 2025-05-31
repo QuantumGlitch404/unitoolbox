@@ -8,24 +8,32 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Download, Loader2, XCircle, AlertTriangle, ArrowRightLeft, FileText, FileSpreadsheet, Presentation, FileCode as FileCodeIcon } from 'lucide-react';
+import { UploadCloud, Download, Loader2, XCircle, ArrowRightLeft, FileText, FileSpreadsheet, Presentation, FileCode as FileCodeIcon, Info } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+
+import jsPDF from 'jspdf';
+import 'jspdf-autotable'; // For better table rendering in PDF for Excel
+import mammoth from 'mammoth';
+import * as XLSX from 'xlsx';
+import PptxGenJS from 'pptxgenjs';
 import * as pdfjsLib from 'pdfjs-dist';
+import { PDFDocument } from 'pdf-lib';
+
 
 const iconMap: { [key: string]: React.ElementType } = {
   FileText: FileText,
   FileCode: FileCodeIcon,
   FileSpreadsheet: FileSpreadsheet,
-  Presentation: Presentation, // Corrected from FilePresentation
+  Presentation: Presentation,
 };
 
 interface ConversionOption {
   label: string;
-  value: string;
-  sourceFormat: string;
-  targetFormat: string;
+  value: string; // e.g., "docx-to-pdf"
+  sourceFormat: string; // e.g., "docx"
+  targetFormat: string; // e.g., "pdf"
   accept: Accept;
   sourceIconName: string;
   targetIconName: string;
@@ -44,43 +52,10 @@ interface ConversionHistoryItem {
   targetFormat: string;
   status: 'success' | 'error';
   timestamp: number;
-  downloadUrl?: string;
+  downloadUrl?: string; // data URI for client-side
+  downloadName?: string;
   error?: string;
 }
-
-const simulateUploadToFirebaseStorage = (
-  file: File,
-  onProgress: (progress: number) => void,
-  onComplete: (filePath: string) => void,
-  onError: (error: Error) => void
-) => {
-  let progress = 0;
-  onProgress(progress);
-
-  const interval = setInterval(() => {
-    progress += 20;
-    if (progress <= 100) {
-      onProgress(progress);
-    } else {
-      clearInterval(interval);
-      onComplete(`uploads/${file.name}`);
-    }
-  }, 300);
-};
-
-const simulateFirebaseFunctionCall = async (
-  filePath: string,
-  targetFormat: string
-): Promise<{ downloadUrl: string; convertedFileName: string }> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const randomId = Math.random().toString(36).substring(7);
-      const convertedFileName = `${filePath.split('/').pop()?.split('.')[0]}_converted_${randomId}.${targetFormat}`;
-      resolve({ downloadUrl: `https://placehold.co/100x100.png?text=Converted+${targetFormat.toUpperCase()}`, convertedFileName });
-    }, 1500 + Math.random() * 1000);
-  });
-};
-
 
 export function DocumentConverterClient({
   toolName,
@@ -90,7 +65,6 @@ export function DocumentConverterClient({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [conversionProgress, setConversionProgress] = useState(0);
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [result, setResult] = useState<{ name: string; dataUrl: string } | null>(null);
@@ -104,11 +78,10 @@ export function DocumentConverterClient({
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-        const workerSrcPath = `/pdf.worker.min.mjs`;
-        pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrcPath;
+      const workerSrcPath = `/pdf.worker.min.mjs`;
+      pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrcPath;
     }
   }, []);
-
 
   useEffect(() => {
     try {
@@ -123,11 +96,9 @@ export function DocumentConverterClient({
   }, [toolName]);
 
   const addToHistory = (item: Omit<ConversionHistoryItem, 'id' | 'timestamp'>) => {
+    const newItem = { ...item, id: Date.now().toString(), timestamp: Date.now() };
     setHistory(prev => {
-      const newHistory = [
-        { ...item, id: Date.now().toString(), timestamp: Date.now() },
-        ...prev,
-      ].slice(0, 5);
+      const newHistory = [newItem, ...prev].slice(0, 5);
       try {
         localStorage.setItem(`${toolName}-conversionHistory`, JSON.stringify(newHistory));
       } catch (error) {
@@ -140,10 +111,10 @@ export function DocumentConverterClient({
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
-      if (file.size > 50 * 1024 * 1024) { // 50MB limit
+      if (file.size > 25 * 1024 * 1024) { // 25MB limit for client-side processing
         toast({
           title: "File Too Large",
-          description: "Please upload a file smaller than 50MB.",
+          description: "Please upload a file smaller than 25MB for client-side conversion.",
           variant: "destructive",
         });
         return;
@@ -152,10 +123,9 @@ export function DocumentConverterClient({
       setSelectedFile(file);
       setResult(null);
       setStatusMessage("");
-      setUploadProgress(0);
       setConversionProgress(0);
 
-      if (file.type === 'application/pdf' && file.size < 10 * 1024 * 1024) { // Limit preview for large PDFs
+      if (file.type === 'application/pdf' && file.size < 5 * 1024 * 1024) { // PDF preview for smaller files
         const reader = new FileReader();
         reader.onload = async (e) => {
           if (e.target?.result && canvasRef.current) {
@@ -164,7 +134,7 @@ export function DocumentConverterClient({
               const loadingTask = pdfjsLib.getDocument({ data: typedArray });
               const pdf = await loadingTask.promise;
               const page = await pdf.getPage(1);
-              const viewport = page.getViewport({ scale: 0.5 });
+              const viewport = page.getViewport({ scale: 0.3 });
               const canvas = canvasRef.current;
               const context = canvas.getContext('2d');
               if (!context) return;
@@ -176,17 +146,11 @@ export function DocumentConverterClient({
             } catch (pdfError) {
               console.error("Error rendering PDF preview:", pdfError);
               setFilePreview(null);
-              toast({ title: "PDF Preview Error", description: "Could not generate PDF preview for this file.", variant: "default" });
             }
           }
         };
         reader.readAsArrayBuffer(file);
-      } else if (file.type === 'application/pdf') {
-        setFilePreview(null);
-        toast({ title: "PDF Preview Skipped", description: "Preview is skipped for large PDF files to improve performance.", variant: "default" });
-      }
-
-      else {
+      } else {
         setFilePreview(null);
       }
 
@@ -203,6 +167,16 @@ export function DocumentConverterClient({
     multiple: false,
   });
 
+  const triggerDownload = (dataUrl: string, fileName: string) => {
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(dataUrl); // Clean up
+  };
+
   const handleConvert = async () => {
     if (!selectedFile) {
       toast({ title: "No File", description: "Please upload a file first.", variant: "destructive" });
@@ -211,59 +185,175 @@ export function DocumentConverterClient({
 
     setIsLoading(true);
     setResult(null);
-    setStatusMessage("Uploading file...");
-    setUploadProgress(0);
-    setConversionProgress(0);
+    setStatusMessage(`Converting ${selectedFile.name}...`);
+    setConversionProgress(20); // Initial progress
 
-    simulateUploadToFirebaseStorage(
-      selectedFile,
-      (progress) => setUploadProgress(progress),
-      async (filePath) => {
-        setUploadProgress(100);
-        setStatusMessage(`Processing with backend (simulated)...`);
+    try {
+      const fileBuffer = await selectedFile.arrayBuffer();
+      let convertedBlob: Blob | null = null;
+      let convertedFileName = `${selectedFile.name.split('.')[0]}_converted.${currentConversion.targetFormat}`;
+      let conversionNote: string | null = null;
 
-        try {
-          const { downloadUrl, convertedFileName } = await simulateFirebaseFunctionCall(filePath, currentConversion.targetFormat);
-          setConversionProgress(100);
-          setStatusMessage("Conversion successful!");
-          setResult({ name: convertedFileName, dataUrl: downloadUrl });
-          addToHistory({
-            fileName: selectedFile.name,
-            originalFormat: currentConversion.sourceFormat,
-            targetFormat: currentConversion.targetFormat,
-            status: 'success',
-            downloadUrl,
-          });
-          toast({ title: "Conversion Complete!", description: `${convertedFileName} is ready for download.` });
-        } catch (error: any) {
-          setStatusMessage(`Conversion failed: ${error.message}`);
-          setConversionProgress(0);
-          addToHistory({
-            fileName: selectedFile.name,
-            originalFormat: currentConversion.sourceFormat,
-            targetFormat: currentConversion.targetFormat,
-            status: 'error',
-            error: error.message,
-          });
-          toast({ title: "Conversion Error", description: error.message || "An unknown error occurred during conversion.", variant: "destructive" });
-        } finally {
-          setIsLoading(false);
+      // --- Word to PDF ---
+      if (currentConversion.value === 'docx-to-pdf') {
+        setStatusMessage("Converting Word to HTML...");
+        setConversionProgress(40);
+        const { value: html } = await mammoth.convertToHtml({ arrayBuffer: fileBuffer });
+        setStatusMessage("Generating PDF from HTML...");
+        setConversionProgress(70);
+        const pdf = new jsPDF();
+        // Using jspdf.html - quality varies, might need more advanced HTML parsing for complex docs
+        // For very basic text:
+        const rawTextResult = await mammoth.extractRawText({ arrayBuffer: fileBuffer });
+        const lines = pdf.splitTextToSize(rawTextResult.value, pdf.internal.pageSize.getWidth() - 20);
+        pdf.text(lines, 10, 10);
+
+        convertedBlob = pdf.output('blob');
+        convertedFileName = `${selectedFile.name.split('.')[0]}.pdf`;
+      }
+      // --- PDF to Word (Text Extraction) ---
+      else if (currentConversion.value === 'pdf-to-docx') {
+        setStatusMessage("Extracting text from PDF...");
+        setConversionProgress(50);
+        const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(fileBuffer) }).promise;
+        let fullText = "";
+        for (let i = 1; i <= pdfDoc.numPages; i++) {
+          const page = await pdfDoc.getPage(i);
+          const textContent = await page.getTextContent();
+          fullText += textContent.items.map((item: any) => item.str).join(' ') + "\n\n";
         }
-      },
-      (error) => {
-        setStatusMessage(`Upload failed: ${error.message}`);
-        setIsLoading(false);
-        setUploadProgress(0);
+        convertedBlob = new Blob([fullText], { type: 'text/plain;charset=utf-8' });
+        convertedFileName = `${selectedFile.name.split('.')[0]}.txt`;
+        conversionNote = "PDF content extracted as plain text. Formatting and layout are not preserved in this client-side conversion.";
+      }
+      // --- Excel to PDF ---
+      else if (currentConversion.value === 'xlsx-to-pdf') {
+        setStatusMessage("Parsing Excel file...");
+        setConversionProgress(40);
+        const workbook = XLSX.read(fileBuffer, { type: 'array' });
+        const firstSheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[firstSheetName];
+        const jsonData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        
+        setStatusMessage("Generating PDF from Excel data...");
+        setConversionProgress(70);
+        const pdf = new jsPDF();
+        (pdf as any).autoTable({
+            head: jsonData.length > 0 ? [jsonData[0]] : [],
+            body: jsonData.length > 1 ? jsonData.slice(1) : [],
+            startY: 10,
+            theme: 'grid',
+            styles: { fontSize: 8, cellPadding: 2 },
+            headStyles: { fillColor: [22, 160, 133], textColor: 255, fontStyle: 'bold' },
+            margin: { top: 10, right: 10, bottom: 10, left: 10 },
+        });
+        convertedBlob = pdf.output('blob');
+        convertedFileName = `${selectedFile.name.split('.')[0]}.pdf`;
+      }
+      // --- PDF to Excel (CSV text extraction) ---
+       else if (currentConversion.value === 'pdf-to-xlsx') {
+        setStatusMessage("Extracting text for CSV...");
+        setConversionProgress(50);
+        const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(fileBuffer) }).promise;
+        let csvText = "";
+        for (let i = 1; i <= pdfDoc.numPages; i++) {
+          const page = await pdfDoc.getPage(i);
+          const textContent = await page.getTextContent();
+          // Simple approach: join all text items on a page into a line, then join lines
+          // More sophisticated table detection is very complex client-side
+          csvText += textContent.items.map((item: any) => `"${item.str.replace(/"/g, '""')}"`).join(',') + "\n";
+        }
+        convertedBlob = new Blob([csvText], { type: 'text/csv;charset=utf-8' });
+        convertedFileName = `${selectedFile.name.split('.')[0]}.csv`;
+        conversionNote = "PDF content extracted page-by-page for CSV. Complex tables may not convert accurately.";
+      }
+      // --- PowerPoint to PDF (Simplified Text Extraction) ---
+      else if (currentConversion.value === 'pptx-to-pdf') {
+        setStatusMessage("Extracting text from PowerPoint (simplified)...");
+        setConversionProgress(50);
+        try {
+            const rawTextResult = await mammoth.extractRawText({ arrayBuffer: fileBuffer });
+            const pdf = new jsPDF();
+            const lines = pdf.splitTextToSize(rawTextResult.value || "No text could be extracted.", pdf.internal.pageSize.getWidth() - 20);
+            pdf.text(lines, 10, 10);
+            convertedBlob = pdf.output('blob');
+        } catch (e) {
+            // Mammoth might fail on PPTX. Fallback to simple message.
+            const pdf = new jsPDF();
+            pdf.text("Client-side PPTX to PDF conversion is very limited.\nCould not extract text using current method.", 10, 10);
+            convertedBlob = pdf.output('blob');
+        }
+        convertedFileName = `${selectedFile.name.split('.')[0]}.pdf`;
+        conversionNote = "Simplified PPTX to PDF: Only basic text content is extracted. All formatting, images, and slide structure are lost.";
+      }
+      // --- PDF to PowerPoint (Images on Slides) ---
+      else if (currentConversion.value === 'pdf-to-pptx') {
+        setStatusMessage("Rendering PDF pages as images...");
+        setConversionProgress(30);
+        const pdfDoc = await PDFDocument.load(fileBuffer);
+        const numPages = pdfDoc.getPageCount();
+        const pptx = new PptxGenJS();
+
+        for (let i = 0; i < numPages; i++) {
+          setStatusMessage(`Processing page ${i + 1} of ${numPages} for PPTX...`);
+          setConversionProgress(30 + Math.floor((i / numPages) * 60));
+          
+          const pdfPage = await pdfjsLib.getDocument({ data: new Uint8Array(fileBuffer) }).promise.then(doc => doc.getPage(i + 1));
+          const viewport = pdfPage.getViewport({ scale: 1.5 }); // Adjust scale as needed
+          const canvas = document.createElement('canvas');
+          canvas.width = viewport.width;
+          canvas.height = viewport.height;
+          const context = canvas.getContext('2d');
+          if(!context) throw new Error("Canvas context not available");
+          await pdfPage.render({ canvasContext: context, viewport }).promise;
+          const imageDataUrl = canvas.toDataURL('image/png');
+
+          const slide = pptx.addSlide();
+          slide.addImage({ data: imageDataUrl, x: 0, y: 0, w: '100%', h: '100%' });
+        }
+        setStatusMessage("Generating PowerPoint file...");
+        setConversionProgress(95);
+        // pptxgenjs's writeFile triggers download directly for browser, or returns Promise<ArrayBuffer> for Node
+        // For client-side, we want the blob to create an object URL.
+        const pptxBlob = await pptx.write({ outputType: 'blob' }) as Blob;
+        convertedBlob = pptxBlob;
+        convertedFileName = `${selectedFile.name.split('.')[0]}.pptx`;
+      }
+
+      if (convertedBlob) {
+        setConversionProgress(100);
+        const dataUrl = URL.createObjectURL(convertedBlob);
+        setStatusMessage("Conversion successful!");
+        setResult({ name: convertedFileName, dataUrl: dataUrl });
         addToHistory({
           fileName: selectedFile.name,
           originalFormat: currentConversion.sourceFormat,
           targetFormat: currentConversion.targetFormat,
-          status: 'error',
-          error: `Upload failed: ${error.message}`,
+          status: 'success',
+          downloadUrl: dataUrl, // Store data URL for re-download if needed in session history
+          downloadName: convertedFileName,
         });
-        toast({ title: "Upload Error", description: error.message, variant: "destructive" });
+        toast({ title: "Conversion Complete!", description: `${convertedFileName} is ready for download.` + (conversionNote ? ` ${conversionNote}` : '') });
+        triggerDownload(dataUrl, convertedFileName); // Auto-download
+      } else {
+        throw new Error("Conversion resulted in no output. Selected conversion path might not be fully implemented yet.");
       }
-    );
+
+    } catch (error: any) {
+      console.error("Conversion Error:", error);
+      setStatusMessage(`Conversion failed: ${error.message}`);
+      setConversionProgress(0);
+      addToHistory({
+        fileName: selectedFile.name,
+        originalFormat: currentConversion.sourceFormat,
+        targetFormat: currentConversion.targetFormat,
+        status: 'error',
+        error: error.message,
+      });
+      toast({ title: "Conversion Error", description: error.message || "An unknown error occurred during conversion.", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleRemoveFile = () => {
@@ -271,7 +361,6 @@ export function DocumentConverterClient({
     setFilePreview(null);
     setResult(null);
     setStatusMessage("");
-    setUploadProgress(0);
     setConversionProgress(0);
     toast({
       title: "File Removed",
@@ -294,15 +383,7 @@ export function DocumentConverterClient({
 
   return (
     <div className="space-y-6">
-      <Alert variant="default" className="bg-primary/10 border-primary/30">
-        <AlertTriangle className="h-5 w-5 text-primary" />
-        <AlertTitle className="font-semibold text-primary">Backend Implementation Required</AlertTitle>
-        <AlertDescription className="text-primary/80">
-          This tool provides the frontend UI for document conversion.
-          Actual conversion requires implementing a Firebase Function with a third-party API (e.g., Aspose, GroupDocs, Adobe PDF Services).
-          The current "Convert" button simulates this backend process.
-        </AlertDescription>
-      </Alert>
+      {/* Removed the "Backend Implementation Required" Alert */}
 
       <Card>
         <CardHeader>
@@ -344,19 +425,19 @@ export function DocumentConverterClient({
       <Card>
         <CardHeader>
           <CardTitle className="font-headline text-xl">Upload {currentConversion.sourceFormat.toUpperCase()} File</CardTitle>
-          <CardDescription>Select a {currentConversion.sourceFormat.toLowerCase()} file to convert to {currentConversion.targetFormat.toLowerCase()}. Max 50MB.</CardDescription>
+          <CardDescription>Select a {currentConversion.sourceFormat.toLowerCase()} file to convert to {currentConversion.targetFormat.toLowerCase()}. Max 25MB.</CardDescription>
         </CardHeader>
         <CardContent>
           {selectedFile ? (
             <div className="space-y-4">
-              <div className="relative w-full max-w-sm mx-auto border rounded-md p-4 bg-muted/20 min-h-[200px] flex items-center justify-center">
+              <div className="relative w-full max-w-sm mx-auto border rounded-md p-4 bg-muted/20 min-h-[150px] flex items-center justify-center">
                 {filePreview ? (
-                  <Image src={filePreview} alt={`${currentConversion.sourceFormat} preview`} width={150} height={210} className="mx-auto border shadow-sm object-contain" />
+                  <Image src={filePreview} alt={`${currentConversion.sourceFormat} preview`} width={100} height={140} className="mx-auto border shadow-sm object-contain" />
                 ) : (
                   <div className="flex flex-col items-center justify-center text-center">
                     <SourceIconMapped className="h-16 w-16 text-muted-foreground" />
-                    <p className="text-sm mt-2 text-muted-foreground">
-                      {selectedFile.type === 'application/pdf' ? 'Preview skipped or unavailable.' : 'No preview for this file type.'}
+                     <p className="text-sm mt-2 text-muted-foreground">
+                      {selectedFile.type === 'application/pdf' ? 'PDF Preview' : 'No preview available.'}
                     </p>
                   </div>
                 )}
@@ -386,7 +467,7 @@ export function DocumentConverterClient({
                 <p>Drag 'n' drop, or click to select file</p>
               )}
               <p className="text-xs text-muted-foreground mt-1">
-                Accepted: {Object.values(currentConversion.accept).flat().join(', ')}. Max 50MB.
+                Accepted: {Object.values(currentConversion.accept).flat().join(', ')}. Max 25MB.
               </p>
             </div>
           )}
@@ -407,16 +488,15 @@ export function DocumentConverterClient({
             {isLoading && (
               <div className="mt-4 space-y-2">
                 <p className="text-sm text-muted-foreground">{statusMessage}</p>
-                {uploadProgress < 100 && uploadProgress > 0 && <Progress value={uploadProgress} className="w-full h-2" />}
-                {uploadProgress === 100 && conversionProgress < 100 && <Progress value={conversionProgress} className="w-full h-2 bg-accent" />}
+                <Progress value={conversionProgress} className="w-full h-2" />
               </div>
             )}
           </CardContent>
         </Card>
       )}
-
-      {result && (
-        <Card className="mt-6 bg-secondary/30">
+      
+      { !isLoading && result && ( // Only show result card if not loading and result exists
+         <Card className="mt-6 bg-secondary/30">
           <CardHeader>
             <CardTitle className="font-headline text-xl">Conversion Result</CardTitle>
           </CardHeader>
@@ -424,17 +504,16 @@ export function DocumentConverterClient({
             <TargetIconMapped className="h-16 w-16 text-primary mx-auto" />
             <p className="font-medium">{result.name}</p>
             <Button
-              asChild
+              onClick={() => triggerDownload(result.dataUrl, result.name)}
               className="w-full sm:w-auto text-base py-3 px-6"
               aria-label={`Download ${result.name}`}
             >
-              <a href={result.dataUrl} download={result.name}>
-                <Download className="mr-2 h-5 w-5" /> Download Converted File
-              </a>
+              <Download className="mr-2 h-5 w-5" /> Download Converted File
             </Button>
           </CardContent>
         </Card>
       )}
+
 
       {history.length > 0 && (
         <Card>
@@ -450,24 +529,36 @@ export function DocumentConverterClient({
                     <p className="text-xs text-muted-foreground">
                       {item.originalFormat.toUpperCase()} to {item.targetFormat.toUpperCase()} - {new Date(item.timestamp).toLocaleTimeString()}
                     </p>
+                     {item.status === 'error' && <p className="text-xs text-destructive truncate max-w-xs" title={item.error}>Error: {item.error}</p>}
                   </div>
-                  {item.status === 'success' && item.downloadUrl ? (
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={item.downloadUrl} download={`${item.fileName.split('.')[0]}_converted.${item.targetFormat}`}>
-                        <Download className="mr-2 h-4 w-4" /> Download
-                      </a>
+                  {item.status === 'success' && item.downloadUrl && item.downloadName ? (
+                    <Button variant="outline" size="sm" onClick={() => triggerDownload(item.downloadUrl!, item.downloadName!)}>
+                      <Download className="mr-2 h-4 w-4" /> Re-Download
                     </Button>
-                  ) : (
-                    <span className="text-xs text-destructive" title={item.error}>Error</span>
-                  )}
+                  ) : item.status === 'error' ? (
+                    <span className="text-xs text-destructive p-2 rounded-md bg-destructive/10">Failed</span>
+                  ) : null}
                 </li>
               ))}
             </ul>
           </CardContent>
         </Card>
       )}
+      
+      <Alert variant="default" className="mt-6">
+        <Info className="h-4 w-4" />
+        <AlertTitle>Client-Side Conversion Notes</AlertTitle>
+        <AlertDescription>
+          <ul className="list-disc pl-5 space-y-1 text-sm">
+            <li>Conversions are processed directly in your browser. No files are uploaded to a server for these operations.</li>
+            <li>**Fidelity Limitations**: Complex formatting, layouts, and embedded objects (especially in PDF to Word/Excel/PowerPoint conversions) may not be perfectly preserved. Results are best with simpler documents.</li>
+            <li>**PPTX to PDF**: This conversion is highly simplified, primarily extracting text content. Visuals and slide structure will be lost.</li>
+            <li>**PDF to Word/Excel**: These tools focus on text extraction. PDF to Excel will attempt a CSV-like structure. Formatting is generally not retained.</li>
+            <li>**Performance**: Larger files or more complex documents may take longer to process and could impact browser performance. A file size limit of 25MB is recommended.</li>
+          </ul>
+        </AlertDescription>
+      </Alert>
+
     </div>
   );
 }
-
-    

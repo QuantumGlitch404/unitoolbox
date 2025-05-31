@@ -22,12 +22,12 @@ import * as pdfjsLib from 'pdfjs-dist';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import html2canvas from 'html2canvas';
 
-
 const iconMap: { [key: string]: React.ElementType } = {
   FileText: FileText,
   FileCode: FileCodeIcon,
   FileSpreadsheet: FileSpreadsheet,
   Presentation: Presentation,
+  Info: Info,
 };
 
 interface ConversionOption {
@@ -78,8 +78,8 @@ export function DocumentConverterClient({
   const currentConversion = conversionOptions.find(opt => opt.value === conversionType) || conversionOptions[0];
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const workerSrcPath = `/pdf.worker.min.mjs`; // Ensure this name matches your file in /public
+    if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+      const workerSrcPath = `/pdf.worker.min.mjs`; 
       pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrcPath;
     }
   }, []);
@@ -134,16 +134,18 @@ export function DocumentConverterClient({
               const typedArray = new Uint8Array(e.target.result as ArrayBuffer);
               const loadingTask = pdfjsLib.getDocument({ data: typedArray });
               const pdf = await loadingTask.promise;
-              const page = await pdf.getPage(1);
-              const viewport = page.getViewport({ scale: 0.3 });
-              const canvas = canvasRef.current;
-              const context = canvas.getContext('2d');
-              if (!context) return;
-              canvas.height = viewport.height;
-              canvas.width = viewport.width;
-              const renderContext = { canvasContext: context, viewport: viewport };
-              await page.render(renderContext).promise;
-              setFilePreview(canvas.toDataURL());
+              if (pdf.numPages > 0) {
+                const page = await pdf.getPage(1);
+                const viewport = page.getViewport({ scale: 0.3 });
+                const canvas = canvasRef.current;
+                const context = canvas.getContext('2d');
+                if (!context) return;
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                const renderContext = { canvasContext: context, viewport: viewport };
+                await page.render(renderContext).promise;
+                setFilePreview(canvas.toDataURL());
+              }
             } catch (pdfError) {
               console.error("Error rendering PDF preview:", pdfError);
               setFilePreview(null);
@@ -160,7 +162,7 @@ export function DocumentConverterClient({
         description: `${file.name} is ready for conversion.`,
       });
     }
-  }, [toast, currentConversion.accept]);
+  }, [toast]);
 
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -184,24 +186,21 @@ export function DocumentConverterClient({
     const arrayBuffer = await file.arrayBuffer();
     setStatusMessage("Converting Word to HTML...");
     setConversionProgress(30);
-    // Add style to ensure text is black
+    
     const { value: html } = await mammoth.convertToHtml({ arrayBuffer });
-    const styledHtml = `<style>body { color: black; }</style>${html}`;
+    const styledHtml = `<style>body{color:black;font-family:sans-serif;margin:20px;}p{margin-bottom:10px;line-height:1.4;}h1,h2,h3,h4,h5,h6{margin-bottom:12px;margin-top:20px;}ul,ol{margin-left:20px;margin-bottom:10px;}table{border-collapse:collapse;width:100%;margin-bottom:10px;}th,td{border:1px solid #ccc;padding:4px;text-align:left;}</style>${html}`;
 
     setStatusMessage("Rendering HTML to PDF...");
     setConversionProgress(60);
 
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = styledHtml;
-    // Apply styles for A4-like rendering for html2canvas
-    // These dimensions are approximate and might need adjustment for perfect A4.
-    // The goal is to provide a reasonable rendering area for html2canvas.
-    tempDiv.style.width = '794px'; // Approx A4 width in pixels at 96 DPI
-    tempDiv.style.minHeight = '1123px'; // Approx A4 height
-    tempDiv.style.padding = '20px';
-    tempDiv.style.backgroundColor = 'white'; // Ensure canvas background is white
+    tempDiv.style.width = '794px'; 
+    tempDiv.style.padding = '40px'; // simulate A4 margins
+    tempDiv.style.backgroundColor = 'white';
     tempDiv.style.position = 'absolute';
-    tempDiv.style.left = '-9999px'; // Render off-screen
+    tempDiv.style.left = '-9999px'; 
+    tempDiv.style.fontFamily = 'Arial, sans-serif'; // Ensure consistent font
     document.body.appendChild(tempDiv);
     
     const canvas = await html2canvas(tempDiv, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
@@ -211,7 +210,7 @@ export function DocumentConverterClient({
     const pdf = new jsPDF({
         orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
         unit: 'px',
-        format: [canvas.width, canvas.height] // Use canvas dimensions for PDF page size
+        format: [canvas.width, canvas.height] 
     });
     pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
     return pdf.output('blob');
@@ -223,27 +222,31 @@ export function DocumentConverterClient({
     setConversionProgress(30);
     const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
     const paragraphs: Paragraph[] = [];
-    let fullText = "";
 
     for (let i = 1; i <= pdfDoc.numPages; i++) {
       const page = await pdfDoc.getPage(i);
       const textContent = await page.getTextContent();
-      const pageText = textContent.items.map((item: any) => item.str).join("\n");
-      fullText += pageText + "\n\n"; // Add double newline for page break representation
+      const pageTextRuns: TextRun[] = [];
+      textContent.items.forEach((item: any) => {
+         pageTextRuns.push(new TextRun(item.str));
+         if (item.hasEOL) {
+            pageTextRuns.push(new TextRun({ text: "", break: 1}));
+         }
+      });
+      paragraphs.push(new Paragraph({ children: pageTextRuns }));
+      if (i < pdfDoc.numPages) { // Add a simulated page break
+         paragraphs.push(new Paragraph({ children: [new TextRun({ text: "", break: 1, type: "page" })]}));
+      }
       setConversionProgress(30 + Math.floor((i / pdfDoc.numPages) * 50));
     }
     
     setStatusMessage("Generating DOCX file...");
-    fullText.split('\n').forEach(line => {
-        paragraphs.push(new Paragraph({ children: [new TextRun(line)] }));
-    });
-
     const doc = new Document({ sections: [{ children: paragraphs }] });
     const buffer = await Packer.toBuffer(doc);
     setConversionProgress(90);
     return new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
   };
-
+  
   const handleXlsxToPdf = async (file: File): Promise<Blob> => {
     const arrayBuffer = await file.arrayBuffer();
     setStatusMessage("Parsing Excel file...");
@@ -251,7 +254,7 @@ export function DocumentConverterClient({
     const workbook = XLSX.read(arrayBuffer, { type: 'array' });
     const firstSheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[firstSheetName];
-    const jsonData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    const jsonData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" }); // Use defval for empty cells
     
     setStatusMessage("Generating PDF from Excel data...");
     setConversionProgress(60);
@@ -273,18 +276,34 @@ export function DocumentConverterClient({
     const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
     const dataForExcel: string[][] = [];
 
-    for (let i = 1; i <= pdfDoc.numPages; i++) {
-      const page = await pdfDoc.getPage(i);
+    for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+      const page = await pdfDoc.getPage(pageNum);
       const textContent = await page.getTextContent();
+      let currentPageRows: string[][] = [[]];
+      let currentY = -1;
+
       textContent.items.forEach((item: any) => {
-        if (item.str.trim()) {
-            const cells = item.str.split(/\s{2,}/).map((cell:string) => cell.trim()); // Split by 2+ spaces
-            if(cells.some((cell:string) => cell.length > 0)) {
-                dataForExcel.push(cells);
-            }
+        if (currentY === -1) currentY = item.transform[5];
+
+        if (Math.abs(item.transform[5] - currentY) > (item.height || 10) * 0.7) { // New line heuristic
+            currentPageRows.push([]);
+            currentY = item.transform[5];
+        }
+        // Heuristic for cell separation based on X coordinate; very basic
+        // This will likely need significant improvement for real-world PDFs
+        let lastCell = currentPageRows[currentPageRows.length - 1];
+        let lastX = lastCell.length > 0 ? (item.transform[4] - 10) : -Infinity; // crude previous item X
+        
+        if (item.transform[4] > lastX + (item.width*1.5 || 20) ) { // new cell heuristic
+            lastCell.push(item.str.trim());
+        } else if (lastCell.length > 0) { // append to last cell
+            lastCell[lastCell.length -1] += " " + item.str.trim();
+        } else {
+             lastCell.push(item.str.trim());
         }
       });
-      setConversionProgress(30 + Math.floor((i / pdfDoc.numPages) * 50));
+      dataForExcel.push(...currentPageRows.filter(row => row.some(cell => cell.trim() !== "")));
+      setConversionProgress(30 + Math.floor((pageNum / pdfDoc.numPages) * 50));
     }
     
     setStatusMessage("Generating XLSX file...");
@@ -297,31 +316,43 @@ export function DocumentConverterClient({
   };
 
   const handlePptxToPdf = async (file: File): Promise<Blob> => {
-      const arrayBuffer = await file.arrayBuffer();
-      setStatusMessage("Extracting text from PowerPoint (simplified)...");
-      setConversionProgress(30);
-      try {
-          const { value: text } = await mammoth.extractRawText({ arrayBuffer });
-          setStatusMessage("Generating PDF from extracted text...");
-          setConversionProgress(70);
-          const pdf = new jsPDF();
-          const lines = pdf.splitTextToSize(text || "No text could be extracted.", pdf.internal.pageSize.getWidth() - 40);
-          pdf.text(lines, 20, 20);
-          return pdf.output('blob');
-      } catch (e) {
-          console.error("Mammoth.js failed on PPTX for text extraction:", e);
-          setStatusMessage("Could not extract text from PPTX. Generating basic PDF.");
-          setConversionProgress(70);
-          const pdf = new jsPDF();
-          pdf.text("Client-side PPTX to PDF conversion is very limited.\nCould not extract text content from this file using current methods.", 10, 10);
-          return pdf.output('blob');
-      }
+    const arrayBuffer = await file.arrayBuffer();
+    setStatusMessage("Attempting to extract text from PowerPoint (highly limited)...");
+    setConversionProgress(30);
+    try {
+        const { value: text } = await mammoth.extractRawText({ arrayBuffer });
+        setStatusMessage("Generating PDF from extracted text...");
+        setConversionProgress(70);
+        const pdf = new jsPDF();
+        const lines = pdf.splitTextToSize(text || "No text content could be extracted from this PowerPoint file using client-side methods.", pdf.internal.pageSize.getWidth() - 40);
+        pdf.text(lines, 20, 20);
+        toast({
+            title: "PPTX to PDF Note",
+            description: "Only basic text content was extracted. Formatting, images, and layouts are lost.",
+            duration: 7000,
+        });
+        return pdf.output('blob');
+    } catch (e: any) {
+        console.error("Error during PPTX to PDF (text extraction):", e);
+        toast({
+            title: "PPTX to PDF Conversion Failed",
+            description: "Could not process the PowerPoint file for text extraction. Client-side conversion is very limited.",
+            variant: "destructive",
+            duration: 7000,
+        });
+        // Fallback: create a PDF that notes the failure
+        const pdf = new jsPDF();
+        pdf.text("Client-side PPTX to PDF conversion failed for this file.", 10, 10);
+        pdf.text("This method can only attempt to extract basic text and often fails for complex PPTX.", 10, 20);
+        return pdf.output('blob');
+    }
   };
 
   const handlePdfToPptx = async (file: File): Promise<Blob> => {
     const arrayBuffer = await file.arrayBuffer();
     setStatusMessage("Rendering PDF pages as images for PPTX...");
     setConversionProgress(20);
+
     const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
     const numPages = pdfDoc.numPages;
     const pptx = new PptxGenJS();
@@ -332,16 +363,21 @@ export function DocumentConverterClient({
       setConversionProgress(20 + Math.floor(((i + 1) / numPages) * 70));
       
       const page = await pdfDoc.getPage(i + 1);
-      const viewport = page.getViewport({ scale: 1.5 }); // Adjusted scale
+      const viewport = page.getViewport({ scale: 1.5 }); 
       const canvas = document.createElement('canvas');
       canvas.width = viewport.width;
       canvas.height = viewport.height;
       const context = canvas.getContext('2d');
-      if(!context) throw new Error("Canvas context not available for PDF page rendering.");
+      if(!context) {
+        console.error(`Canvas context not available for PDF page ${i + 1}.`);
+        // Potentially skip this page or throw an error that stops the whole conversion
+        throw new Error(`Failed to get canvas context for page ${i + 1}. Cannot continue PPTX generation.`);
+      }
       
       context.fillStyle = 'white';
       context.fillRect(0, 0, canvas.width, canvas.height);
-      await page.render({ canvasContext: context, viewport }).promise;
+      
+      await page.render({ canvasContext: context, viewport: viewport }).promise;
       const imageDataUrl = canvas.toDataURL('image/png');
 
       const slide = pptx.addSlide();
@@ -352,6 +388,7 @@ export function DocumentConverterClient({
     const pptxBlob = await pptx.write({ outputType: 'blob' }) as Blob;
     return pptxBlob;
   };
+
 
   const handleConvert = async () => {
     if (!selectedFile) {
@@ -367,32 +404,21 @@ export function DocumentConverterClient({
     try {
       let convertedBlob: Blob | null = null;
       let convertedFileName = `${selectedFile.name.split('.').slice(0, -1).join('.')}_converted.${currentConversion.targetFormat}`;
-      let conversionNote: string | undefined = undefined;
-
+      
       if (currentConversion.value === 'docx-to-pdf') {
         convertedBlob = await handleDocxToPdf(selectedFile);
-        convertedFileName = `${selectedFile.name.split('.')[0]}.pdf`;
-        conversionNote = "Word to PDF conversion relies on HTML rendering. Complex layouts may vary.";
       } else if (currentConversion.value === 'pdf-to-docx') {
         convertedBlob = await handlePdfToDocx(selectedFile);
-        convertedFileName = `${selectedFile.name.split('.')[0]}.docx`;
-        conversionNote = "PDF to Word: Text extracted into a .docx file. Formatting and layout are simplified.";
       } else if (currentConversion.value === 'xlsx-to-pdf') {
         convertedBlob = await handleXlsxToPdf(selectedFile);
-        convertedFileName = `${selectedFile.name.split('.')[0]}.pdf`;
       } else if (currentConversion.value === 'pdf-to-xlsx') {
         convertedBlob = await handlePdfToXlsx(selectedFile);
-        convertedFileName = `${selectedFile.name.split('.')[0]}.xlsx`;
-        conversionNote = "PDF to Excel: Text extracted into .xlsx. Table structure detection is heuristic.";
       } else if (currentConversion.value === 'pptx-to-pdf') {
         convertedBlob = await handlePptxToPdf(selectedFile);
-        convertedFileName = `${selectedFile.name.split('.')[0]}.pdf`;
-        conversionNote = "PPTX to PDF: Simplified text extraction. Visuals and layouts are lost.";
       } else if (currentConversion.value === 'pdf-to-pptx') {
         convertedBlob = await handlePdfToPptx(selectedFile);
-        convertedFileName = `${selectedFile.name.split('.')[0]}.pptx`;
-        conversionNote = "PDF to PPTX: Each PDF page converted to a static image on a slide.";
       }
+
 
       if (convertedBlob) {
         setConversionProgress(100);
@@ -406,9 +432,9 @@ export function DocumentConverterClient({
           status: 'success',
           downloadName: convertedFileName,
         });
-        toast({ title: "Conversion Complete!", description: (conversionNote ? `${conversionNote} ` : '') + `${convertedFileName} is ready for download.` });
+        toast({ title: "Conversion Complete!", description: `${convertedFileName} is ready for download.` });
       } else {
-        throw new Error("Conversion process did not produce an output file for the selected type.");
+        throw new Error("Unsupported conversion type or conversion failed to produce output.");
       }
 
     } catch (error: any) {
@@ -471,7 +497,7 @@ export function DocumentConverterClient({
             value={conversionType}
             onValueChange={(value) => {
               setConversionType(value);
-              handleRemoveFile(); // Clear selections when type changes
+              handleRemoveFile(); 
             }}
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
@@ -511,7 +537,7 @@ export function DocumentConverterClient({
                   <div className="flex flex-col items-center justify-center text-center">
                     <SourceIconMapped className="h-16 w-16 text-muted-foreground" />
                      <p className="text-sm mt-2 text-muted-foreground">
-                      {currentConversion.sourceFormat === 'pdf' ? 'PDF Preview (first page)' : 'No preview available for this file type.'}
+                      {currentConversion.sourceFormat === 'pdf' ? 'PDF Preview (first page, if small enough)' : 'No preview available for this file type.'}
                     </p>
                   </div>
                 )}
@@ -592,7 +618,7 @@ export function DocumentConverterClient({
         <Card>
           <CardHeader>
             <CardTitle className="font-headline text-xl">Recent Conversions</CardTitle>
-            <CardDescription>Client-side conversion history for this session (max 5).</CardDescription>
+            <CardDescription>Client-side conversion history (max 5).</CardDescription>
           </CardHeader>
           <CardContent>
             <ul className="space-y-3">
@@ -618,7 +644,7 @@ export function DocumentConverterClient({
         <AlertDescription>
           <ul className="list-disc pl-5 space-y-1 text-sm">
             <li>Conversions are processed directly in your browser. No files are uploaded to any server.</li>
-            <li>**Fidelity Limitations**: Client-side conversion of complex document formats (especially PDF to Word/Excel/PowerPoint or vice-versa) can result in loss of formatting, layout, and images. Results are best with simpler documents.</li>
+            <li>**Fidelity Limitations**: Client-side conversion of complex document formats (especially PDF to Word/Excel/PowerPoint or vice-versa) can result in loss of formatting, layout, and images. Results are best with simpler documents. For PowerPoint to PDF, only basic text is extracted. For PDF to PowerPoint, pages become static images.</li>
             <li>**Performance**: Larger files or more complex documents may take longer to process and could impact browser performance. A 25MB file size limit is suggested.</li>
             <li>**Supported Features**: Not all features of complex document formats (e.g., macros, advanced Excel formulas, PowerPoint animations) are supported by client-side libraries.</li>
           </ul>
@@ -628,4 +654,3 @@ export function DocumentConverterClient({
     </div>
   );
 }
-

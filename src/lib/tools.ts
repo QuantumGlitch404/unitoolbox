@@ -2,7 +2,7 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   Scissors, FileText, Languages, Image, FileJson, Database, AudioLines, Film, Palette, Type, Settings2, Wand2, FileType2, FileUp, FileDown,
-  Replace, Rows, Columns, SlidersHorizontal, TextSearch, Link, BoxSelect, Blend, BringToFront, Sparkles
+  Replace, Rows, Columns, SlidersHorizontal, TextSearch, Link, BoxSelect, Blend, BringToFront, Sparkles, FileVideo
 } from 'lucide-react';
 
 export type ToolCategory = 'Image' | 'Document & Data' | 'Text & AI' | 'Media' | 'Converter';
@@ -119,6 +119,15 @@ export const tools: Tool[] = [
     tags: ['ascii', 'text', 'decoder'],
   },
   // Media Tools
+  {
+    id: 'video-compressor',
+    title: 'Video Compressor (Simulated)',
+    description: 'Reduce video file sizes. (Note: Client-side video compression is complex; this tool simulates the process and UI).',
+    href: '/tools/video-compressor',
+    category: 'Media',
+    icon: FileVideo,
+    tags: ['video', 'compression', 'reduce size', 'optimizer', 'simulated'],
+  },
   {
     id: 'video-to-gif',
     title: 'Video to GIF Converter',

@@ -87,6 +87,9 @@ export function VideoCompressorClient() {
     recordedChunksRef.current = [];
     if (videoRef.current) {
       videoRef.current.pause();
+      // Unbind handlers before changing src to prevent spurious errors after successful operations
+      videoRef.current.onloadedmetadata = null;
+      videoRef.current.onerror = null;
       videoRef.current.src = ""; // Release resources
     }
     setIsLoading(false);
@@ -189,9 +192,15 @@ export function VideoCompressorClient() {
         cleanup();
       };
       
-      recorder.onerror = (event) => {
+      recorder.onerror = (event: Event) => {
+        let errorMessage = "MediaRecorder encountered an error during encoding.";
+        if (event instanceof ErrorEvent) {
+            errorMessage = event.message;
+        } else if ((event as any).error && (event as any).error.message) {
+            errorMessage = (event as any).error.message;
+        }
         console.error("MediaRecorder error:", event);
-        toast({title: "Encoding Error", description: `MediaRecorder encountered an error.`, variant: "destructive"});
+        toast({title: "Encoding Error", description: errorMessage, variant: "destructive"});
         cleanup();
       };
 
@@ -202,11 +211,16 @@ export function VideoCompressorClient() {
         toast({title: "Playback Error", description: "Could not start video processing.", variant: "destructive"});
         cleanup();
       });
-      recorder.start();
+      if (recorder.state === "inactive") { // Check if recorder might have already errored out
+        recorder.start();
+      }
+
 
       const drawFrame = () => {
-        if (videoElement.paused || videoElement.ended || recorder.state === "inactive") {
-          if (recorder.state === "recording") recorder.stop();
+        if (!videoElement || videoElement.paused || videoElement.ended || !mediaRecorderRef.current || mediaRecorderRef.current.state === "inactive") {
+          if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
+             mediaRecorderRef.current.stop();
+          }
           return;
         }
         ctx.drawImage(videoElement, 0, 0, newWidth, newHeight);
@@ -217,8 +231,10 @@ export function VideoCompressorClient() {
     };
     
     videoElement.onerror = (e) => {
+        // This error handler is primarily for issues loading the initial video file.
+        // It should not be triggered by cleanup actions if handlers are correctly removed.
         console.error("Error loading video metadata:", e);
-        toast({title: "Video Load Error", description: "Could not load video metadata for processing.", variant: "destructive"});
+        toast({title: "Video Load Error", description: "Could not load video metadata for processing. The file might be corrupt or an unsupported format.", variant: "destructive"});
         cleanup();
     };
 
@@ -356,3 +372,4 @@ export function VideoCompressorClient() {
     </div>
   );
 }
+

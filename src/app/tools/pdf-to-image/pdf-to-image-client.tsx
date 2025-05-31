@@ -26,24 +26,12 @@ export function PdfToImageClient() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Dynamically set workerSrc. Use a CDN version for simplicity.
-    // In a production Next.js app, you'd typically copy the worker file to /public
-    // and set workerSrc = '/pdf.worker.min.js';
-    // Ensure version matches installed pdfjs-dist
-     try {
-        const pdfjsVersion = pdfjsLib.version;
-        if (pdfjsVersion) {
-         pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsVersion}/pdf.worker.min.js`;
-        } else {
-            // Fallback if version cannot be determined (should not happen with direct import)
-            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js`;
-            console.warn("pdfjs-dist version not found, using fallback workerSrc. Ensure pdfjs-dist is correctly installed.");
-        }
-    } catch (e) {
-        console.error("Error setting pdf.js worker:", e);
-        toast({ title: "PDF Worker Error", description: "Could not initialize PDF processing worker.", variant: "destructive" });
-    }
-  }, [toast]);
+    // Set workerSrc to the local path.
+    // IMPORTANT: You need to manually copy 'pdf.worker.min.js'
+    // from 'node_modules/pdfjs-dist/build/pdf.worker.min.js'
+    // to your 'public' folder for this to work.
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `/pdf.worker.min.js`;
+  }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
@@ -121,7 +109,7 @@ export function PdfToImageClient() {
         toast({ title: "Conversion Complete!", description: `${pdf.numPages} page(s) converted to images.` });
       } catch (error: any) {
         console.error("Error converting PDF to images:", error);
-        toast({ title: "Conversion Error", description: error.message || "Failed to process PDF.", variant: "destructive" });
+        toast({ title: "Conversion Error", description: error.message || "Failed to process PDF. Ensure the worker is correctly set up.", variant: "destructive" });
       } finally {
         setIsLoading(false);
       }

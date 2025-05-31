@@ -1,7 +1,7 @@
 
 import type { LucideIcon } from 'lucide-react';
 import {
-  Scissors, FileText, Languages, Image as ImageIcon Lucide, FileJson, Database, AudioLines, Film, Palette, Type, Settings2, Wand2, FileType2, FileUp, FileDown,
+  Scissors, FileText, Languages, Image as ImageIcon, FileJson, Database, AudioLines, Film, Palette, Type, Settings2, Wand2, FileType2, FileUp, FileDown,
   Replace, Rows, Columns, SlidersHorizontal, TextSearch, Link, BoxSelect, Blend, BringToFront, Sparkles, FileVideo, Edit3, Combine
 } from 'lucide-react';
 

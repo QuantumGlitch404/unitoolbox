@@ -23,96 +23,142 @@ const escapeCsvCell = (value: any): string => {
   return stringValue;
 };
 
-const flattenObject = (obj: any, prefix: string = ''): Record<string, any> => {
-  const result: Record<string, any> = {};
-
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      const newPrefix = prefix ? `${prefix}.${key}` : key;
-      if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
-        Object.assign(result, flattenObject(obj[key], newPrefix));
-      } else if (Array.isArray(obj[key])) {
-        result[newPrefix] = JSON.stringify(obj[key]);
-      } else {
-        result[newPrefix] = obj[key];
-      }
-    }
-  }
-  return result;
-};
-
 const convertJsonToCsv = (jsonData: any): string => {
-  let dataArray: any[];
+  let topLevelArray: any[];
 
-  // If jsonData is an object with a single key whose value is an array,
-  // use that inner array as the basis for CSV rows.
   if (typeof jsonData === 'object' && jsonData !== null && !Array.isArray(jsonData)) {
     const keys = Object.keys(jsonData);
     if (keys.length === 1 && Array.isArray(jsonData[keys[0]])) {
-      dataArray = jsonData[keys[0]]; // Use the array of items (e.g., students)
+      topLevelArray = jsonData[keys[0]];
     } else {
-      dataArray = [jsonData]; // Treat the single complex object as one row
+      topLevelArray = [jsonData]; // Treat single object as an array of one
     }
   } else if (Array.isArray(jsonData)) {
-    dataArray = jsonData; // It's already an array of objects
+    topLevelArray = jsonData;
   } else {
-    // Handle primitive JSON values (string, number, boolean, null)
-    if (jsonData === null) {
-      throw new Error("Input JSON 'null' cannot be meaningfully converted to CSV. Please provide an array of objects or a single object.");
-    }
-    // For other primitives, create a single-value CSV
-    return `value\n${escapeCsvCell(jsonData)}`;
-  }
-  
-  if (dataArray.length === 0) {
-    return ''; // Return empty string for empty JSON array [] or {"key": []}
+    if (jsonData === null) throw new Error("Input JSON 'null' cannot be meaningfully converted to CSV. Please provide an array of objects or a single object.");
+    return `value\n${escapeCsvCell(jsonData)}`; // Primitive JSON value
   }
 
-  // Flatten each object in the dataArray
-  const flattenedData = dataArray.map(item => {
+  if (topLevelArray.length === 0) return '';
+
+  const allHeaders = new Set<string>();
+  const resultRows: Record<string, any>[] = [];
+
+  // Flattens an object, used for nested structures NOT chosen for row expansion
+  function flattenSubObject(obj: any, prefix: string = ''): Record<string, any> {
+    const result: Record<string, any> = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        const newKey = prefix + key;
+        const value = obj[key];
+        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+          Object.assign(result, flattenSubObject(value, newKey + '.'));
+        } else if (Array.isArray(value)) {
+          result[newKey] = JSON.stringify(value); // Stringify arrays encountered during sub-flattening
+        } else {
+          result[newKey] = value;
+        }
+      }
+    }
+    return result;
+  }
+
+  // Recursive function to process each record, potentially expanding one array of objects
+  function processRecord(currentRecord: any, parentData: Record<string, any>, prefixForChildren: string = '') {
+    const simpleProps: Record<string, any> = {};
+    let arrayToExpandInfo: { originalKeyName: string, data: any[] } | null = null;
+
+    // Separate simple properties and the first eligible array of objects for expansion
+    for (const key in currentRecord) {
+      if (Object.prototype.hasOwnProperty.call(currentRecord, key)) {
+        const value = currentRecord[key];
+        const fullPropKey = prefixForChildren + key;
+
+        if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' && value[0] !== null && !arrayToExpandInfo) {
+          arrayToExpandInfo = { originalKeyName: key, data: value };
+        } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+          // Nested object (not an array of objects, or not the first one)
+          Object.assign(simpleProps, flattenSubObject(value, fullPropKey + '.'));
+        } else {
+          // Primitive, or array of primitives/mixed (stringified), or subsequent array of objects (stringified)
+          if(Array.isArray(value)) {
+            simpleProps[fullPropKey] = JSON.stringify(value);
+          } else {
+            simpleProps[fullPropKey] = value;
+          }
+        }
+      }
+    }
+
+    const currentRowBaseData = { ...parentData, ...simpleProps };
+
+    if (arrayToExpandInfo) {
+      // Expand this array: for each item in arrayToExpand, create a new branch of processing
+      const subPrefix = prefixForChildren + arrayToExpandInfo.originalKeyName + '.';
+      if (arrayToExpandInfo.data.length === 0) { // Empty array to expand, create one row with existing data
+        Object.keys(currentRowBaseData).forEach(header => allHeaders.add(header));
+        resultRows.push(currentRowBaseData);
+      } else {
+        arrayToExpandInfo.data.forEach(subItem => {
+          processRecord(subItem, currentRowBaseData, subPrefix);
+        });
+      }
+    } else {
+      // This is a "leaf" row in terms of expansion. Add it to results.
+      Object.keys(currentRowBaseData).forEach(header => allHeaders.add(header));
+      resultRows.push(currentRowBaseData);
+    }
+  }
+
+  topLevelArray.forEach(item => {
     if (typeof item === 'object' && item !== null) {
-      return flattenObject(item);
-    }
-    // If an item in the array is not an object (e.g., [1, "a", {"k":"v"}]),
-    // wrap it to have a 'value' key for consistent processing.
-    return { 'value': item }; 
-  });
-
-  // Collect all unique headers from the flattened data
-  const headersSet = new Set<string>();
-  flattenedData.forEach(obj => {
-    if (typeof obj === 'object' && obj !== null) {
-      Object.keys(obj).forEach(key => headersSet.add(key));
+      processRecord(item, {}, '');
+    } else { // Handle array of primitives like [1, "a", null]
+      const row = { 'value': item };
+      allHeaders.add('value');
+      resultRows.push(row);
     }
   });
-  const headers = Array.from(headersSet).sort(); // Sort headers alphabetically for consistency
-
-  // Special case: if the original JSON was a simple array of primitives (e.g. [1,2,3])
-  // which became [{value:1},{value:2},{value:3}], the header should be 'value'.
-  if (headers.length === 1 && headers[0] === 'value' && 
-      flattenedData.every(item => typeof item === 'object' && item !== null && Object.keys(item).length === 1 && 'value' in item)) {
-      const csvRows = [
-        "value", // Header
-        ...flattenedData.map(rowObj => escapeCsvCell(rowObj.value)) // Rows
-      ];
-      return csvRows.join('\n');
+  
+  // Handle cases like `[]` or `[{}]` or `[null]` more gracefully.
+  if (resultRows.length === 0 && topLevelArray.length > 0) { // e.g. `[null]` or `[undefined]`
+     if (topLevelArray.every(item => item === null || item === undefined)) {
+        allHeaders.add('value'); // give a header for consistency
+        topLevelArray.forEach(() => resultRows.push({ 'value': '' }));
+     }
+  }
+  if (allHeaders.size === 0 && resultRows.length > 0 && Object.keys(resultRows[0]).length === 0) {
+    // e.g. input was [{}] - resultRows might be [{}]
+    // This case might not need a header if truly empty objects
+    return resultRows.map(() => "").join('\n'); // return blank lines
+  }
+   if (allHeaders.size === 0 && resultRows.length === 0 && topLevelArray.length > 0) {
+    // e.g. input was `[[], {}]` where inner array isn't object array
+    // Fallback: this might mean simple array of simple items without 'value' key logic hitting earlier
+    return ''; // Or handle as per array of primitives
   }
 
-  // If headers is empty (e.g., from input `[{}, null]` which becomes `[{ }, {value: null}]`),
-  // produce CSV with no headers and appropriate number of empty lines.
-  if (headers.length === 0) {
-    return flattenedData.map(() => "").join('\n'); // Each item results in a blank line if no headers.
+
+  const sortedHeaders = Array.from(allHeaders).sort();
+
+  // If after all processing, there are no headers but there were rows (e.g. from input like [{}, {}]),
+  // it means empty objects. Produce blank lines for CSV.
+  if (sortedHeaders.length === 0 && resultRows.length > 0) {
+      return resultRows.map(row => "").join('\n');
+  }
+  // If there are no headers and no rows (e.g. from input `[]`), return empty string.
+  if (sortedHeaders.length === 0 && resultRows.length === 0) {
+      return '';
   }
 
-  // Construct CSV rows
-  const csvRows = [
-    headers.map(header => escapeCsvCell(header)).join(','), // Header row
-    ...flattenedData.map(obj =>
-      headers.map(header => escapeCsvCell(obj ? obj[header] : '')).join(',') // Data rows
-    )
-  ];
 
-  return csvRows.join('\n');
+  const headerRow = sortedHeaders.map(header => escapeCsvCell(header)).join(',');
+  const dataRows = resultRows.map(row =>
+    sortedHeaders.map(header => escapeCsvCell(row[header])).join(',')
+  );
+
+  return [headerRow, ...dataRows].join('\n');
 };
 
 
@@ -157,11 +203,11 @@ export function JsonToCsvClient() {
       });
     } catch (error: any) {
       console.error("Error converting JSON to CSV:", error);
-      let errorMessage = "Failed to convert JSON to CSV. Please check the data format and structure. Some complex structures might not be ideally representable in CSV.";
+      let errorMessage = "Failed to convert JSON. Check format/structure. Arrays of objects are denormalized (one row per sub-item).";
       if (error instanceof Error && error.message) {
         errorMessage = error.message;
       }
-      setCsvData(null);
+      setCsvData(null); // Clear previous CSV data on error
       toast({
         title: "Conversion Error",
         description: errorMessage,
@@ -212,7 +258,7 @@ export function JsonToCsvClient() {
                 <FormLabel className="text-lg font-semibold">JSON Data</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder='Paste your JSON data here. e.g., [{"name": "Alice", "age": 30}, {"name": "Bob", "age": 24}] or {"items": [{"id":1, "value":"A"}]}'
+                    placeholder='Paste JSON. e.g., {"items": [{"id":1, "name":"A", "details":[{"type":"X"}]}]} or [{"id":1, "val":"A"}]'
                     className="min-h-[200px] resize-y text-base font-code"
                     {...field}
                     aria-label="JSON input area"
@@ -237,7 +283,7 @@ export function JsonToCsvClient() {
         <Card className="mt-6 bg-secondary/30">
           <CardHeader>
             <CardTitle className="font-headline text-xl">Generated CSV Data</CardTitle>
-            <CardDescription>Review your CSV data below. You can copy or download it.</CardDescription>
+            <CardDescription>Review your CSV data. Arrays of objects are expanded into multiple rows.</CardDescription>
           </CardHeader>
           <CardContent>
             <Textarea
@@ -260,3 +306,4 @@ export function JsonToCsvClient() {
     </div>
   );
 }
+

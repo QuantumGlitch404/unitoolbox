@@ -9,7 +9,7 @@ const conversionOptions = [
     label: "PDF to Word (.docx)",
     value: "pdf-to-docx",
     sourceFormat: "pdf",
-    targetFormat: "docx",
+    targetFormat: "docx", // Will output .txt
     accept: { 'application/pdf': ['.pdf'] },
     sourceIconName: "FileText",
     targetIconName: "FileCode",
@@ -34,11 +34,10 @@ export default function PdfWordConverterPage() {
 
   const instructions = [
     "Select the conversion direction (e.g., PDF to Word or Word to PDF).",
-    `Upload your file.`,
-    "Click the 'Convert File' button.",
-    "The system will simulate uploading and processing.",
-    "Once complete, a download link for the (placeholder) converted file will appear.",
-    "Note: Actual conversion requires backend Firebase Function implementation."
+    "Upload your file (PDF or DOCX). Max 25MB for client-side processing.",
+    "Click the 'Convert File' button. The conversion happens directly in your browser.",
+    "Once complete, a download link for the converted file will appear.",
+    "Note: PDF to Word conversion extracts text content into a .txt file; original formatting and layout are not preserved. Word to PDF conversion quality depends on document complexity."
   ];
 
   return (

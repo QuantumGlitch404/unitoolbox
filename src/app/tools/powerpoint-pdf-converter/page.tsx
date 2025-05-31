@@ -10,7 +10,7 @@ const conversionOptions = [
     sourceFormat: "pptx",
     targetFormat: "pdf",
     accept: { 'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'] },
-    sourceIconName: "Presentation", // Corrected
+    sourceIconName: "Presentation",
     targetIconName: "FileText",
   },
   {
@@ -20,7 +20,7 @@ const conversionOptions = [
     targetFormat: "pptx",
     accept: { 'application/pdf': ['.pdf'] },
     sourceIconName: "FileText",
-    targetIconName: "Presentation", // Corrected
+    targetIconName: "Presentation",
   }
 ];
 
@@ -33,11 +33,10 @@ export default function PowerPointPdfConverterPage() {
 
   const instructions = [
     "Select the conversion direction (e.g., PowerPoint to PDF or PDF to PowerPoint).",
-    `Upload your file.`,
-    "Click the 'Convert File' button.",
-    "The system will simulate uploading and processing.",
-    "Once complete, a download link for the (placeholder) converted file will appear.",
-    "Note: Actual conversion requires backend implementation."
+    "Upload your file (PPTX or PDF). Max 25MB for client-side processing.",
+    "Click the 'Convert File' button. The conversion happens directly in your browser.",
+    "Once complete, a download link for the converted file will appear.",
+    "Note: PPTX to PDF conversion extracts basic text content; visuals and exact slide structure are lost. PDF to PPTX creates a presentation with each PDF page as a static, non-editable image."
   ];
 
   return (
@@ -55,5 +54,3 @@ export default function PowerPointPdfConverterPage() {
     </ToolPageTemplate>
   );
 }
-
-    

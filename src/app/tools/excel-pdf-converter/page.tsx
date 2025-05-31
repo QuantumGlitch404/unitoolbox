@@ -18,7 +18,7 @@ const conversionOptions = [
     label: "PDF to Excel (.xlsx)",
     value: "pdf-to-xlsx",
     sourceFormat: "pdf",
-    targetFormat: "xlsx",
+    targetFormat: "xlsx", // Will output .csv
     accept: { 'application/pdf': ['.pdf'] },
     sourceIconName: "FileText",
     targetIconName: "FileSpreadsheet",
@@ -34,11 +34,10 @@ export default function ExcelPdfConverterPage() {
 
   const instructions = [
     "Select the conversion direction (e.g., Excel to PDF or PDF to Excel).",
-    `Upload your file.`,
-    "Click the 'Convert File' button.",
-    "The system will simulate uploading and processing.",
-    "Once complete, a download link for the (placeholder) converted file will appear.",
-    "Note: Actual conversion requires backend implementation."
+    "Upload your file (XLSX or PDF). Max 25MB for client-side processing.",
+    "Click the 'Convert File' button. The conversion happens directly in your browser.",
+    "Once complete, a download link for the converted file will appear.",
+    "Note: PDF to Excel conversion attempts to extract tabular data into CSV format; success varies with PDF structure. Excel to PDF converts the first sheet; complex formatting might not be fully preserved."
   ];
 
   return (

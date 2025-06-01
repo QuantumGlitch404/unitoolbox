@@ -14,8 +14,7 @@ export default function PhotoToPassportSizePage() {
   const instructions = [
     "Upload a clear, front-facing photo (JPG, PNG, WebP).",
     "Select the country preset for the desired passport photo dimensions.",
-    "Choose a background color (typically white or light blue). This color is applied to the canvas; if your uploaded image is opaque (like a JPG), its own background will cover this. For images with transparency (like some PNGs), this color will show through.",
-    "The tool will resize and crop your photo to the selected specifications, attempting to fill the dimensions.",
+    "The tool will resize and crop your photo to the selected specifications, attempting to fill the dimensions with a white background.",
     "Ensure your face is centered and well-lit in the uploaded photo for best results.",
     "Download the generated passport-size photo as a JPG or PDF."
   ];
@@ -31,5 +30,3 @@ export default function PhotoToPassportSizePage() {
     </ToolPageTemplate>
   );
 }
-
-    

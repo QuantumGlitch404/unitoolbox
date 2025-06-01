@@ -14,7 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Copy, Download, Loader2 } from 'lucide-react'; 
 import { jsPDF } from 'jspdf';
 
-// unitCategories should be defined outside the component to be a stable reference
 const unitCategories = {
   Length: { Meter: 1, Kilometer: 1000, Centimeter: 0.01, Millimeter: 0.001, Mile: 1609.34, Yard: 0.9144, Foot: 0.3048, Inch: 0.0254 },
   Weight: { Kilogram: 1, Gram: 0.001, Milligram: 0.000001, Pound: 0.453592, Ounce: 0.0283495, Tonne: 1000 },
@@ -157,63 +156,87 @@ export function UnitConverterClient() {
         console.log("CONVERT_UNITS_ARG: Calculation: (", currentInputValue, " * ", fromFactor, ") / ", toFactor, " = ", outputValue);
       }
     }
-
-    if (Math.abs(outputValue) < 0.000001 && outputValue !== 0) { 
-        const finalRes = outputValue.toExponential(4);
-        console.log("CONVERT_UNITS_ARG: Setting result (exponential):", finalRes);
-        setResult(finalRes);
+    
+    if (typeof outputValue === 'number' && !isNaN(outputValue)) {
+        if (Math.abs(outputValue) < 0.000001 && outputValue !== 0) { 
+            const finalRes = outputValue.toExponential(4);
+            console.log("CONVERT_UNITS_ARG: Setting result (exponential):", finalRes);
+            setResult(finalRes);
+        } else {
+            let fixedOutput = outputValue.toFixed(6);
+            fixedOutput = fixedOutput.replace(/(\.[0-9]*[1-9])0+$|\.0*$/, '$1'); // Remove trailing zeros after decimal
+            const finalRes = fixedOutput;
+            console.log("CONVERT_UNITS_ARG: Setting result (fixed):", finalRes);
+            setResult(finalRes);
+        }
     } else {
-        let fixedOutput = outputValue.toFixed(6);
-        fixedOutput = fixedOutput.replace(/(\.[0-9]*[1-9])0+$|\.0*$/, '$1');
-        const finalRes = fixedOutput;
-        console.log("CONVERT_UNITS_ARG: Setting result (fixed):", finalRes);
-        setResult(finalRes);
+        console.warn("CONVERT_UNITS_ARG: outputValue is not a valid number after calculation.", outputValue);
+        setResult("Calculation error occurred.");
     }
   },
-  [setResult, setIsLoading, fetchCurrencyRates, toast] // Dependencies are stable setters or memoized callbacks
+  [setResult, setIsLoading, fetchCurrencyRates, toast] 
 );
 
   useEffect(() => {
     console.log("EFFECT: Category Change - selectedCategory is now", selectedCategory);
     if (selectedCategory) {
-      const defaultUnits = Object.keys(unitCategories[selectedCategory]);
-      let newFromUnit = fromUnit; // Keep current if possible
-      let newToUnit = toUnit;   // Keep current if possible
+      const currentCategoryUnits = unitsForCategory; // Relies on unitsForCategory being up-to-date
+      const currentFormFromUnit = getValues('fromUnit');
+      const currentFormToUnit = getValues('toUnit');
 
-      // Check if current fromUnit is valid for new category
-      if (!defaultUnits.includes(fromUnit)) {
-        newFromUnit = defaultUnits[0] || "";
+      let newFromUnit = currentFormFromUnit;
+      let newToUnit = currentFormToUnit;
+
+      if (!currentCategoryUnits.includes(currentFormFromUnit)) {
+        newFromUnit = currentCategoryUnits[0] || "";
       }
-      // Check if current toUnit is valid for new category
-      if (!defaultUnits.includes(toUnit)) {
-        newToUnit = defaultUnits.length > 1 ? defaultUnits[1] : defaultUnits[0] || "";
+      if (!currentCategoryUnits.includes(currentFormToUnit)) {
+        newToUnit = currentCategoryUnits.length > 1 ? currentCategoryUnits[1] : currentCategoryUnits[0] || "";
       }
       
-      // If units were invalid and got reset, ensure they are different if possible
-      if (newFromUnit === newToUnit && defaultUnits.length > 1) {
-        if (defaultUnits[0] === newFromUnit) {
-            newToUnit = defaultUnits[1];
-        } else {
-            newFromUnit = defaultUnits[0]; // Fallback if initial choices were identical and invalid
+      if (newFromUnit === newToUnit && currentCategoryUnits.length > 1) {
+        if (currentCategoryUnits[0] === newFromUnit && currentCategoryUnits[1]) {
+            newToUnit = currentCategoryUnits[1];
+        } else if (currentCategoryUnits[0]) {
+            // Keep newFromUnit as currentCategoryUnits[0], try to make newToUnit different
+            if (currentCategoryUnits[1] && currentCategoryUnits[0] !== currentCategoryUnits[1]) {
+                 newToUnit = currentCategoryUnits[1];
+            } else if (currentCategoryUnits.length > 2 && currentCategoryUnits[2] !== currentCategoryUnits[0]) {
+                 newToUnit = currentCategoryUnits[2]; // Fallback if [0] and [1] are same
+            } else {
+                // If only one distinct unit, or two identical units, newToUnit will be same as newFromUnit.
+                // This is acceptable if only one unit defined for category.
+            }
         }
       }
 
-      if (fromUnit !== newFromUnit) {
-        console.log("EFFECT: Category Change - Setting fromUnit via setValue from", fromUnit, "to", newFromUnit);
-        setValue('fromUnit', newFromUnit, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+      if (currentFormFromUnit !== newFromUnit) {
+        console.log("EFFECT: Category Change - Setting fromUnit via setValue from", currentFormFromUnit, "to", newFromUnit);
+        setValue('fromUnit', newFromUnit, { shouldValidate: true, shouldDirty: true });
       }
-      if (toUnit !== newToUnit) {
-        console.log("EFFECT: Category Change - Setting toUnit via setValue from", toUnit, "to", newToUnit);
-        setValue('toUnit', newToUnit, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
+      if (currentFormToUnit !== newToUnit) {
+        console.log("EFFECT: Category Change - Setting toUnit via setValue from", currentFormToUnit, "to", newToUnit);
+        setValue('toUnit', newToUnit, { shouldValidate: true, shouldDirty: true });
       }
     }
-  }, [selectedCategory, setValue, fromUnit, toUnit]);
+  }, [selectedCategory, setValue, unitsForCategory, getValues]);
+
 
   useEffect(() => {
     console.log("EFFECT: Conversion Trigger - Watched values:", { inputValue, fromUnit, toUnit, selectedCategory });
-    if (fromUnit && toUnit && selectedCategory && typeof inputValue === 'number' && !isNaN(inputValue)) {
-      console.log("EFFECT: Conversion Trigger - Conditions met, calling convertUnits with:", inputValue, fromUnit, toUnit, selectedCategory);
-      convertUnits(inputValue, fromUnit, toUnit, selectedCategory);
+    
+    // Ensure inputValue from watch is treated as a number for the condition
+    // z.coerce.number converts empty string to 0, so parseFloat might not be strictly needed if trusting Zod state.
+    // However, to be robust against intermediate string states from `watch`, parsing is safer.
+    const numericInputValue = parseFloat(String(inputValue));
+
+    if (fromUnit && toUnit && selectedCategory && !isNaN(numericInputValue)) {
+      console.log("EFFECT: Conversion Trigger - Conditions met, calling convertUnits with:", numericInputValue, fromUnit, toUnit, selectedCategory);
+      convertUnits(numericInputValue, fromUnit, toUnit, selectedCategory);
+    } else {
+      console.log("EFFECT: Conversion Trigger - Conditions NOT met or inputValue is NaN. Watched inputValue:", inputValue, "Parsed numericInputValue:", numericInputValue);
+      // Optionally, clear result or show "invalid input" if that's desired when conditions aren't met.
+      // For now, it will just not call convertUnits, keeping the last valid result or error.
     }
   }, [inputValue, fromUnit, toUnit, selectedCategory, convertUnits]);
 
@@ -353,6 +376,7 @@ export function UnitConverterClient() {
           <CardContent className="space-y-3">
             <p className="text-2xl font-semibold text-primary">{result} <span className="text-lg text-muted-foreground">{watch('toUnit')}</span></p>
             <p className="text-sm text-muted-foreground">
+              {/* Safely access inputValue, ensuring it's a number for display or show empty string */}
               {typeof watch('inputValue') === 'number' ? watch('inputValue') : ""} {watch('fromUnit')} = {result} {watch('toUnit')}
             </p>
             <div className="flex space-x-2 pt-2">
@@ -377,3 +401,5 @@ export function UnitConverterClient() {
     </div>
   );
 }
+
+    

@@ -2,10 +2,11 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   Scissors, FileText, Languages, Image as ImageIcon, FileJson, Database, AudioLines, Film, Palette, Type, Settings2, Wand2, FileType2, FileUp, FileDown,
-  Replace, Rows, Columns, SlidersHorizontal, TextSearch, Link, BoxSelect, Blend, BringToFront, Sparkles, FileVideo, Edit3, Combine, FileCode, ArrowRightLeft
+  Replace, Rows, Columns, SlidersHorizontal, TextSearch, Link, BoxSelect, Blend, BringToFront, Sparkles, FileVideo, Edit3, Combine, FileCode, ArrowRightLeft,
+  Ruler, Weight, Clock, Thermometer, Square, Cuboid, Percent, Calculator, Camera, ListVideo, Cog
 } from 'lucide-react';
 
-export type ToolCategory = 'Image' | 'Document & Data' | 'Text & AI' | 'Media' | 'Converter';
+export type ToolCategory = 'Image' | 'Document & Data' | 'Text & AI' | 'Media' | 'Converter' | 'Utilities';
 
 export interface Tool {
   id: string;
@@ -18,7 +19,7 @@ export interface Tool {
   tags?: string[];
 }
 
-export const toolCategories: ToolCategory[] = ['Image', 'Document & Data', 'Text & AI', 'Media', 'Converter'];
+export const toolCategories: ToolCategory[] = ['Image', 'Document & Data', 'Text & AI', 'Media', 'Converter', 'Utilities'];
 
 export const tools: Tool[] = [
   // GenAI Tools
@@ -90,6 +91,15 @@ export const tools: Tool[] = [
     icon: BoxSelect,
     tags: ['image', 'icon', 'ico', 'converter'],
   },
+   {
+    id: 'photo-to-passport-size',
+    title: 'Photo to Passport Size Generator',
+    description: 'Auto-crop, resize, and align photos to official passport sizes for various countries.',
+    href: '/tools/photo-to-passport-size',
+    category: 'Image',
+    icon: Camera,
+    tags: ['photo', 'passport', 'id', 'resize', 'crop', 'official'],
+  },
   // Document & Data Tools
   {
     id: 'text-to-pdf',
@@ -155,6 +165,16 @@ export const tools: Tool[] = [
     icon: Edit3,
     tags: ['text', 'handwriting', 'image', 'font', 'style'],
   },
+  {
+    id: 'voice-notes-to-text',
+    title: 'Voice Notes to Organized Text',
+    description: 'Transcribe voice notes and format them with smart headings and bullet points using AI.',
+    href: '/tools/voice-notes-to-text',
+    category: 'Text & AI',
+    icon: ListVideo,
+    aiPowered: true,
+    tags: ['voice', 'audio', 'transcribe', 'notes', 'ai', 'format'],
+  },
   // Media Tools
   {
     id: 'video-compressor',
@@ -184,7 +204,7 @@ export const tools: Tool[] = [
     aiPowered: true,
     tags: ['audio', 'speech', 'text', 'transcription', 'ai'],
   },
-  // Converters
+  // Converters (General & Cross-Category)
   {
     id: 'webp-to-jpg',
     title: 'WebP to JPG',
@@ -239,10 +259,9 @@ export const tools: Tool[] = [
     icon: Palette,
     tags: ['png', 'svg', 'image', 'converter', 'vector', 'conceptual'],
   },
-  // New Advanced Document Converters (Frontend Stubs)
   {
     id: 'pdf-word-converter',
-    title: 'PDF <=> Word Converter',
+    title: 'PDF &lt;=&gt; Word Converter',
     description: 'Convert PDF files to Word documents (.docx) and vice-versa. Client-side conversion with some formatting limitations.',
     href: '/tools/pdf-word-converter',
     category: 'Converter',
@@ -251,16 +270,35 @@ export const tools: Tool[] = [
   },
   {
     id: 'excel-pdf-converter',
-    title: 'Excel <=> PDF Converter',
+    title: 'Excel &lt;=&gt; PDF Converter',
     description: 'Convert Excel spreadsheets (.xlsx) to PDF files and vice-versa. Client-side conversion with some formatting limitations.',
     href: '/tools/excel-pdf-converter',
     category: 'Converter',
     icon: ArrowRightLeft,
     tags: ['excel', 'xlsx', 'pdf', 'converter', 'document'],
   },
+  {
+    id: 'unit-converter',
+    title: 'Unit Converter (All-in-One)',
+    description: 'Converts length, weight, time, temperature, area, volume, speed, pressure, and more.',
+    href: '/tools/unit-converter',
+    category: 'Utilities',
+    icon: Cog, 
+    tags: ['units', 'measurement', 'conversion', 'length', 'weight', 'temperature', 'currency'],
+  },
+  // Utilities
+  {
+    id: 'advanced-calculator',
+    title: 'Advanced Calculator &amp; Unit Converter',
+    description: 'Combines scientific, GST, EMI calculator with a unit converter.',
+    href: '/tools/advanced-calculator',
+    category: 'Utilities',
+    icon: Calculator,
+    tags: ['calculator', 'scientific', 'gst', 'emi', 'finance', 'math', 'unit converter'],
+  },
 ];
 
-export const featuredTools: Tool[] = tools.filter(tool => ['essay-summarizer', 'language-translator', 'image-background-remover', 'image-compressor'].includes(tool.id)).slice(0, 4);
+export const featuredTools: Tool[] = tools.filter(tool => ['unit-converter', 'photo-to-passport-size', 'voice-notes-to-text', 'advanced-calculator', 'essay-summarizer'].includes(tool.id)).slice(0, 4);
 
 export const getToolById = (id: string): Tool | undefined => tools.find(tool => tool.id === id);
 

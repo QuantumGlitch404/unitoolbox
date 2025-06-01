@@ -38,6 +38,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { AppLogo } from '@/components/icons/app-logo';
 import { type ToolCategory, toolCategories } from '@/lib/tools';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from "@/lib/utils";
 
 interface NavItem {
   href: string;
@@ -88,7 +89,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <SidebarProvider defaultOpen>
       <Sidebar className="border-r" collapsible="icon">
         <SidebarHeader className="p-4 group-data-[collapsible=icon]:p-2">
-          <Link href="/" className="flex items-center gap-2">
+          <Link
+            href="/"
+            className={cn(
+              "flex items-center gap-2",
+              "group-data-[collapsible=icon]:gap-0",
+              "group-data-[collapsible=icon]:justify-center",
+              "group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:h-full"
+            )}
+          >
             <AppLogo className="w-8 h-8 text-primary" />
             <h1 className="font-headline text-xl font-semibold group-data-[collapsible=icon]:hidden">
               UniToolBox

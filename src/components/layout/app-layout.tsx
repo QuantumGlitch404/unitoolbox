@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -16,6 +17,7 @@ import {
   Database,
   type LucideIcon,
 } from 'lucide-react';
+import * as Collapsible from '@radix-ui/react-collapsible';
 import {
   SidebarProvider,
   Sidebar,
@@ -30,23 +32,12 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarGroup,
-} from '@/components/ui/sidebar'; // Removed unused SidebarGroupLabel
+} from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Logo } from '@/components/icons';
-import { type ToolCategory, toolCategories } from '@/lib/tools'; // Removed unused 'tools' import
+import { type ToolCategory, toolCategories } from '@/lib/tools';
 import { ScrollArea } from '@/components/ui/scroll-area';
-// Removed DropdownMenu related imports as they are no longer used
-// import {
-//   DropdownMenu,
-//   DropdownMenuContent,
-//   DropdownMenuItem,
-//   DropdownMenuLabel,
-//   DropdownMenuSeparator,
-//   DropdownMenuTrigger,
-// } from "@/components/ui/dropdown-menu"
-// import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-
 
 interface NavItem {
   href: string;
@@ -62,7 +53,7 @@ const categoryIcons: Record<ToolCategory, LucideIcon> = {
   'Text & AI': Wand2,
   'Media': Film,
   'Converter': Settings2,
-  'Utilities': Settings2, // Added Utilities category icon
+  'Utilities': Settings2,
 };
 
 const navItems: NavItem[] = [
@@ -111,43 +102,57 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 <SidebarMenuItem key={item.href}>
                   {item.subItems ? (
                     <SidebarGroup>
-                       <SidebarMenuButton
-                        href={item.isCategory ? undefined : item.href}
-                        asChild={!item.isCategory}
-                        className="justify-between"
-                        isActive={pathname.startsWith(item.href) && item.href !== '/'}
-                        tooltip={item.label}
-                      >
-                        {item.isCategory ? (
-                           <div className="flex items-center gap-2 w-full">
-                            <item.icon />
-                            <span className="flex-grow">{item.label}</span>
-                            <ChevronDown className="h-4 w-4 shrink-0 group-data-[collapsible=icon]:hidden" />
-                          </div>
-                        ) : (
-                          <Link href={item.href} className="flex items-center gap-2 w-full">
-                            <item.icon />
-                            <span className="flex-grow">{item.label}</span>
-                             <ChevronDown className="h-4 w-4 shrink-0 group-data-[collapsible=icon]:hidden" />
-                          </Link>
-                        )}
-                      </SidebarMenuButton>
-                      <SidebarMenuSub>
-                        {item.subItems.map((subItem) => (
-                          <SidebarMenuItem key={subItem.href}>
-                            <SidebarMenuSubButton
-                              href={subItem.href}
-                              asChild
-                              isActive={pathname === subItem.href}
-                            >
-                              <Link href={subItem.href} className="flex items-center gap-2">
-                                <subItem.icon className="h-3.5 w-3.5" />
-                                <span>{subItem.label}</span>
-                              </Link>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuItem>
-                        ))}
-                      </SidebarMenuSub>
+                      <Collapsible.Root className="w-full">
+                        <Collapsible.Trigger asChild>
+                          {
+                            item.isCategory ? (
+                              <SidebarMenuButton
+                                className="justify-between w-full group"
+                                isActive={pathname.startsWith(item.href) && (item.href === '/tools' ? pathname.includes('/tools') : true) }
+                                tooltip={item.label}
+                              >
+                                <div className="flex items-center gap-2 w-full">
+                                  <item.icon />
+                                  <span className="flex-grow">{item.label}</span>
+                                  <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 group-data-[collapsible=icon]:hidden" />
+                                </div>
+                              </SidebarMenuButton>
+                            ) : (
+                              <SidebarMenuButton
+                                href={item.href}
+                                asChild
+                                className="justify-between w-full group"
+                                isActive={pathname.startsWith(item.href) && item.href !== '/'}
+                                tooltip={item.label}
+                              >
+                                <Link href={item.href} className="flex items-center gap-2 w-full">
+                                  <item.icon />
+                                  <span className="flex-grow">{item.label}</span>
+                                  <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 group-data-[collapsible=icon]:hidden" />
+                                </Link>
+                              </SidebarMenuButton>
+                            )
+                          }
+                        </Collapsible.Trigger>
+                        <Collapsible.Content className="overflow-hidden data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up">
+                          <SidebarMenuSub>
+                            {item.subItems.map((subItem) => (
+                              <SidebarMenuItem key={subItem.href}>
+                                <SidebarMenuSubButton
+                                  href={subItem.href}
+                                  asChild
+                                  isActive={pathname === subItem.href || (item.href === '/tools' && pathname === `/tools?category=${encodeURIComponent(subItem.label)}`)}
+                                >
+                                  <Link href={subItem.href} className="flex items-center gap-2">
+                                    <subItem.icon className="h-3.5 w-3.5" />
+                                    <span>{subItem.label}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuItem>
+                            ))}
+                          </SidebarMenuSub>
+                        </Collapsible.Content>
+                      </Collapsible.Root>
                     </SidebarGroup>
                   ) : (
                     <SidebarMenuButton
@@ -184,7 +189,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
           
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            {/* Profile Dropdown Menu Removed Here */}
           </div>
         </header>
         

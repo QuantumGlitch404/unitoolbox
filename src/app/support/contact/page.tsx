@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm, type SubmitHandler } from 'react-hook-form';
@@ -11,6 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from "@/hooks/use-toast";
 import { Send, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import emailjs from '@emailjs/browser';
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
@@ -37,16 +39,47 @@ export default function ContactPage() {
 
   const onSubmit: SubmitHandler<ContactFormData> = async (data) => {
     setIsLoading(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setIsLoading(false);
 
-    console.log("Contact Form Data:", data); // In a real app, send this to a backend
-    toast({
-      title: "Message Sent!",
-      description: "Thank you for contacting us. We'll get back to you soon.",
-    });
-    form.reset(); // Reset form after successful submission
+    const serviceId = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+    const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+    const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
+
+    if (!serviceId || !templateId || !publicKey) {
+      toast({
+        title: "Configuration Error",
+        description: "EmailJS is not configured correctly. Please contact support.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    const templateParams = {
+      from_name: data.name,
+      from_email: data.email,
+      to_name: 'UniToolBox Admin', // Or your name
+      subject: data.subject,
+      message: data.message,
+      reply_to: data.email, // Important for replying directly to the user
+    };
+
+    try {
+      await emailjs.send(serviceId, templateId, templateParams, publicKey);
+      toast({
+        title: "Message Sent!",
+        description: "Thank you for contacting us. We'll get back to you soon at meezabmomin07@gmail.com.",
+      });
+      form.reset();
+    } catch (error) {
+      console.error('EmailJS Error:', error);
+      toast({
+        title: "Sending Failed",
+        description: "Could not send your message. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -55,7 +88,7 @@ export default function ContactPage() {
         <CardHeader className="text-center">
           <CardTitle className="font-headline text-3xl md:text-4xl">Contact Us</CardTitle>
           <CardDescription className="text-lg">
-            Have questions or feedback? We'd love to hear from you!
+            Have questions or feedback? We'd love to hear from you! Your message will be sent to meezabmomin07@gmail.com.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -130,6 +163,4 @@ export default function ContactPage() {
           </Form>
         </CardContent>
       </Card>
-    </div>
-  );
-}
+    

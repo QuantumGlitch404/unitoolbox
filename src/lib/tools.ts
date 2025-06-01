@@ -243,29 +243,20 @@ export const tools: Tool[] = [
   {
     id: 'pdf-word-converter',
     title: 'PDF <=> Word Converter',
-    description: 'Convert PDF files to Word documents (.docx) and vice-versa. Backend Firebase Function required for actual conversion.',
+    description: 'Convert PDF files to Word documents (.docx) and vice-versa. Client-side conversion with some formatting limitations.',
     href: '/tools/pdf-word-converter',
     category: 'Converter',
     icon: ArrowRightLeft,
-    tags: ['pdf', 'word', 'docx', 'converter', 'document', 'backend-required'],
+    tags: ['pdf', 'word', 'docx', 'converter', 'document'],
   },
   {
     id: 'excel-pdf-converter',
     title: 'Excel <=> PDF Converter',
-    description: 'Convert Excel spreadsheets (.xlsx) to PDF files and vice-versa. Backend Firebase Function required.',
+    description: 'Convert Excel spreadsheets (.xlsx) to PDF files and vice-versa. Client-side conversion with some formatting limitations.',
     href: '/tools/excel-pdf-converter',
     category: 'Converter',
     icon: ArrowRightLeft,
-    tags: ['excel', 'xlsx', 'pdf', 'converter', 'document', 'backend-required'],
-  },
-  {
-    id: 'powerpoint-pdf-converter',
-    title: 'PowerPoint <=> PDF Converter',
-    description: 'Convert PowerPoint presentations (.pptx) to PDF files and vice-versa. Backend Firebase Function required.',
-    href: '/tools/powerpoint-pdf-converter',
-    category: 'Converter',
-    icon: ArrowRightLeft,
-    tags: ['powerpoint', 'pptx', 'pdf', 'converter', 'document', 'backend-required'],
+    tags: ['excel', 'xlsx', 'pdf', 'converter', 'document'],
   },
 ];
 

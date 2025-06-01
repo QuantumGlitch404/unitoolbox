@@ -47,7 +47,7 @@ export default function ContactPage() {
     if (!serviceId || !templateId || !publicKey) {
       toast({
         title: "Configuration Error",
-        description: "EmailJS is not configured correctly. Please contact support.",
+        description: "EmailJS is not configured correctly. Please contact support or check environment variables.",
         variant: "destructive",
       });
       setIsLoading(false);
@@ -57,10 +57,10 @@ export default function ContactPage() {
     const templateParams = {
       from_name: data.name,
       from_email: data.email,
-      to_name: 'UniToolBox Admin', // Or your name
+      to_name: 'UniToolBox Admin', 
       subject: data.subject,
       message: data.message,
-      reply_to: data.email, // Important for replying directly to the user
+      reply_to: data.email,
     };
 
     try {
@@ -70,11 +70,24 @@ export default function ContactPage() {
         description: "Thank you for contacting us. We'll get back to you soon at meezabmomin07@gmail.com.",
       });
       form.reset();
-    } catch (error) {
-      console.error('EmailJS Error:', error);
+    } catch (error: any) {
+      let errorMessage = "Could not send your message. Please try again later.";
+      let loggableError = error;
+
+      if (error && typeof error === 'object') {
+        if ('text' in error && typeof error.text === 'string' && error.text.trim() !== "") {
+          errorMessage = error.text; // Use EmailJS specific error text if available
+        } else if ('message' in error && typeof error.message === 'string' && error.message.trim() !== "") {
+          errorMessage = error.message; // Fallback to generic error message
+        }
+        // For logging, try to get more details
+        loggableError = { status: error.status, text: error.text, originalError: error };
+      }
+      
+      console.error('EmailJS Error:', loggableError, 'User-facing message:', errorMessage);
       toast({
         title: "Sending Failed",
-        description: "Could not send your message. Please try again later.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {

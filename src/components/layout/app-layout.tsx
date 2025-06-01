@@ -169,7 +169,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                       tooltip={item.label}
                     >
                       <Link href={item.href} className={cn("flex items-center w-full", "gap-2")}>
-                        <item.icon className="group-data-[collapsible=icon]:relative group-data-[collapsible=icon]:left-px" />
+                        <item.icon />
                         <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                       </Link>
                     </SidebarMenuButton>

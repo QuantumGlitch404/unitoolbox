@@ -180,7 +180,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <SidebarInset className="flex flex-col flex-1">
         <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-md sm:px-6">
           <div className="flex items-center gap-2">
-            <SidebarTrigger className="md:hidden" /> {/* Hamburger for mobile */}
+            <SidebarTrigger /> {/* Removed md:hidden */}
             <Link href="/" className="flex items-center gap-2 md:hidden">
                 <AppLogo className="w-7 h-7 text-primary" />
                 <span className="font-headline text-lg font-semibold">UniToolBox</span>

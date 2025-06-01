@@ -163,4 +163,6 @@ export default function ContactPage() {
           </Form>
         </CardContent>
       </Card>
-    
+    </div>
+  );
+}

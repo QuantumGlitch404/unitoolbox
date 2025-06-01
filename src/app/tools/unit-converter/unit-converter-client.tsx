@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useForm, Controller, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -95,7 +95,7 @@ type UnitConverterFormData = z.infer<typeof formSchema>;
 
 export function UnitConverterClient() {
   const [result, setResult] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false); // For potential API calls like currency
+  const [isLoading, setIsLoading] = useState(false); 
   const { toast } = useToast();
 
   const form = useForm<UnitConverterFormData>({
@@ -108,7 +108,7 @@ export function UnitConverterClient() {
     },
   });
 
-  const { watch, setValue } = form;
+  const { watch, setValue, getValues } = form;
   const selectedCategory = watch('category');
   const inputValue = watch('inputValue');
   const fromUnit = watch('fromUnit');
@@ -117,6 +117,89 @@ export function UnitConverterClient() {
   const unitsForCategory = useMemo(() => {
     return selectedCategory ? Object.keys(unitCategories[selectedCategory]) : [];
   }, [selectedCategory]);
+
+  const fetchCurrencyRates = useCallback(async (base: string) => {
+    setIsLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 500)); 
+    setIsLoading(false);
+    return unitCategories.Currency;
+  }, [setIsLoading]);
+
+  const convertUnits = useCallback(async () => {
+    const currentValues = getValues(); // Get current form values
+    const currentInputValue = currentValues.inputValue;
+    const currentFromUnit = currentValues.fromUnit;
+    const currentToUnit = currentValues.toUnit;
+    const currentSelectedCategory = currentValues.category;
+
+    if (isNaN(currentInputValue) || !currentFromUnit || !currentToUnit || !currentSelectedCategory) {
+      setResult("Invalid input or units selected.");
+      return;
+    }
+
+    let outputValue: number;
+
+    if (currentSelectedCategory === 'Temperature') {
+      const temp = parseFloat(currentInputValue.toString());
+      if (currentFromUnit === 'Celsius') {
+        if (currentToUnit === 'Fahrenheit') outputValue = (temp * 9/5) + 32;
+        else if (currentToUnit === 'Kelvin') outputValue = temp + 273.15;
+        else outputValue = temp; 
+      } else if (currentFromUnit === 'Fahrenheit') {
+        if (currentToUnit === 'Celsius') outputValue = (temp - 32) * 5/9;
+        else if (currentToUnit === 'Kelvin') outputValue = (temp - 32) * 5/9 + 273.15;
+        else outputValue = temp; 
+      } else if (currentFromUnit === 'Kelvin') {
+        if (currentToUnit === 'Celsius') outputValue = temp - 273.15;
+        else if (currentToUnit === 'Fahrenheit') outputValue = (temp - 273.15) * 9/5 + 32;
+        else outputValue = temp; 
+      } else {
+        setResult("Invalid temperature units.");
+        return;
+      }
+    } else if (currentSelectedCategory === 'Currency') {
+        const rates = await fetchCurrencyRates(currentFromUnit); 
+        const fromRate = (rates as any)[currentFromUnit] || 1; 
+        const toRate = (rates as any)[currentToUnit] || 1;     
+        
+        const valueInUSD = currentInputValue / fromRate;
+        outputValue = valueInUSD * toRate;
+
+    } else {
+      const categoryUnits = unitCategories[currentSelectedCategory] as Record<string, number>;
+      if (!(currentFromUnit in categoryUnits) || !(currentToUnit in categoryUnits)) {
+        setResult("Selected units are invalid for this category.");
+        return;
+      }
+      const fromFactor = categoryUnits[currentFromUnit];
+      const toFactor = categoryUnits[currentToUnit];
+
+      if (typeof fromFactor !== 'number' || typeof toFactor !== 'number') {
+          setResult("Unit factors are not numbers. Check configuration.");
+          return;
+      }
+      
+      if (toFactor === 0) {
+        if (fromFactor === 0 && currentInputValue === 0) {
+            outputValue = 0;
+        } else if (fromFactor !== 0) {
+          setResult("Cannot convert to a unit with a zero base factor.");
+          return;
+        } else {
+            outputValue = 0; 
+        }
+      } else {
+        const valueInBase = currentInputValue * fromFactor;
+        outputValue = valueInBase / toFactor;
+      }
+    }
+    
+    if (Math.abs(outputValue) < 0.00001 && outputValue !== 0) {
+        setResult(outputValue.toExponential(4));
+    } else {
+        setResult(parseFloat(outputValue.toFixed(6)).toString()); 
+    }
+  }, [getValues, setResult, setIsLoading, fetchCurrencyRates, toast]); // Removed direct watch dependencies, using getValues
 
   useEffect(() => {
     if (selectedCategory) {
@@ -137,76 +220,8 @@ export function UnitConverterClient() {
     } else {
       setResult(null);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputValue, fromUnit, toUnit, selectedCategory]);
+  }, [inputValue, fromUnit, toUnit, selectedCategory, convertUnits, setResult]);
 
-
-  // Placeholder for fetching currency rates
-  // In a real app, use an API key and potentially a backend proxy.
-  const fetchCurrencyRates = async (base: string) => {
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
-    setIsLoading(false);
-    // This is where you'd fetch from an API like:
-    // const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${base}`);
-    // const data = await response.json();
-    // For now, we use hardcoded rates from unitCategories.Currency
-    return unitCategories.Currency;
-  };
-
-  const convertUnits = async () => {
-    if (isNaN(inputValue) || !fromUnit || !toUnit || !selectedCategory) {
-      setResult("Invalid input or units selected.");
-      return;
-    }
-
-    let outputValue: number;
-
-    if (selectedCategory === 'Temperature') {
-      const temp = parseFloat(inputValue.toString());
-      if (fromUnit === 'Celsius') {
-        if (toUnit === 'Fahrenheit') outputValue = (temp * 9/5) + 32;
-        else if (toUnit === 'Kelvin') outputValue = temp + 273.15;
-        else outputValue = temp; // C to C
-      } else if (fromUnit === 'Fahrenheit') {
-        if (toUnit === 'Celsius') outputValue = (temp - 32) * 5/9;
-        else if (toUnit === 'Kelvin') outputValue = (temp - 32) * 5/9 + 273.15;
-        else outputValue = temp; // F to F
-      } else if (fromUnit === 'Kelvin') {
-        if (toUnit === 'Celsius') outputValue = temp - 273.15;
-        else if (toUnit === 'Fahrenheit') outputValue = (temp - 273.15) * 9/5 + 32;
-        else outputValue = temp; // K to K
-      } else {
-        setResult("Invalid temperature units.");
-        return;
-      }
-    } else if (selectedCategory === 'Currency') {
-        const rates = await fetchCurrencyRates(fromUnit); // In a real app, fromUnit would be the base for API
-        // For simulation, we assume rates are relative to USD, and fromUnit is USD if not found directly
-        const fromRate = (rates as any)[fromUnit] || 1; // Rate of fromUnit relative to USD
-        const toRate = (rates as any)[toUnit] || 1;     // Rate of toUnit relative to USD
-        
-        // Convert inputValue from fromUnit to USD, then USD to toUnit
-        const valueInUSD = inputValue / fromRate;
-        outputValue = valueInUSD * toRate;
-
-    } else {
-      const categoryUnits = unitCategories[selectedCategory] as Record<string, number>;
-      const fromValueInBase = inputValue * (categoryUnits[fromUnit] || 0);
-      outputValue = fromValueInBase / (categoryUnits[toUnit] || 1); // Avoid division by zero
-       if(categoryUnits[toUnit] === 0 && categoryUnits[fromUnit] !== 0) {
-        setResult("Cannot convert to a zero-value base unit.");
-        return;
-      }
-    }
-    
-    // Format to a reasonable number of decimal places
-    if (Math.abs(outputValue) < 0.00001 && outputValue !== 0) {
-        setResult(outputValue.toExponential(4));
-    } else {
-        setResult(parseFloat(outputValue.toFixed(6)).toString()); // toFixed(6) then parseFloat to remove trailing zeros
-    }
-  };
 
   const handleCopyResult = () => {
     if (result) {
@@ -217,7 +232,7 @@ export function UnitConverterClient() {
   };
 
   const handleDownload = (format: 'txt' | 'pdf') => {
-    if (!result || !inputValue || !fromUnit || !toUnit || !selectedCategory) {
+    if (!result || typeof inputValue !== 'number' || !fromUnit || !toUnit || !selectedCategory) {
       toast({ title: "Nothing to download", description: "Perform a conversion first.", variant: "destructive" });
       return;
     }
@@ -293,7 +308,7 @@ export function UnitConverterClient() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>From Unit</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={!selectedCategory}>
+                  <Select onValueChange={field.onChange} value={field.value || ""} disabled={!selectedCategory}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Select unit" /></SelectTrigger></FormControl>
                     <SelectContent>
                       {unitsForCategory.map(unit => (
@@ -311,7 +326,7 @@ export function UnitConverterClient() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>To Unit</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={!selectedCategory}>
+                  <Select onValueChange={field.onChange} value={field.value || ""} disabled={!selectedCategory}>
                     <FormControl><SelectTrigger><SelectValue placeholder="Select unit" /></SelectTrigger></FormControl>
                     <SelectContent>
                       {unitsForCategory.map(unit => (
@@ -340,9 +355,9 @@ export function UnitConverterClient() {
             <CardTitle className="font-headline text-xl">Conversion Result</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-2xl font-semibold text-primary">{result} <span className="text-lg text-muted-foreground">{watch('toUnit')}</span></p>
+            <p className="text-2xl font-semibold text-primary">{result} <span className="text-lg text-muted-foreground">{toUnit}</span></p>
             <p className="text-sm text-muted-foreground">
-              {watch('inputValue')} {watch('fromUnit')} = {result} {watch('toUnit')}
+              {inputValue} {fromUnit} = {result} {toUnit}
             </p>
             <div className="flex space-x-2 pt-2">
               <Button onClick={handleCopyResult} variant="outline" size="sm">
@@ -366,3 +381,5 @@ export function UnitConverterClient() {
     </div>
   );
 }
+
+    

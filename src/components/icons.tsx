@@ -6,12 +6,25 @@ export const Logo = (props: LucideProps) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="2"
+    strokeWidth="1.5"
     strokeLinecap="round"
     strokeLinejoin="round"
     {...props}
   >
-    <path d="M12.5 2.3c-.2-1.3-1.8-1.3-2 0L9.2 7.2A3.9 3.9 0 0 1 5.7 9l-4.4.9c-1.3.3-1.3 2.2 0 2.5l4.4.9A3.9 3.9 0 0 1 9.2 15L10.5 20c.2 1.3 1.8 1.3 2 0l1.3-4.9c.3-.8.9-1.5 1.7-1.7L20 12.2c1.3-.2 1.3-2.2 0-2.4l-4.5-.9a3.9 3.9 0 0 1-1.7-1.7L12.5 2.3Z" />
-    <path d="M10.1 2.6 9 7.4a3.4 3.4 0 0 1-2.2 2.2L2 10.7M13.9 21.4l1.1-4.8a3.4 3.4 0 0 1 2.2-2.2l4.8-1.1" />
+    {/* Main shape: combination of a box (toolbox) and a 'U' (Uni) */}
+    <path d="M4 7V19c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V7" /> {/* Outer box part */}
+    <path d="M8 21V11c0-2.21 1.79-4 4-4s4 1.79 4 4v10" /> {/* Inner 'U' part */}
+
+    {/* Tool accent: gear-like or wrench like element */}
+    <circle cx="12" cy="11" r="1.5" /> {/* Center of a gear */}
+    <path d="M12 7v2.5" /> {/* Top spoke */}
+    <path d="M12 12.5V15" /> {/* Bottom spoke (shorter for 'U' space) */}
+    <path d="M15.928 8.072l-1.768 1.768" /> {/* Top-right spoke */}
+    <path d="M8.072 13.928l1.768-1.768" /> {/* Bottom-left spoke (shorter) */}
+    <path d="M15.928 13.928l-1.768-1.768" /> {/* Bottom-right spoke */}
+    <path d="M8.072 8.072l1.768 1.768" /> {/* Top-left spoke */}
+
+    {/* Line at the top of the box, like a lid or handle */}
+    <path d="M4 7h16" />
   </svg>
 );

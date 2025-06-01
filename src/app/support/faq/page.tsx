@@ -13,11 +13,11 @@ const faqItems = [
   },
   {
     question: "Are the tools free to use?",
-    answer: "Yes, most of our basic tools are available for free. Some advanced features or higher usage limits might require a subscription in the future, but our core offerings aim to be accessible to everyone."
+    answer: "Yes, all tools on UniToolBox are completely free to use."
   },
   {
     question: "Do I need to create an account?",
-    answer: "For many tools, no account is required. You can use them anonymously. However, creating an account may unlock additional features, history, or higher limits for certain tools."
+    answer: "No, an account is not needed to use any of the tools on UniToolBox. All features are accessible without registration."
   },
   {
     question: "Is my data safe?",

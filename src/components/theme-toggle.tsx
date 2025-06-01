@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -5,23 +6,42 @@ import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
-  const [theme, setThemeState] = React.useState<"theme-light" | "dark" | "system">("system");
+  // Initialize state to "dark" to match RootLayout's default <html className="dark">
+  // The actual theme is confirmed and potentially updated after mounting.
+  const [theme, setThemeState] = React.useState<"dark" | "theme-light">("dark");
+  const [hasMounted, setHasMounted] = React.useState(false);
 
   React.useEffect(() => {
+    setHasMounted(true);
+    // After mounting, accurately determine the theme from the DOM
+    // This handles cases where the class might have been changed by other scripts
+    // or if the initial assumption was incorrect.
     const isDarkMode = document.documentElement.classList.contains("dark");
     setThemeState(isDarkMode ? "dark" : "theme-light");
-  }, []);
+  }, []); // Runs once after initial mount
 
   React.useEffect(() => {
-    const isDark =
-      theme === "dark" ||
-      (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    document.documentElement.classList.toggle("dark", isDark);
-    // Update for components/ui/sidebar.tsx compatibility if needed, but typically class on <html> is enough.
-  }, [theme]);
+    if (!hasMounted) return; // Only apply theme changes after initial mount
+
+    // Apply the theme to the document
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [theme, hasMounted]);
   
   const toggleTheme = () => {
-    setThemeState(prevTheme => prevTheme === "dark" ? "theme-light" : "dark");
+    setThemeState(prevTheme => (prevTheme === "dark" ? "theme-light" : "dark"));
+  }
+
+  // Render a placeholder until the component has mounted.
+  // This ensures the server output and initial client output are identical for this spot,
+  // preventing layout shifts and potential hydration mismatches.
+  if (!hasMounted) {
+    // Placeholder should ideally match the size of the actual button.
+    // The Button component with size="icon" is h-10 w-10 (40px by 40px).
+    return <div style={{ width: '40px', height: '40px' }} aria-hidden="true" />;
   }
 
   return (

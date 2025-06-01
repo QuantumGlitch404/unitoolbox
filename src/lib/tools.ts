@@ -94,7 +94,7 @@ export const tools: Tool[] = [
    {
     id: 'photo-to-passport-size',
     title: 'Photo to Passport Size Generator',
-    description: 'Auto-crop, resize, and align photos to official passport sizes for various countries.',
+    description: 'Auto-crop, resize, and align photos to official passport sizes for various countries. Background is white.',
     href: '/tools/photo-to-passport-size',
     category: 'Image',
     icon: Camera,
@@ -277,6 +277,15 @@ export const tools: Tool[] = [
     icon: ArrowRightLeft,
     tags: ['excel', 'xlsx', 'pdf', 'converter', 'document'],
   },
+  {
+    id: 'powerpoint-pdf-converter',
+    title: 'PowerPoint <=> PDF Converter',
+    description: 'Convert PowerPoint (.pptx) to PDF and PDF to PowerPoint (pages as images). Client-side with limitations.',
+    href: '/tools/powerpoint-pdf-converter',
+    category: 'Converter',
+    icon: ArrowRightLeft,
+    tags: ['powerpoint', 'pptx', 'pdf', 'converter', 'presentation'],
+  },
   // Utilities
   {
     id: 'unit-converter',
@@ -298,9 +307,10 @@ export const tools: Tool[] = [
   },
 ];
 
-export const featuredTools: Tool[] = tools.filter(tool => ['unit-converter', 'photo-to-passport-size', 'voice-notes-to-text', 'advanced-calculator', 'essay-summarizer'].includes(tool.id)).slice(0, 4);
+export const featuredTools: Tool[] = tools.filter(tool => ['unit-converter', 'photo-to-passport-size', 'voice-notes-to-text', 'advanced-calculator', 'essay-summarizer', 'image-compressor'].includes(tool.id)).slice(0, 6);
 
 export const getToolById = (id: string): Tool | undefined => tools.find(tool => tool.id === id);
 
 export const getToolsByCategory = (category: ToolCategory): Tool[] => tools.filter(tool => tool.category === category);
+    
     

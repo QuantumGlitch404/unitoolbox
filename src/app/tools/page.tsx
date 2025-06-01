@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo } from 'react';
 import { tools, Tool, ToolCategory, toolCategories } from '@/lib/tools';
@@ -56,7 +57,7 @@ export default function AllToolsPage() {
         </div>
         
         <Tabs value={activeCategory} onValueChange={(value) => setActiveCategory(value as ToolCategory | 'All')} className="mt-4">
-          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-4 md:grid-cols-6">
+          <TabsList className="flex flex-wrap justify-center w-full gap-1 sm:gap-2">
             <TabsTrigger value="All">All</TabsTrigger>
             {toolCategories.map(category => (
               <TabsTrigger key={category} value={category}>{category}</TabsTrigger>

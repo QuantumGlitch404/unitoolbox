@@ -1,4 +1,4 @@
-import { ToolPageTemplate } from '@/components/tool-page-template';
+import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { LanguageTranslatorClient } from './language-translator-client';
 import { Languages } from 'lucide-react'; // Placeholder, tool data has icon

@@ -1,7 +1,7 @@
 'use client';
 import { useState, useMemo } from 'react';
 import { tools, Tool, ToolCategory, toolCategories } from '@/lib/tools';
-import { ToolCard } from '@/components/tool-card';
+import { ToolCard } from '@/components/tools/tool-card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Search } from 'lucide-react';

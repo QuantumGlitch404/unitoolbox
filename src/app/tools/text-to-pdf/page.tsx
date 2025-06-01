@@ -1,4 +1,4 @@
-import { ToolPageTemplate } from '@/components/tool-page-template';
+import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { TextToPdfClient } from './text-to-pdf-client';
 import { FileText } from 'lucide-react'; // Placeholder, tool data has icon

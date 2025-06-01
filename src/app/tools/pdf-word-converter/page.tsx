@@ -1,7 +1,7 @@
 
-import { ToolPageTemplate } from '@/components/tool-page-template';
+import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
-import { DocumentConverterClient } from '@/components/document-converter-client';
+import { DocumentConverterClient } from '@/components/tools/document-converter-client';
 
 const conversionOptions = [
   {

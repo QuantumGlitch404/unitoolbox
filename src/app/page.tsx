@@ -5,22 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { featuredTools, Tool } from '@/lib/tools';
 import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
-
-function ToolCard({ tool }: { tool: Tool }) {
-  return (
-    <Link href={tool.href} className="block hover:shadow-lg transition-shadow duration-200 rounded-lg">
-      <Card className="h-full flex flex-col">
-        <CardHeader className="flex flex-row items-center gap-4 pb-2">
-          <tool.icon className="w-8 h-8 text-accent" />
-          <CardTitle className="font-headline text-xl">{tool.title}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex-grow">
-          <CardDescription>{tool.description}</CardDescription>
-        </CardContent>
-      </Card>
-    </Link>
-  );
-}
+import { ToolCard } from '@/components/tools/tool-card';
 
 export default function HomePage() {
   return (

@@ -35,7 +35,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Logo } from '@/components/icons';
+import { AppLogo } from '@/components/icons/app-logo';
 import { type ToolCategory, toolCategories } from '@/lib/tools';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -89,7 +89,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
       <Sidebar className="border-r" collapsible="icon">
         <SidebarHeader className="p-4">
           <Link href="/" className="flex items-center gap-2">
-            <Logo className="w-8 h-8 text-primary" />
+            <AppLogo className="w-8 h-8 text-primary" />
             <h1 className="font-headline text-xl font-semibold group-data-[collapsible=icon]:hidden">
               UniToolBox
             </h1>
@@ -182,7 +182,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-2">
             <SidebarTrigger className="md:hidden" /> {/* Hamburger for mobile */}
             <Link href="/" className="flex items-center gap-2 md:hidden">
-                <Logo className="w-7 h-7 text-primary" />
+                <AppLogo className="w-7 h-7 text-primary" />
                 <span className="font-headline text-lg font-semibold">UniToolBox</span>
             </Link>
           </div>

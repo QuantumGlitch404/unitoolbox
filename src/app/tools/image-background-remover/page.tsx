@@ -1,5 +1,5 @@
 
-import { ToolPageTemplate } from '@/components/tool-page-template';
+import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { ImageBackgroundRemoverClient } from './image-background-remover-client';
 

@@ -1,5 +1,5 @@
 
-import { ToolPageTemplate } from '@/components/tool-page-template';
+import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { UnitConverterClient } from './unit-converter-client';
 import { Cog } from 'lucide-react';

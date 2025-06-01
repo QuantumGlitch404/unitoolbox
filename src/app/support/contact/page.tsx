@@ -77,15 +77,14 @@ export default function ContactPage() {
         if ('text' in error && typeof error.text === 'string' && error.text.trim() !== "") {
           errorMessage = error.text; // Use EmailJS specific error text
           console.error(
-            `EmailJS Error - Status: ${error.status || 'N/A'}, Text: ${error.text}. Full error object:`,
-            error
+            `EmailJS Error - Status: ${error.status || 'N/A'}, Text: ${error.text}. Full error object (JSON): ${JSON.stringify(error, null, 2)}`
           );
         } else if ('message' in error && typeof error.message === 'string' && error.message.trim() !== "") {
           errorMessage = error.message; // Fallback to generic error message
-          console.error(`Generic Error - Message: ${errorMessage}. Full error object:`, error);
+          console.error(`Generic Error - Message: ${errorMessage}. Full error object (JSON): ${JSON.stringify(error, null, 2)}`);
         } else {
           // Fallback for unknown error structure
-          console.error('Unknown EmailJS/Generic Error Structure:', error);
+          console.error(`Unknown EmailJS/Generic Error Structure (JSON): ${JSON.stringify(error, null, 2)}`);
         }
       } else {
         // Error is not an object (e.g., a string was thrown)

@@ -11,7 +11,7 @@ interface ToolCardProps {
 export function ToolCard({ tool }: ToolCardProps) {
   return (
     <Card className="flex flex-col h-full shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out rounded-lg overflow-hidden">
-      <CardHeader className="pb-4">
+      <CardHeader> {/* Removed custom padding, defaults to p-6 */}
         <div className="flex items-center gap-3">
           <tool.icon className="w-7 h-7 text-accent flex-shrink-0" />
           <CardTitle className="font-headline text-lg leading-tight">{tool.title}</CardTitle>
@@ -20,7 +20,7 @@ export function ToolCard({ tool }: ToolCardProps) {
           )}
         </div>
       </CardHeader>
-      <CardContent className="flex-grow pb-4">
+      <CardContent className="flex-grow"> {/* Removed custom padding, defaults to p-6 pt-0 */}
         <CardDescription className="text-sm line-clamp-3">{tool.description}</CardDescription>
       </CardContent>
       <CardFooter>

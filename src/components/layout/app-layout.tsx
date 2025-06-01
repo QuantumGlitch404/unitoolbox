@@ -121,10 +121,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                                 isActive={pathname.startsWith(item.href) && (item.href === '/tools' ? pathname.includes('/tools') : true) }
                                 tooltip={item.label}
                               >
-                                <div className={cn(
-                                  "flex items-center w-full",
-                                  "gap-2" 
-                                )}>
+                                <div className={cn("flex items-center w-full group-data-[collapsible=icon]:justify-center", "gap-2")}>
                                   <item.icon />
                                   <span className="flex-grow group-data-[collapsible=icon]:hidden">{item.label}</span>
                                   <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 group-data-[collapsible=icon]:hidden" />
@@ -138,10 +135,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                                 isActive={pathname.startsWith(item.href) && item.href !== '/'}
                                 tooltip={item.label}
                               >
-                                <Link href={item.href} className={cn(
-                                  "flex items-center w-full",
-                                   "gap-2"
-                                  )}>
+                                <Link href={item.href} className={cn("flex items-center w-full", "gap-2")}>
                                   <item.icon />
                                   <span className="flex-grow group-data-[collapsible=icon]:hidden">{item.label}</span>
                                   <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 group-data-[collapsible=icon]:hidden" />

@@ -11,20 +11,19 @@ export const Logo = (props: LucideProps) => (
     strokeLinejoin="round"
     {...props}
   >
-    {/* Main shape: combination of a box (toolbox) and a 'U' (Uni) */}
-    <path d="M4 7V19c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V7" /> {/* Outer box part */}
-    <path d="M8 21V11c0-2.21 1.79-4 4-4s4 1.79 4 4v10" /> {/* Inner 'U' part */}
+    {/* Outer box shape */}
+    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+    
+    {/* Stylized 'U' - an arch within the top part of the box */}
+    <path d="M8 13V8c0-2.21 1.79-4 4-4s4 1.79 4 4v5" />
 
-    {/* Tool accent: gear-like or wrench like element */}
-    <circle cx="12" cy="11" r="1.5" /> {/* Center of a gear */}
-    <path d="M12 7v2.5" /> {/* Top spoke */}
-    <path d="M12 12.5V15" /> {/* Bottom spoke (shorter for 'U' space) */}
-    <path d="M15.928 8.072l-1.768 1.768" /> {/* Top-right spoke */}
-    <path d="M8.072 13.928l1.768-1.768" /> {/* Bottom-left spoke (shorter) */}
-    <path d="M15.928 13.928l-1.768-1.768" /> {/* Bottom-right spoke */}
-    <path d="M8.072 8.072l1.768 1.768" /> {/* Top-left spoke */}
-
-    {/* Line at the top of the box, like a lid or handle */}
-    <path d="M4 7h16" />
+    {/* Small gear/cog shape in the bottom center of the box */}
+    <circle cx="12" cy="16" r="1.5" />
+    <path d="M12 14.5V13" /> 
+    <path d="M12 17.5V19" />
+    <path d="M14.121 15.379l1.061-1.06" /> {/* Adjusted spoke for cog-like feel */}
+    <path d="M8.818 17.682l-1.061-1.061" /> {/* Adjusted spoke */}
+    <path d="M15.182 17.682l-1.061-1.061" /> {/* Adjusted spoke */}
+    <path d="M9.879 15.379l-1.061-1.06" />  {/* Adjusted spoke */}
   </svg>
 );

@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { useForm, Controller, type SubmitHandler } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form'; // Removed SubmitHandler as form isn't submitted
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from "@/hooks/use-toast";
-import { Copy, Download, Loader2, ArrowRightLeft } from 'lucide-react';
+import { Copy, Download, Loader2 } from 'lucide-react'; // Removed ArrowRightLeft as it's not used
 import { jsPDF } from 'jspdf';
 
 const unitCategories = {
@@ -25,7 +25,7 @@ const unitCategories = {
     Foot: 0.3048,
     Inch: 0.0254,
   },
-  Weight: {
+  Weight: { // Base unit: Kilogram
     Kilogram: 1,
     Gram: 0.001,
     Milligram: 0.000001,
@@ -33,19 +33,19 @@ const unitCategories = {
     Ounce: 0.0283495,
     Tonne: 1000,
   },
-  Time: {
+  Time: { // Base unit: Second
     Second: 1,
     Minute: 60,
     Hour: 3600,
     Day: 86400,
     Week: 604800,
   },
-  Temperature: { // Special handling needed for conversion formulas
+  Temperature: { // Special handling
     Celsius: 'celsius',
     Fahrenheit: 'fahrenheit',
     Kelvin: 'kelvin',
   },
-  Area: {
+  Area: { // Base unit: Square Meter
     'Square Meter': 1,
     'Square Kilometer': 1000000,
     'Square Mile': 2589988.11,
@@ -54,14 +54,14 @@ const unitCategories = {
     Acre: 4046.86,
     Hectare: 10000,
   },
-  Volume: {
+  Volume: { // Base unit: Cubic Meter
     'Cubic Meter': 1,
     Liter: 0.001,
     Milliliter: 0.000001,
     Gallon: 0.00378541, // US Gallon
     Quart: 0.000946353, // US Quart
   },
-  Speed: {
+  Speed: { // Base unit: m/s
     'm/s': 1,
     'km/h': 0.277778,
     mph: 0.44704,
@@ -75,7 +75,7 @@ const unitCategories = {
   },
   Currency: { // Placeholder, real rates needed
     USD: 1, // Base
-    EUR: 0.92, // Example static rate
+    EUR: 0.92,
     GBP: 0.79,
     INR: 83.3,
     JPY: 157,
@@ -132,32 +132,27 @@ export function UnitConverterClient() {
 
 
   const convertUnits = useCallback(async () => {
-    console.log("CALLBACK: convertUnits ENTERED. Watched values from closure:", {
-        inputValue, fromUnit, toUnit, selectedCategory
+    // Use watched values directly from the closure, as they are dependencies of this useCallback
+    const calcInputValue = inputValue;
+    const calcFromUnit = fromUnit;
+    const calcToUnit = toUnit;
+    const calcSelectedCategory = selectedCategory;
+
+    console.log("CALLBACK: convertUnits ENTERED. Current values:", {
+        calcInputValue, calcFromUnit, calcToUnit, calcSelectedCategory
     });
-    const currentValuesFromGetValues = getValues();
-    console.log("CALLBACK: convertUnits current form values from getValues():", currentValuesFromGetValues);
 
-    // Use values from getValues for calculation to ensure atomicity if needed,
-    // though watched values should be up-to-date as they are deps of this useCallback.
-    const calcInputValue = currentValuesFromGetValues.inputValue;
-    const calcFromUnit = currentValuesFromGetValues.fromUnit;
-    const calcToUnit = currentValuesFromGetValues.toUnit;
-    const calcSelectedCategory = currentValuesFromGetValues.category;
-
-
-    if (isNaN(calcInputValue) || !calcFromUnit || !calcToUnit || !calcSelectedCategory) {
-      console.warn("CALLBACK: convertUnits - Invalid input or units from getValues(). Bailing out.", { calcInputValue, calcFromUnit, calcToUnit, calcSelectedCategory });
+    if (typeof calcInputValue !== 'number' || isNaN(calcInputValue) || !calcFromUnit || !calcToUnit || !calcSelectedCategory) {
+      console.warn("CALLBACK: convertUnits - Invalid input or units. Bailing out.", { calcInputValue, calcFromUnit, calcToUnit, calcSelectedCategory });
       setResult("Please enter a valid number and select units.");
       return;
     }
-    console.log("CALLBACK: convertUnits - Inputs from getValues() validated. Proceeding.", { calcInputValue, calcFromUnit, calcToUnit, calcSelectedCategory });
-
+    console.log("CALLBACK: convertUnits - Inputs validated. Proceeding.", { calcInputValue, calcFromUnit, calcToUnit, calcSelectedCategory });
 
     let outputValue: number;
 
     if (calcSelectedCategory === 'Temperature') {
-      const temp = parseFloat(calcInputValue.toString());
+      const temp = calcInputValue; // Already a number
       if (calcFromUnit === 'Celsius') {
         if (calcToUnit === 'Fahrenheit') outputValue = (temp * 9/5) + 32;
         else if (calcToUnit === 'Kelvin') outputValue = temp + 273.15;
@@ -180,7 +175,12 @@ export function UnitConverterClient() {
         const rates = await fetchCurrencyRates(calcFromUnit); 
         const fromRate = (rates as any)[calcFromUnit] || 1;
         const toRate = (rates as any)[calcToUnit] || 1;
-        const valueInUSD = calcInputValue / fromRate;
+        if (fromRate === 0) {
+          console.warn("CALLBACK: convertUnits - Currency 'fromRate' is zero.");
+          setResult("Cannot convert from a currency with a zero rate.");
+          return;
+        }
+        const valueInUSD = calcInputValue / fromRate; // Value in base currency (USD)
         outputValue = valueInUSD * toRate;
     } else {
       const categoryUnits = unitCategories[calcSelectedCategory] as Record<string, number>;
@@ -191,6 +191,8 @@ export function UnitConverterClient() {
       }
       const fromFactor = categoryUnits[calcFromUnit];
       const toFactor = categoryUnits[calcToUnit];
+
+      console.log("FACTORS:", { fromFactor, toFactor });
 
       if (typeof fromFactor !== 'number' || typeof toFactor !== 'number') {
           console.warn("CALLBACK: convertUnits - Unit factors not numbers.");
@@ -210,22 +212,26 @@ export function UnitConverterClient() {
       } else {
         const valueInBase = calcInputValue * fromFactor;
         outputValue = valueInBase / toFactor;
+        console.log("CALCULATION:", { calcInputValue, fromFactor, valueInBase, toFactor, outputValue });
       }
     }
 
-    console.log("CALLBACK: convertUnits - Calculated outputValue:", outputValue);
     if (Math.abs(outputValue) < 0.000001 && outputValue !== 0) { 
         const finalRes = outputValue.toExponential(4);
         console.log("CALLBACK: convertUnits - Setting result (exponential):", finalRes);
         setResult(finalRes);
     } else {
-        const finalRes = parseFloat(outputValue.toFixed(6)).toString();
+        // Format to a reasonable number of decimal places, but avoid excessive trailing zeros for whole numbers.
+        let fixedOutput = outputValue.toFixed(6);
+        // Remove trailing zeros after decimal point, then remove decimal point if it's the last char
+        fixedOutput = fixedOutput.replace(/(\.[0-9]*[1-9])0+$|\.0*$/, '$1');
+        const finalRes = fixedOutput;
         console.log("CALLBACK: convertUnits - Setting result (fixed):", finalRes);
         setResult(finalRes);
     }
   }, [
-    inputValue, fromUnit, toUnit, selectedCategory, // Added these direct dependencies
-    getValues, setResult, setIsLoading, fetchCurrencyRates, toast
+    inputValue, fromUnit, toUnit, selectedCategory, // Direct dependencies from watch
+    setResult, setIsLoading, fetchCurrencyRates, toast // Other dependencies
   ]);
 
 
@@ -243,17 +249,17 @@ export function UnitConverterClient() {
         newToUnit = defaultUnits[0];
       }
       
-      const currentFormValues = getValues();
-      if (currentFormValues.fromUnit !== newFromUnit) {
-        console.log("EFFECT: Category Change - Setting fromUnit via setValue from", currentFormValues.fromUnit, "to", newFromUnit);
+      // Only set if different to avoid re-triggering conversions unnecessarily
+      if (fromUnit !== newFromUnit) {
+        console.log("EFFECT: Category Change - Setting fromUnit via setValue from", fromUnit, "to", newFromUnit);
         setValue('fromUnit', newFromUnit, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
       }
-      if (currentFormValues.toUnit !== newToUnit) {
-        console.log("EFFECT: Category Change - Setting toUnit via setValue from", currentFormValues.toUnit, "to", newToUnit);
+      if (toUnit !== newToUnit) {
+        console.log("EFFECT: Category Change - Setting toUnit via setValue from", toUnit, "to", newToUnit);
         setValue('toUnit', newToUnit, { shouldValidate: true, shouldDirty: true, shouldTouch: true });
       }
     }
-  }, [selectedCategory, setValue, getValues]);
+  }, [selectedCategory, setValue, fromUnit, toUnit]); // Added fromUnit, toUnit to deps
 
   useEffect(() => {
     console.log("EFFECT: Conversion Trigger - Watched values:", { inputValue, fromUnit, toUnit, selectedCategory });
@@ -275,7 +281,7 @@ export function UnitConverterClient() {
   };
 
   const handleDownload = (format: 'txt' | 'pdf') => {
-    const currentVals = getValues();
+    const currentVals = getValues(); // Use getValues here for the most current form state for download
     if (!result || typeof currentVals.inputValue !== 'number' || !currentVals.fromUnit || !currentVals.toUnit || !currentVals.category) {
       toast({ title: "Nothing to download", description: "Perform a conversion first.", variant: "destructive" });
       return;
@@ -393,15 +399,15 @@ export function UnitConverterClient() {
         </div>
       )}
 
-      {result && (
+      {result !== null && ( // Check for !== null to show card even for "0" or error messages
         <Card className="mt-6 bg-secondary/30">
           <CardHeader>
             <CardTitle className="font-headline text-xl">Conversion Result</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-2xl font-semibold text-primary">{result} <span className="text-lg text-muted-foreground">{getValues('toUnit') || toUnit}</span></p>
+            <p className="text-2xl font-semibold text-primary">{result} <span className="text-lg text-muted-foreground">{watch('toUnit')}</span></p>
             <p className="text-sm text-muted-foreground">
-              {typeof getValues('inputValue') === 'number' ? getValues('inputValue') : inputValue} {getValues('fromUnit') || fromUnit} = {result} {getValues('toUnit') || toUnit}
+              {typeof watch('inputValue') === 'number' ? watch('inputValue') : ""} {watch('fromUnit')} = {result} {watch('toUnit')}
             </p>
             <div className="flex space-x-2 pt-2">
               <Button onClick={handleCopyResult} variant="outline" size="sm" disabled={!result}>

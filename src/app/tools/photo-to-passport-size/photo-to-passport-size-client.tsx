@@ -129,7 +129,7 @@ export function PhotoToPassportSizeClient() {
       img.src = imagePreview;
     } catch (error: any) {
       console.error("Error generating passport photo:", error);
-      toast({ title: "Generation Error", description: error.message, variant: "destructive" });
+      toast({ title: "Generation Error", description: error.message || "An unknown error occurred.", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -228,7 +228,7 @@ export function PhotoToPassportSizeClient() {
             <div>
               <Label>Background Color</Label>
               <RadioGroup
-                defaultValue={backgroundColor}
+                value={backgroundColor}
                 onValueChange={(val: 'white' | 'blue') => setBackgroundColor(val)}
                 className="flex space-x-4 pt-2"
               >
@@ -274,3 +274,5 @@ export function PhotoToPassportSizeClient() {
     </div>
   );
 }
+
+    

@@ -67,27 +67,25 @@ export default function ContactPage() {
       await emailjs.send(serviceId, templateId, templateParams, publicKey);
       toast({
         title: "Message Sent!",
-        description: "Thank you for contacting us. We'll get back to you soon at meezabmomin07@gmail.com.",
+        description: "Thank you for contacting us. We'll get back to you soon.",
       });
       form.reset();
     } catch (error: any) {
       let errorMessage = "Could not send your message. Please try again later.";
-
+      
       if (error && typeof error === 'object') {
         if ('text' in error && typeof error.text === 'string' && error.text.trim() !== "") {
-          errorMessage = error.text; // Use EmailJS specific error text
+          errorMessage = error.text; 
           console.error(
             `EmailJS Error - Status: ${error.status || 'N/A'}, Text: ${error.text}. Full error object (JSON): ${JSON.stringify(error, null, 2)}`
           );
         } else if ('message' in error && typeof error.message === 'string' && error.message.trim() !== "") {
-          errorMessage = error.message; // Fallback to generic error message
+          errorMessage = error.message; 
           console.error(`Generic Error - Message: ${errorMessage}. Full error object (JSON): ${JSON.stringify(error, null, 2)}`);
         } else {
-          // Fallback for unknown error structure
           console.error(`Unknown EmailJS/Generic Error Structure (JSON): ${JSON.stringify(error, null, 2)}`);
         }
       } else {
-        // Error is not an object (e.g., a string was thrown)
         console.error('EmailJS Error (not an object):', error);
         if (typeof error === 'string') {
             errorMessage = error;
@@ -110,7 +108,7 @@ export default function ContactPage() {
         <CardHeader className="text-center">
           <CardTitle className="font-headline text-3xl md:text-4xl">Contact Us</CardTitle>
           <CardDescription className="text-lg">
-            Have questions or feedback? We'd love to hear from you! Your message will be sent to meezabmomin07@gmail.com.
+            Have questions or feedback? We'd love to hear from you!
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -188,3 +186,4 @@ export default function ContactPage() {
     </div>
   );
 }
+

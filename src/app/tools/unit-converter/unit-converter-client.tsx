@@ -95,7 +95,7 @@ type UnitConverterFormData = z.infer<typeof formSchema>;
 
 export function UnitConverterClient() {
   const [result, setResult] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false); 
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<UnitConverterFormData>({
@@ -108,34 +108,44 @@ export function UnitConverterClient() {
     },
   });
 
-  const { watch, setValue, getValues } = form;
+  const { watch, setValue, getValues, control } = form;
   const selectedCategory = watch('category');
   const inputValue = watch('inputValue');
   const fromUnit = watch('fromUnit');
   const toUnit = watch('toUnit');
 
+  console.log("RENDER: UnitConverterClient. Watched values:", { selectedCategory, inputValue, fromUnit, toUnit, result });
+
   const unitsForCategory = useMemo(() => {
+    console.log("MEMO: Recalculating unitsForCategory for", selectedCategory);
     return selectedCategory ? Object.keys(unitCategories[selectedCategory]) : [];
   }, [selectedCategory]);
 
   const fetchCurrencyRates = useCallback(async (base: string) => {
+    console.log("CALLBACK: fetchCurrencyRates called with base:", base);
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500)); 
+    await new Promise(resolve => setTimeout(resolve, 500));
     setIsLoading(false);
+    console.log("CALLBACK: fetchCurrencyRates completed.");
     return unitCategories.Currency;
   }, [setIsLoading]);
 
   const convertUnits = useCallback(async () => {
-    const currentValues = getValues(); // Get current form values
+    console.log("CALLBACK: convertUnits ENTERED");
+    const currentValues = getValues();
+    console.log("CALLBACK: convertUnits current form values:", currentValues);
+
     const currentInputValue = currentValues.inputValue;
     const currentFromUnit = currentValues.fromUnit;
     const currentToUnit = currentValues.toUnit;
     const currentSelectedCategory = currentValues.category;
 
     if (isNaN(currentInputValue) || !currentFromUnit || !currentToUnit || !currentSelectedCategory) {
+      console.warn("CALLBACK: convertUnits - Invalid input or units. Bailing out.", { currentInputValue, currentFromUnit, currentToUnit, currentSelectedCategory });
       setResult("Invalid input or units selected.");
       return;
     }
+    console.log("CALLBACK: convertUnits - Inputs validated. Proceeding.");
 
     let outputValue: number;
 
@@ -144,30 +154,31 @@ export function UnitConverterClient() {
       if (currentFromUnit === 'Celsius') {
         if (currentToUnit === 'Fahrenheit') outputValue = (temp * 9/5) + 32;
         else if (currentToUnit === 'Kelvin') outputValue = temp + 273.15;
-        else outputValue = temp; 
+        else outputValue = temp;
       } else if (currentFromUnit === 'Fahrenheit') {
         if (currentToUnit === 'Celsius') outputValue = (temp - 32) * 5/9;
         else if (currentToUnit === 'Kelvin') outputValue = (temp - 32) * 5/9 + 273.15;
-        else outputValue = temp; 
+        else outputValue = temp;
       } else if (currentFromUnit === 'Kelvin') {
         if (currentToUnit === 'Celsius') outputValue = temp - 273.15;
         else if (currentToUnit === 'Fahrenheit') outputValue = (temp - 273.15) * 9/5 + 32;
-        else outputValue = temp; 
+        else outputValue = temp;
       } else {
+        console.warn("CALLBACK: convertUnits - Invalid temperature units.");
         setResult("Invalid temperature units.");
         return;
       }
     } else if (currentSelectedCategory === 'Currency') {
-        const rates = await fetchCurrencyRates(currentFromUnit); 
-        const fromRate = (rates as any)[currentFromUnit] || 1; 
-        const toRate = (rates as any)[currentToUnit] || 1;     
-        
+        console.log("CALLBACK: convertUnits - Handling Currency.");
+        const rates = await fetchCurrencyRates(currentFromUnit);
+        const fromRate = (rates as any)[currentFromUnit] || 1;
+        const toRate = (rates as any)[currentToUnit] || 1;
         const valueInUSD = currentInputValue / fromRate;
         outputValue = valueInUSD * toRate;
-
     } else {
       const categoryUnits = unitCategories[currentSelectedCategory] as Record<string, number>;
       if (!(currentFromUnit in categoryUnits) || !(currentToUnit in categoryUnits)) {
+        console.warn("CALLBACK: convertUnits - Selected units invalid for category.");
         setResult("Selected units are invalid for this category.");
         return;
       }
@@ -175,52 +186,74 @@ export function UnitConverterClient() {
       const toFactor = categoryUnits[currentToUnit];
 
       if (typeof fromFactor !== 'number' || typeof toFactor !== 'number') {
+          console.warn("CALLBACK: convertUnits - Unit factors not numbers.");
           setResult("Unit factors are not numbers. Check configuration.");
           return;
       }
-      
+
       if (toFactor === 0) {
         if (fromFactor === 0 && currentInputValue === 0) {
             outputValue = 0;
         } else if (fromFactor !== 0) {
+          console.warn("CALLBACK: convertUnits - Cannot convert to zero base factor.");
           setResult("Cannot convert to a unit with a zero base factor.");
           return;
         } else {
-            outputValue = 0; 
+            outputValue = 0;
         }
       } else {
         const valueInBase = currentInputValue * fromFactor;
         outputValue = valueInBase / toFactor;
       }
     }
-    
+
+    console.log("CALLBACK: convertUnits - Calculated outputValue:", outputValue);
     if (Math.abs(outputValue) < 0.00001 && outputValue !== 0) {
-        setResult(outputValue.toExponential(4));
+        const finalRes = outputValue.toExponential(4);
+        console.log("CALLBACK: convertUnits - Setting result (exponential):", finalRes);
+        setResult(finalRes);
     } else {
-        setResult(parseFloat(outputValue.toFixed(6)).toString()); 
+        const finalRes = parseFloat(outputValue.toFixed(6)).toString();
+        console.log("CALLBACK: convertUnits - Setting result (fixed):", finalRes);
+        setResult(finalRes);
     }
-  }, [getValues, setResult, setIsLoading, fetchCurrencyRates, toast]); // Removed direct watch dependencies, using getValues
+  }, [getValues, setResult, setIsLoading, fetchCurrencyRates, toast]);
 
   useEffect(() => {
+    console.log("EFFECT: Category Change - selectedCategory is now", selectedCategory);
     if (selectedCategory) {
       const defaultUnits = Object.keys(unitCategories[selectedCategory]);
+      let newFromUnit = '', newToUnit = '';
       if (defaultUnits.length >= 2) {
-        setValue('fromUnit', defaultUnits[0]);
-        setValue('toUnit', defaultUnits[1]);
+        newFromUnit = defaultUnits[0];
+        newToUnit = defaultUnits[1];
       } else if (defaultUnits.length === 1) {
-        setValue('fromUnit', defaultUnits[0]);
-        setValue('toUnit', defaultUnits[0]);
+        newFromUnit = defaultUnits[0];
+        newToUnit = defaultUnits[0];
+      }
+      console.log("EFFECT: Category Change - Attempting to set fromUnit to", newFromUnit, "and toUnit to", newToUnit);
+      // Only set if different to avoid potential loops if not strictly necessary
+      if (getValues('fromUnit') !== newFromUnit) {
+        console.log("EFFECT: Category Change - Setting fromUnit via setValue.");
+        setValue('fromUnit', newFromUnit);
+      }
+      if (getValues('toUnit') !== newToUnit) {
+        console.log("EFFECT: Category Change - Setting toUnit via setValue.");
+        setValue('toUnit', newToUnit);
       }
     }
-  }, [selectedCategory, setValue]);
-  
+  }, [selectedCategory, setValue, getValues]);
+
   useEffect(() => {
+    console.log("EFFECT: Conversion Trigger - Watched values:", { inputValue, fromUnit, toUnit, selectedCategory });
     if (typeof inputValue === 'number' && fromUnit && toUnit && selectedCategory) {
+      console.log("EFFECT: Conversion Trigger - Conditions met, calling convertUnits.");
       convertUnits();
     } else {
+      console.warn("EFFECT: Conversion Trigger - Conditions NOT met. Setting result to null.", { inputValueType: typeof inputValue, fromUnit, toUnit, selectedCategory });
       setResult(null);
     }
-  }, [inputValue, fromUnit, toUnit, selectedCategory, convertUnits, setResult]);
+  }, [inputValue, fromUnit, toUnit, selectedCategory, convertUnits]);
 
 
   const handleCopyResult = () => {
@@ -228,15 +261,18 @@ export function UnitConverterClient() {
       navigator.clipboard.writeText(result)
         .then(() => toast({ title: "Copied!", description: "Result copied to clipboard." }))
         .catch(() => toast({ title: "Copy Failed", description: "Could not copy result.", variant: "destructive" }));
+    } else {
+      toast({ title: "Nothing to copy", description: "No result available.", variant: "default" });
     }
   };
 
   const handleDownload = (format: 'txt' | 'pdf') => {
-    if (!result || typeof inputValue !== 'number' || !fromUnit || !toUnit || !selectedCategory) {
+    const currentVals = getValues();
+    if (!result || typeof currentVals.inputValue !== 'number' || !currentVals.fromUnit || !currentVals.toUnit || !currentVals.category) {
       toast({ title: "Nothing to download", description: "Perform a conversion first.", variant: "destructive" });
       return;
     }
-    const content = `${inputValue} ${fromUnit} = ${result} ${toUnit}`;
+    const content = `${currentVals.inputValue} ${currentVals.fromUnit} = ${result} ${currentVals.toUnit}`;
     let blob: Blob;
     let filename: string;
 
@@ -247,9 +283,9 @@ export function UnitConverterClient() {
       const pdf = new jsPDF();
       pdf.setFontSize(12);
       pdf.text("Unit Conversion Result", 10, 10);
-      pdf.text(`Category: ${selectedCategory}`, 10, 20);
-      pdf.text(`Input: ${inputValue} ${fromUnit}`, 10, 30);
-      pdf.text(`Output: ${result} ${toUnit}`, 10, 40);
+      pdf.text(`Category: ${currentVals.category}`, 10, 20);
+      pdf.text(`Input: ${currentVals.inputValue} ${currentVals.fromUnit}`, 10, 30);
+      pdf.text(`Output: ${result} ${currentVals.toUnit}`, 10, 40);
       blob = pdf.output('blob');
       filename = 'conversion.pdf';
     }
@@ -272,12 +308,12 @@ export function UnitConverterClient() {
       <Form {...form}>
         <form className="space-y-6">
           <FormField
-            control={form.control}
+            control={control}
             name="category"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Category</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl><SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger></FormControl>
                   <SelectContent>
                     {Object.keys(unitCategories).map(cat => (
@@ -292,7 +328,7 @@ export function UnitConverterClient() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
             <FormField
-              control={form.control}
+              control={control}
               name="inputValue"
               render={({ field }) => (
                 <FormItem>
@@ -303,7 +339,7 @@ export function UnitConverterClient() {
               )}
             />
             <FormField
-              control={form.control}
+              control={control}
               name="fromUnit"
               render={({ field }) => (
                 <FormItem>
@@ -321,7 +357,7 @@ export function UnitConverterClient() {
               )}
             />
             <FormField
-              control={form.control}
+              control={control}
               name="toUnit"
               render={({ field }) => (
                 <FormItem>
@@ -355,18 +391,18 @@ export function UnitConverterClient() {
             <CardTitle className="font-headline text-xl">Conversion Result</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-2xl font-semibold text-primary">{result} <span className="text-lg text-muted-foreground">{toUnit}</span></p>
+            <p className="text-2xl font-semibold text-primary">{result} <span className="text-lg text-muted-foreground">{toUnit /* Display watched toUnit here */}</span></p>
             <p className="text-sm text-muted-foreground">
-              {inputValue} {fromUnit} = {result} {toUnit}
+              {inputValue /* Display watched inputValue */} {fromUnit /* Display watched fromUnit */} = {result} {toUnit /* Display watched toUnit */}
             </p>
             <div className="flex space-x-2 pt-2">
-              <Button onClick={handleCopyResult} variant="outline" size="sm">
+              <Button onClick={handleCopyResult} variant="outline" size="sm" disabled={!result}>
                 <Copy className="mr-2 h-4 w-4" /> Copy
               </Button>
-              <Button onClick={() => handleDownload('txt')} variant="outline" size="sm">
+              <Button onClick={() => handleDownload('txt')} variant="outline" size="sm" disabled={!result}>
                 <Download className="mr-2 h-4 w-4" /> Download TXT
               </Button>
-              <Button onClick={() => handleDownload('pdf')} variant="outline" size="sm">
+              <Button onClick={() => handleDownload('pdf')} variant="outline" size="sm" disabled={!result}>
                 <Download className="mr-2 h-4 w-4" /> Download PDF
               </Button>
             </div>

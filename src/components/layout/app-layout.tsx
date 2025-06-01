@@ -177,7 +177,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                       isActive={pathname === item.href}
                       tooltip={item.label}
                     >
-                      <Link href={item.href} className="flex items-center gap-2">
+                      <Link href={item.href} className={cn("flex items-center w-full", "gap-2")}>
                         <item.icon />
                         <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                       </Link>

@@ -277,16 +277,16 @@ export const tools: Tool[] = [
     icon: ArrowRightLeft,
     tags: ['excel', 'xlsx', 'pdf', 'converter', 'document'],
   },
+  // Utilities
   {
     id: 'unit-converter',
     title: 'Unit Converter (All-in-One)',
-    description: 'Converts length, weight, time, temperature, area, volume, speed, pressure, and more.',
+    description: 'Converts length, weight, time, temperature, area, volume, currency, speed, pressure, and more.',
     href: '/tools/unit-converter',
     category: 'Utilities',
-    icon: Cog, 
+    icon: Cog,
     tags: ['units', 'measurement', 'conversion', 'length', 'weight', 'temperature', 'currency'],
   },
-  // Utilities
   {
     id: 'advanced-calculator',
     title: 'Advanced Calculator & Unit Converter',
@@ -303,3 +303,4 @@ export const featuredTools: Tool[] = tools.filter(tool => ['unit-converter', 'ph
 export const getToolById = (id: string): Tool | undefined => tools.find(tool => tool.id === id);
 
 export const getToolsByCategory = (category: ToolCategory): Tool[] => tools.filter(tool => tool.category === category);
+    

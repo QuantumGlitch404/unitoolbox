@@ -312,5 +312,3 @@ export const featuredTools: Tool[] = tools.filter(tool => ['unit-converter', 'ph
 export const getToolById = (id: string): Tool | undefined => tools.find(tool => tool.id === id);
 
 export const getToolsByCategory = (category: ToolCategory): Tool[] => tools.filter(tool => tool.category === category);
-    
-    

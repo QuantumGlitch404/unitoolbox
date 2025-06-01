@@ -124,11 +124,14 @@ export function UnitConverterClient() {
   const fetchCurrencyRates = useCallback(async (base: string) => {
     console.log("CALLBACK: fetchCurrencyRates called with base:", base);
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Simulate API call for currency rates
+    await new Promise(resolve => setTimeout(resolve, 300)); // Short delay
     setIsLoading(false);
     console.log("CALLBACK: fetchCurrencyRates completed.");
-    return unitCategories.Currency;
+    // In a real app, fetch from an API. Using placeholder static rates here.
+    return unitCategories.Currency; // Return static rates for now
   }, [setIsLoading]);
+
 
   const convertUnits = useCallback(async () => {
     console.log("CALLBACK: convertUnits ENTERED");
@@ -142,7 +145,7 @@ export function UnitConverterClient() {
 
     if (isNaN(currentInputValue) || !currentFromUnit || !currentToUnit || !currentSelectedCategory) {
       console.warn("CALLBACK: convertUnits - Invalid input or units. Bailing out.", { currentInputValue, currentFromUnit, currentToUnit, currentSelectedCategory });
-      setResult("Invalid input or units selected.");
+      setResult("Please enter a valid number and select units.");
       return;
     }
     console.log("CALLBACK: convertUnits - Inputs validated. Proceeding.");
@@ -154,15 +157,15 @@ export function UnitConverterClient() {
       if (currentFromUnit === 'Celsius') {
         if (currentToUnit === 'Fahrenheit') outputValue = (temp * 9/5) + 32;
         else if (currentToUnit === 'Kelvin') outputValue = temp + 273.15;
-        else outputValue = temp;
+        else outputValue = temp; // Celsius to Celsius
       } else if (currentFromUnit === 'Fahrenheit') {
         if (currentToUnit === 'Celsius') outputValue = (temp - 32) * 5/9;
         else if (currentToUnit === 'Kelvin') outputValue = (temp - 32) * 5/9 + 273.15;
-        else outputValue = temp;
+        else outputValue = temp; // Fahrenheit to Fahrenheit
       } else if (currentFromUnit === 'Kelvin') {
         if (currentToUnit === 'Celsius') outputValue = temp - 273.15;
         else if (currentToUnit === 'Fahrenheit') outputValue = (temp - 273.15) * 9/5 + 32;
-        else outputValue = temp;
+        else outputValue = temp; // Kelvin to Kelvin
       } else {
         console.warn("CALLBACK: convertUnits - Invalid temperature units.");
         setResult("Invalid temperature units.");
@@ -170,13 +173,15 @@ export function UnitConverterClient() {
       }
     } else if (currentSelectedCategory === 'Currency') {
         console.log("CALLBACK: convertUnits - Handling Currency.");
-        const rates = await fetchCurrencyRates(currentFromUnit);
+        const rates = await fetchCurrencyRates(currentFromUnit); // This will set isLoading
         const fromRate = (rates as any)[currentFromUnit] || 1;
         const toRate = (rates as any)[currentToUnit] || 1;
+        // Perform conversion: Value in FromUnit -> Value in Base (USD) -> Value in ToUnit
         const valueInUSD = currentInputValue / fromRate;
         outputValue = valueInUSD * toRate;
     } else {
       const categoryUnits = unitCategories[currentSelectedCategory] as Record<string, number>;
+      // Ensure units exist in the category
       if (!(currentFromUnit in categoryUnits) || !(currentToUnit in categoryUnits)) {
         console.warn("CALLBACK: convertUnits - Selected units invalid for category.");
         setResult("Selected units are invalid for this category.");
@@ -185,20 +190,22 @@ export function UnitConverterClient() {
       const fromFactor = categoryUnits[currentFromUnit];
       const toFactor = categoryUnits[currentToUnit];
 
+      // Ensure factors are numbers
       if (typeof fromFactor !== 'number' || typeof toFactor !== 'number') {
           console.warn("CALLBACK: convertUnits - Unit factors not numbers.");
           setResult("Unit factors are not numbers. Check configuration.");
           return;
       }
 
+      // Handle division by zero if toFactor is 0
       if (toFactor === 0) {
-        if (fromFactor === 0 && currentInputValue === 0) {
+        if (fromFactor === 0 && currentInputValue === 0) { // 0 base / 0 base (e.g. 0 SomeUnit to 0 SomeUnit)
             outputValue = 0;
-        } else if (fromFactor !== 0) {
+        } else if (fromFactor !== 0) { // Non-zero to zero base
           console.warn("CALLBACK: convertUnits - Cannot convert to zero base factor.");
-          setResult("Cannot convert to a unit with a zero base factor.");
+          setResult("Cannot convert to a unit with a zero base factor (division by zero).");
           return;
-        } else {
+        } else { // 0 of one unit to 0 of another (0 OtherUnit)
             outputValue = 0;
         }
       } else {
@@ -208,22 +215,27 @@ export function UnitConverterClient() {
     }
 
     console.log("CALLBACK: convertUnits - Calculated outputValue:", outputValue);
-    if (Math.abs(outputValue) < 0.00001 && outputValue !== 0) {
+    // Format result for display
+    if (Math.abs(outputValue) < 0.000001 && outputValue !== 0) { // Use exponential for very small numbers
         const finalRes = outputValue.toExponential(4);
         console.log("CALLBACK: convertUnits - Setting result (exponential):", finalRes);
         setResult(finalRes);
     } else {
+        // Limit to a reasonable number of decimal places
         const finalRes = parseFloat(outputValue.toFixed(6)).toString();
         console.log("CALLBACK: convertUnits - Setting result (fixed):", finalRes);
         setResult(finalRes);
     }
   }, [getValues, setResult, setIsLoading, fetchCurrencyRates, toast]);
 
+
+  // Effect to update default units when category changes
   useEffect(() => {
     console.log("EFFECT: Category Change - selectedCategory is now", selectedCategory);
     if (selectedCategory) {
       const defaultUnits = Object.keys(unitCategories[selectedCategory]);
-      let newFromUnit = '', newToUnit = '';
+      let newFromUnit = '';
+      let newToUnit = '';
       if (defaultUnits.length >= 2) {
         newFromUnit = defaultUnits[0];
         newToUnit = defaultUnits[1];
@@ -232,27 +244,31 @@ export function UnitConverterClient() {
         newToUnit = defaultUnits[0];
       }
       console.log("EFFECT: Category Change - Attempting to set fromUnit to", newFromUnit, "and toUnit to", newToUnit);
-      // Only set if different to avoid potential loops if not strictly necessary
+      // Only set if different to avoid potential loops
       if (getValues('fromUnit') !== newFromUnit) {
         console.log("EFFECT: Category Change - Setting fromUnit via setValue.");
-        setValue('fromUnit', newFromUnit);
+        setValue('fromUnit', newFromUnit, { shouldValidate: true, shouldDirty: true });
       }
       if (getValues('toUnit') !== newToUnit) {
         console.log("EFFECT: Category Change - Setting toUnit via setValue.");
-        setValue('toUnit', newToUnit);
+        setValue('toUnit', newToUnit, { shouldValidate: true, shouldDirty: true });
       }
     }
   }, [selectedCategory, setValue, getValues]);
 
+  // Effect to trigger conversion when relevant inputs change
   useEffect(() => {
     console.log("EFFECT: Conversion Trigger - Watched values:", { inputValue, fromUnit, toUnit, selectedCategory });
-    if (typeof inputValue === 'number' && fromUnit && toUnit && selectedCategory) {
+    // Only attempt conversion if all necessary watched values are present and inputValue is a number.
+    // The actual validation of the number (e.g. not NaN) and units happens inside convertUnits.
+    if (fromUnit && toUnit && selectedCategory && typeof inputValue === 'number') {
       console.log("EFFECT: Conversion Trigger - Conditions met, calling convertUnits.");
       convertUnits();
-    } else {
-      console.warn("EFFECT: Conversion Trigger - Conditions NOT met. Setting result to null.", { inputValueType: typeof inputValue, fromUnit, toUnit, selectedCategory });
-      setResult(null);
     }
+    // CRITICAL CHANGE: Removed the `else { setResult(null); }` block here.
+    // This prevents the result box from disappearing during intermediate input states.
+    // The `convertUnits` function is now solely responsible for setting the result,
+    // including error messages or null if inputs are truly invalid for conversion.
   }, [inputValue, fromUnit, toUnit, selectedCategory, convertUnits]);
 
 
@@ -381,7 +397,7 @@ export function UnitConverterClient() {
       {isLoading && (
         <div className="flex items-center justify-center p-4">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
-          <p className="ml-2">Fetching currency rates...</p>
+          <p className="ml-2">Processing...</p>
         </div>
       )}
 
@@ -391,9 +407,9 @@ export function UnitConverterClient() {
             <CardTitle className="font-headline text-xl">Conversion Result</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="text-2xl font-semibold text-primary">{result} <span className="text-lg text-muted-foreground">{toUnit /* Display watched toUnit here */}</span></p>
+            <p className="text-2xl font-semibold text-primary">{result} <span className="text-lg text-muted-foreground">{getValues('toUnit') || toUnit}</span></p>
             <p className="text-sm text-muted-foreground">
-              {inputValue /* Display watched inputValue */} {fromUnit /* Display watched fromUnit */} = {result} {toUnit /* Display watched toUnit */}
+              {typeof getValues('inputValue') === 'number' ? getValues('inputValue') : inputValue} {getValues('fromUnit') || fromUnit} = {result} {getValues('toUnit') || toUnit}
             </p>
             <div className="flex space-x-2 pt-2">
               <Button onClick={handleCopyResult} variant="outline" size="sm" disabled={!result}>
@@ -417,5 +433,3 @@ export function UnitConverterClient() {
     </div>
   );
 }
-
-    

@@ -261,7 +261,7 @@ export const tools: Tool[] = [
   },
   {
     id: 'pdf-word-converter',
-    title: 'PDF &lt;=&gt; Word Converter',
+    title: 'PDF <=> Word Converter',
     description: 'Convert PDF files to Word documents (.docx) and vice-versa. Client-side conversion with some formatting limitations.',
     href: '/tools/pdf-word-converter',
     category: 'Converter',
@@ -270,7 +270,7 @@ export const tools: Tool[] = [
   },
   {
     id: 'excel-pdf-converter',
-    title: 'Excel &lt;=&gt; PDF Converter',
+    title: 'Excel <=> PDF Converter',
     description: 'Convert Excel spreadsheets (.xlsx) to PDF files and vice-versa. Client-side conversion with some formatting limitations.',
     href: '/tools/excel-pdf-converter',
     category: 'Converter',
@@ -289,8 +289,8 @@ export const tools: Tool[] = [
   // Utilities
   {
     id: 'advanced-calculator',
-    title: 'Advanced Calculator &amp; Unit Converter',
-    description: 'Combines scientific, GST, EMI calculator with a unit converter.',
+    title: 'Advanced Calculator & Unit Converter',
+    description: 'Combines a smart calculator (scientific, percentage, GST, EMI) with a unit converter (length, weight, temperature, currency, etc.).',
     href: '/tools/advanced-calculator',
     category: 'Utilities',
     icon: Calculator,

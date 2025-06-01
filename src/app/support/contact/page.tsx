@@ -72,19 +72,29 @@ export default function ContactPage() {
       form.reset();
     } catch (error: any) {
       let errorMessage = "Could not send your message. Please try again later.";
-      let loggableError = error;
 
       if (error && typeof error === 'object') {
         if ('text' in error && typeof error.text === 'string' && error.text.trim() !== "") {
-          errorMessage = error.text; // Use EmailJS specific error text if available
+          errorMessage = error.text; // Use EmailJS specific error text
+          console.error(
+            `EmailJS Error - Status: ${error.status || 'N/A'}, Text: ${error.text}. Full error object:`,
+            error
+          );
         } else if ('message' in error && typeof error.message === 'string' && error.message.trim() !== "") {
           errorMessage = error.message; // Fallback to generic error message
+          console.error(`Generic Error - Message: ${errorMessage}. Full error object:`, error);
+        } else {
+          // Fallback for unknown error structure
+          console.error('Unknown EmailJS/Generic Error Structure:', error);
         }
-        // For logging, try to get more details
-        loggableError = { status: error.status, text: error.text, originalError: error };
+      } else {
+        // Error is not an object (e.g., a string was thrown)
+        console.error('EmailJS Error (not an object):', error);
+        if (typeof error === 'string') {
+            errorMessage = error;
+        }
       }
       
-      console.error('EmailJS Error:', loggableError, 'User-facing message:', errorMessage);
       toast({
         title: "Sending Failed",
         description: errorMessage,

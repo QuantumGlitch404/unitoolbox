@@ -113,7 +113,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                               >
                                 <div className="flex items-center gap-2 w-full">
                                   <item.icon />
-                                  <span className="flex-grow">{item.label}</span>
+                                  <span className="flex-grow group-data-[collapsible=icon]:hidden">{item.label}</span>
                                   <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 group-data-[collapsible=icon]:hidden" />
                                 </div>
                               </SidebarMenuButton>
@@ -127,7 +127,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                               >
                                 <Link href={item.href} className="flex items-center gap-2 w-full">
                                   <item.icon />
-                                  <span className="flex-grow">{item.label}</span>
+                                  <span className="flex-grow group-data-[collapsible=icon]:hidden">{item.label}</span>
                                   <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-200 group-data-[state=open]:rotate-180 group-data-[collapsible=icon]:hidden" />
                                 </Link>
                               </SidebarMenuButton>
@@ -145,7 +145,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                                 >
                                   <Link href={subItem.href} className="flex items-center gap-2">
                                     <subItem.icon className="h-3.5 w-3.5" />
-                                    <span>{subItem.label}</span>
+                                    <span className="group-data-[collapsible=icon]:hidden">{subItem.label}</span>
                                   </Link>
                                 </SidebarMenuSubButton>
                               </SidebarMenuItem>
@@ -163,7 +163,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                     >
                       <Link href={item.href} className="flex items-center gap-2">
                         <item.icon />
-                        <span>{item.label}</span>
+                        <span className="group-data-[collapsible=icon]:hidden">{item.label}</span>
                       </Link>
                     </SidebarMenuButton>
                   )}

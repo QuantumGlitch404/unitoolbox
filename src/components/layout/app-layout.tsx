@@ -96,7 +96,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               "group-data-[collapsible=icon]:gap-0",
               "group-data-[collapsible=icon]:justify-center",
               "group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:h-full",
-              "gap-2" // Keep gap-2 for expanded state
+              "gap-2" 
             )}
           >
             <AppLogo className="w-8 h-8 text-primary" />
@@ -123,8 +123,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
                               >
                                 <div className={cn(
                                   "flex items-center w-full",
-                                  "group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center",
-                                  "gap-2"
+                                  "gap-2" 
                                 )}>
                                   <item.icon />
                                   <span className="flex-grow group-data-[collapsible=icon]:hidden">{item.label}</span>
@@ -141,7 +140,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
                               >
                                 <Link href={item.href} className={cn(
                                   "flex items-center w-full",
-                                   "group-data-[collapsible=icon]:gap-0 group-data-[collapsible=icon]:justify-center",
                                    "gap-2"
                                   )}>
                                   <item.icon />

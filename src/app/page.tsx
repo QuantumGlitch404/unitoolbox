@@ -47,14 +47,7 @@ export default function HomePage() {
       </section>
       
       <section className="container mx-auto px-4">
-        <Image 
-          src="https://placehold.co/1200x400.png" 
-          alt="Abstract UniToolBox representation" 
-          width={1200} 
-          height={400} 
-          className="rounded-lg shadow-xl mx-auto"
-          data-ai-hint="abstract technology banner"
-        />
+        {/* Placeholder Image Removed */}
       </section>
 
       <section className="container mx-auto px-4">
@@ -84,14 +77,7 @@ export default function HomePage() {
             </Button>
           </div>
           <div className="flex-shrink-0">
-            <Image 
-              src="https://placehold.co/400x300.png" 
-              alt="Productivity illustration" 
-              width={400} 
-              height={300} 
-              className="rounded-md"
-              data-ai-hint="productivity tools"
-            />
+            {/* Placeholder Image Removed */}
           </div>
         </div>
       </section>

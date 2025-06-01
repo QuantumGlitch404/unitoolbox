@@ -197,7 +197,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         </main>
         
         <footer className="border-t p-4 text-center text-sm text-muted-foreground">
-          © {new Date().getFullYear()} UniToolBox. All rights reserved.
+          Made by QuantumGlitch404
         </footer>
       </SidebarInset>
     </SidebarProvider>

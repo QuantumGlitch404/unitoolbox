@@ -11,16 +11,17 @@ interface ToolCardProps {
 export function ToolCard({ tool }: ToolCardProps) {
   return (
     <Card className="flex flex-col h-full shadow-md hover:shadow-xl transition-shadow duration-300 ease-in-out rounded-lg overflow-hidden">
-      <CardHeader> {/* Removed custom padding, defaults to p-6 */}
+      <CardHeader> {/* Defaults to p-6 */}
         <div className="flex items-center gap-3">
           <tool.icon className="w-7 h-7 text-accent flex-shrink-0" />
-          <CardTitle className="font-headline text-lg leading-tight">{tool.title}</CardTitle>
+          {/* Reduced title font size from text-lg to text-md */}
+          <CardTitle className="font-headline text-md leading-tight">{tool.title}</CardTitle>
           {tool.aiPowered && (
             <Sparkles className="w-5 h-5 text-primary ml-auto" title="AI Powered" />
           )}
         </div>
       </CardHeader>
-      <CardContent className="flex-grow"> {/* Removed custom padding, defaults to p-6 pt-0 */}
+      <CardContent className="flex-grow"> {/* Defaults to p-6 pt-0 */}
         <CardDescription className="text-sm line-clamp-3">{tool.description}</CardDescription>
       </CardContent>
       <CardFooter>

@@ -47,12 +47,12 @@ export const tools: Tool[] = [
   {
     id: 'book-summary-creator',
     title: 'Book Summary Creator',
-    description: 'Summarize large texts or uploaded .txt files at various lengths. Extracts key points. (Conceptual AI)',
+    description: 'AI-powered tool to summarize large texts or .txt files. Generates summaries of varying lengths and detail, and extracts key points.',
     href: '/tools/book-summary-creator',
     category: 'Text & AI',
     icon: BookTextIcon,
-    aiPowered: true, // Conceptually AI-powered
-    tags: ['summary', 'text', 'books', 'ai', 'reader'],
+    aiPowered: true,
+    tags: ['summary', 'text', 'books', 'ai', 'reader', 'summarize'],
   },
   // Image Tools
   {
@@ -341,3 +341,4 @@ export const featuredTools: Tool[] = tools.filter(tool => ['unit-converter', 'ph
 export const getToolById = (id: string): Tool | undefined => tools.find(tool => tool.id === id);
 
 export const getToolsByCategory = (category: ToolCategory): Tool[] => tools.filter(tool => tool.category === category);
+

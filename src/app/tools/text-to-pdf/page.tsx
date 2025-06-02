@@ -1,7 +1,8 @@
+
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { TextToPdfClient } from './text-to-pdf-client';
-import { FileText } from 'lucide-react'; // Placeholder, tool data has icon
+// FileText import not needed for default
 
 export default function TextToPdfPage() {
   const tool = getToolById('text-to-pdf');
@@ -21,10 +22,12 @@ export default function TextToPdfPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || FileText}
+      iconName={tool.iconName || 'FileText'}
       instructions={instructions}
     >
       <TextToPdfClient />
     </ToolPageTemplate>
   );
 }
+
+    

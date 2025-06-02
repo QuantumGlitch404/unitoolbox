@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { WebPToJPGClient } from './webp-to-jpg-client';
-import { FileType2 } from 'lucide-react';
+// FileType2 import not needed for default
 
 export default function WebPToJPGPage() {
   const tool = getToolById('webp-to-jpg');
@@ -22,7 +22,7 @@ export default function WebPToJPGPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || FileType2}
+      iconName={tool.iconName || 'FileType2'}
       instructions={instructions}
     >
       <WebPToJPGClient
@@ -34,3 +34,5 @@ export default function WebPToJPGPage() {
     </ToolPageTemplate>
   );
 }
+
+    

@@ -22,10 +22,12 @@ export default function TextToHandwritingPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon}
+      iconName={tool.iconName || 'Edit3'}
       instructions={instructions}
     >
       <TextToHandwritingClient />
     </ToolPageTemplate>
   );
 }
+
+    

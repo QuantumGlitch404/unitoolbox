@@ -44,7 +44,7 @@ export default function ExcelPdfConverterPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon}
+      iconName={tool.iconName || 'ArrowRightLeft'}
       instructions={instructions}
     >
       <DocumentConverterClient
@@ -55,3 +55,5 @@ export default function ExcelPdfConverterPage() {
     </ToolPageTemplate>
   );
 }
+
+    

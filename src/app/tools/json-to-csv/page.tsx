@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { JsonToCsvClient } from './json-to-csv-client';
-import { FileJson } from 'lucide-react'; // Placeholder, tool data has icon
+// FileJson import not needed here for default
 
 export default function JsonToCsvPage() {
   const tool = getToolById('json-to-csv');
@@ -24,7 +24,7 @@ export default function JsonToCsvPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || FileJson}
+      iconName={tool.iconName || 'FileJson'}
       instructions={instructions}
     >
       <JsonToCsvClient />
@@ -32,3 +32,4 @@ export default function JsonToCsvPage() {
   );
 }
 
+    

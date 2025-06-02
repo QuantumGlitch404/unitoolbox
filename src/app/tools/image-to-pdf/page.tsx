@@ -22,10 +22,12 @@ export default function ImageToPdfPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon}
+      iconName={tool.iconName || 'Combine'}
       instructions={instructions}
     >
       <ImageToPdfClient />
     </ToolPageTemplate>
   );
 }
+
+    

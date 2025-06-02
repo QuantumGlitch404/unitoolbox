@@ -20,10 +20,12 @@ export default function AsciiToTextPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon}
+      iconName={tool.iconName || 'Type'}
       instructions={instructions}
     >
       <AsciiToTextClient />
     </ToolPageTemplate>
   );
 }
+
+    

@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { UnitConverterClient } from './unit-converter-client';
-import { Cog } from 'lucide-react';
+// Cog import not needed for default
 
 export default function UnitConverterPage() {
   const tool = getToolById('unit-converter');
@@ -24,10 +24,12 @@ export default function UnitConverterPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || Cog}
+      iconName={tool.iconName || 'Cog'}
       instructions={instructions}
     >
       <UnitConverterClient />
     </ToolPageTemplate>
   );
 }
+
+    

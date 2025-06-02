@@ -1,7 +1,8 @@
+
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { ImageCompressorClient } from './image-compressor-client';
-import { Scissors } from 'lucide-react'; // Placeholder, tool data has icon
+// Scissors import not needed here for default
 
 export default function ImageCompressorPage() {
   const tool = getToolById('image-compressor');
@@ -21,10 +22,12 @@ export default function ImageCompressorPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || Scissors}
+      iconName={tool.iconName || 'Scissors'}
       instructions={instructions}
     >
       <ImageCompressorClient />
     </ToolPageTemplate>
   );
 }
+
+    

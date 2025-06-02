@@ -22,10 +22,12 @@ export default function AudioToTextPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon}
+      iconName={tool.iconName || 'AudioLines'}
       instructions={instructions}
     >
       <AudioToTextClient />
     </ToolPageTemplate>
   );
 }
+
+    

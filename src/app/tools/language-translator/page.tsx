@@ -1,7 +1,8 @@
+
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { LanguageTranslatorClient } from './language-translator-client';
-import { Languages } from 'lucide-react'; // Placeholder, tool data has icon
+// Languages import not needed here for default
 
 export default function LanguageTranslatorPage() {
   const tool = getToolById('language-translator');
@@ -21,10 +22,12 @@ export default function LanguageTranslatorPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || Languages}
+      iconName={tool.iconName || 'Languages'}
       instructions={instructions}
     >
       <LanguageTranslatorClient />
     </ToolPageTemplate>
   );
 }
+
+    

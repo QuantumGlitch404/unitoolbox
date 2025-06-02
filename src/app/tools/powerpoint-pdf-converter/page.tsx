@@ -10,7 +10,7 @@ const conversionOptions = [
     sourceFormat: "pptx",
     targetFormat: "pdf",
     accept: { 'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'] },
-    sourceIconName: "Presentation",
+    sourceIconName: "Presentation", // This will need to be mapped if not a direct Lucide name
     targetIconName: "FileText",
   },
   {
@@ -20,7 +20,7 @@ const conversionOptions = [
     targetFormat: "pptx",
     accept: { 'application/pdf': ['.pdf'] },
     sourceIconName: "FileText",
-    targetIconName: "Presentation",
+    targetIconName: "Presentation", // This will need to be mapped
   }
 ];
 
@@ -44,7 +44,7 @@ export default function PowerPointPdfConverterPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon}
+      iconName={tool.iconName || 'ArrowRightLeft'}
       instructions={instructions}
     >
       <DocumentConverterClient
@@ -55,3 +55,5 @@ export default function PowerPointPdfConverterPage() {
     </ToolPageTemplate>
   );
 }
+
+    

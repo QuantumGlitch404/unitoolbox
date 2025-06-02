@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { BookSummaryCreatorClient } from './book-summary-creator-client';
-import { BookText } from 'lucide-react';
+// BookText import not needed for default
 
 export default function BookSummaryCreatorPage() {
   const tool = getToolById('book-summary-creator');
@@ -23,7 +23,7 @@ export default function BookSummaryCreatorPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || BookText}
+      iconName={tool.iconName || 'BookText'}
       instructions={instructions}
     >
       <BookSummaryCreatorClient />
@@ -31,3 +31,4 @@ export default function BookSummaryCreatorPage() {
   );
 }
 
+    

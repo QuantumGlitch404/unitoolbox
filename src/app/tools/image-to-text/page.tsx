@@ -21,10 +21,12 @@ export default function ImageToTextPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon}
+      iconName={tool.iconName || 'TextSearch'}
       instructions={instructions}
     >
       <ImageToTextClient />
     </ToolPageTemplate>
   );
 }
+
+    

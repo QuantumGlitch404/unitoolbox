@@ -21,10 +21,12 @@ export default function ImageBackgroundRemoverPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon}
+      iconName={tool.iconName || 'Wand2'}
       instructions={instructions}
     >
       <ImageBackgroundRemoverClient />
     </ToolPageTemplate>
   );
 }
+
+    

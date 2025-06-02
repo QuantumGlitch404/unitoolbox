@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { AdvancedCalculatorClient } from './advanced-calculator-client';
-import { Calculator } from 'lucide-react';
+// Calculator import not needed for default
 
 export default function AdvancedCalculatorPage() {
   const tool = getToolById('advanced-calculator');
@@ -23,10 +23,12 @@ export default function AdvancedCalculatorPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || Calculator}
+      iconName={tool.iconName || 'Calculator'}
       instructions={instructions}
     >
       <AdvancedCalculatorClient />
     </ToolPageTemplate>
   );
 }
+
+    

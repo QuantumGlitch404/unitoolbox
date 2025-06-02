@@ -21,10 +21,12 @@ export default function PdfToImagePage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon}
+      iconName={tool.iconName || 'FileDown'}
       instructions={instructions}
     >
       <PdfToImageClient />
     </ToolPageTemplate>
   );
 }
+
+    

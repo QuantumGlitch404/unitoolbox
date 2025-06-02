@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { PasswordStrengthCheckerClient } from './password-strength-checker-client';
-import { ShieldCheck } from 'lucide-react';
+// ShieldCheck import not needed for default
 
 export default function PasswordStrengthCheckerPage() {
   const tool = getToolById('password-strength-checker');
@@ -25,7 +25,7 @@ export default function PasswordStrengthCheckerPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || ShieldCheck}
+      iconName={tool.iconName || 'ShieldCheck'}
       instructions={instructions}
     >
       <PasswordStrengthCheckerClient />

@@ -21,10 +21,12 @@ export default function ImageResizerPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon}
+      iconName={tool.iconName || 'SlidersHorizontal'}
       instructions={instructions}
     >
       <ImageResizerClient />
     </ToolPageTemplate>
   );
 }
+
+    

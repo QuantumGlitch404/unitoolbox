@@ -22,10 +22,12 @@ export default function ImageToIcoPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon}
+      iconName={tool.iconName || 'BoxSelect'}
       instructions={instructions}
     >
       <ImageToIcoClient />
     </ToolPageTemplate>
   );
 }
+
+    

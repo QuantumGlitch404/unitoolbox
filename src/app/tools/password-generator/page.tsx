@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { PasswordGeneratorClient } from './password-generator-client';
-import { KeyRound } from 'lucide-react';
+// KeyRound import not needed for default
 
 export default function PasswordGeneratorPage() {
   const tool = getToolById('password-generator');
@@ -27,7 +27,7 @@ export default function PasswordGeneratorPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || KeyRound}
+      iconName={tool.iconName || 'KeyRound'}
       instructions={instructions}
     >
       <PasswordGeneratorClient />

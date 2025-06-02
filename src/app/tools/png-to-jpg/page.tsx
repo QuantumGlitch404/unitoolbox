@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { PNGToJPGClient } from './png-to-jpg-client';
-import { Replace } from 'lucide-react';
+// Replace import not needed for default
 
 export default function PNGToJPGPage() {
   const tool = getToolById('png-to-jpg');
@@ -22,7 +22,7 @@ export default function PNGToJPGPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || Replace}
+      iconName={tool.iconName || 'Replace'}
       instructions={instructions}
     >
       <PNGToJPGClient
@@ -34,3 +34,5 @@ export default function PNGToJPGPage() {
     </ToolPageTemplate>
   );
 }
+
+    

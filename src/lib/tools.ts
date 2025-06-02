@@ -1,11 +1,8 @@
 
 // Cache buster: Updated 2024-07-16 10:30:00 UTC
 import type { LucideIcon } from 'lucide-react';
-import {
-  Scissors, FileText, Languages, Image as ImageIcon, FileJson, Database, AudioLines, Film, Palette, Type, Settings2, Wand2, FileType2, FileUp, FileDown,
-  Replace, Rows, Columns, SlidersHorizontal, TextSearch, Link, BoxSelect, Blend, BringToFront, Sparkles, FileVideo, Edit3, Combine, FileCode, ArrowRightLeft,
-  Ruler, Weight, Clock, Thermometer, Square, Cuboid, Percent, Calculator, Camera, ListVideo, Cog, KeyRound, ShieldCheck, BookText as BookTextIcon
-} from 'lucide-react';
+// Icon components are no longer directly used here for type Tool,
+// but individual page fallbacks might still import them.
 
 export type ToolCategory = 'Image' | 'Document & Data' | 'Text & AI' | 'Media' | 'Converter' | 'Utilities';
 
@@ -15,7 +12,7 @@ export interface Tool {
   description: string;
   href: string;
   category: ToolCategory;
-  icon: LucideIcon;
+  iconName: string; // Changed from icon: LucideIcon
   aiPowered?: boolean;
   tags?: string[];
 }
@@ -30,7 +27,7 @@ export const tools: Tool[] = [
     description: 'AI-powered essay summarization. Get concise summaries of long texts.',
     href: '/tools/essay-summarizer',
     category: 'Text & AI',
-    icon: Wand2,
+    iconName: 'Wand2',
     aiPowered: true,
     tags: ['ai', 'text', 'summary'],
   },
@@ -40,7 +37,7 @@ export const tools: Tool[] = [
     description: 'Translate text between various languages using AI.',
     href: '/tools/language-translator',
     category: 'Text & AI',
-    icon: Languages,
+    iconName: 'Languages',
     aiPowered: true,
     tags: ['ai', 'text', 'translation'],
   },
@@ -50,7 +47,7 @@ export const tools: Tool[] = [
     description: 'AI-powered tool to summarize large texts or .txt files. Generates summaries of varying lengths and detail, and extracts key points.',
     href: '/tools/book-summary-creator',
     category: 'Text & AI',
-    icon: BookTextIcon,
+    iconName: 'BookText',
     aiPowered: true,
     tags: ['summary', 'text', 'books', 'ai', 'reader', 'summarize'],
   },
@@ -61,7 +58,7 @@ export const tools: Tool[] = [
     description: 'Reduce image file sizes while maintaining quality.',
     href: '/tools/image-compressor',
     category: 'Image',
-    icon: Scissors,
+    iconName: 'Scissors',
     tags: ['image', 'compression', 'optimizer'],
   },
   {
@@ -70,7 +67,7 @@ export const tools: Tool[] = [
     description: 'Resize images to custom dimensions or predefined sizes.',
     href: '/tools/image-resizer',
     category: 'Image',
-    icon: SlidersHorizontal,
+    iconName: 'SlidersHorizontal',
     tags: ['image', 'resize', 'dimensions'],
   },
   {
@@ -79,7 +76,7 @@ export const tools: Tool[] = [
     description: 'Automatically remove backgrounds from images using AI. Replaces background with white.',
     href: '/tools/image-background-remover',
     category: 'Image',
-    icon: Wand2,
+    iconName: 'Wand2', // Example, assuming Wand2 is appropriate
     aiPowered: true,
     tags: ['image', 'background', 'remove', 'ai', 'edit'],
   },
@@ -89,7 +86,7 @@ export const tools: Tool[] = [
     description: 'Extract text from images using Optical Character Recognition.',
     href: '/tools/image-to-text',
     category: 'Image',
-    icon: TextSearch,
+    iconName: 'TextSearch',
     aiPowered: true,
     tags: ['image', 'text', 'ocr', 'extract'],
   },
@@ -99,7 +96,7 @@ export const tools: Tool[] = [
     description: 'Convert images to a standard icon size (PNG format) downloadable as a .ico file.',
     href: '/tools/image-to-ico',
     category: 'Image',
-    icon: BoxSelect,
+    iconName: 'BoxSelect',
     tags: ['image', 'icon', 'ico', 'converter'],
   },
    {
@@ -108,7 +105,7 @@ export const tools: Tool[] = [
     description: 'Auto-crop, resize, and align photos to official passport sizes for various countries. Background is white.',
     href: '/tools/photo-to-passport-size',
     category: 'Image',
-    icon: Camera,
+    iconName: 'Camera',
     tags: ['photo', 'passport', 'id', 'resize', 'crop', 'official'],
   },
   // Document & Data Tools
@@ -118,7 +115,7 @@ export const tools: Tool[] = [
     description: 'Convert plain text into a downloadable PDF document.',
     href: '/tools/text-to-pdf',
     category: 'Document & Data',
-    icon: FileText,
+    iconName: 'FileText',
     tags: ['text', 'pdf', 'converter', 'document'],
   },
   {
@@ -127,7 +124,7 @@ export const tools: Tool[] = [
     description: 'Convert JSON data format to CSV. Handles nested objects and denormalizes arrays of objects.',
     href: '/tools/json-to-csv',
     category: 'Document & Data',
-    icon: FileJson,
+    iconName: 'FileJson',
     tags: ['json', 'csv', 'converter', 'data', 'denormalize'],
   },
   {
@@ -136,7 +133,7 @@ export const tools: Tool[] = [
     description: 'Convert CSV data format to JSON.',
     href: '/tools/csv-to-json',
     category: 'Document & Data',
-    icon: Database,
+    iconName: 'Database',
     tags: ['csv', 'json', 'converter', 'data'],
   },
   {
@@ -145,7 +142,7 @@ export const tools: Tool[] = [
     description: 'Combine multiple images (JPG, PNG) into a single PDF document.',
     href: '/tools/image-to-pdf',
     category: 'Document & Data',
-    icon: Combine,
+    iconName: 'Combine',
     tags: ['image', 'pdf', 'converter', 'document', 'merge'],
   },
    {
@@ -154,7 +151,7 @@ export const tools: Tool[] = [
     description: 'Convert each page of a PDF document into individual image files (PNG).',
     href: '/tools/pdf-to-image',
     category: 'Document & Data',
-    icon: FileDown,
+    iconName: 'FileDown', // Was FileOutput, changed to FileDown for variety
     tags: ['pdf', 'image', 'converter', 'extract', 'pages'],
   },
   // Text & AI Tools (continued)
@@ -164,7 +161,7 @@ export const tools: Tool[] = [
     description: 'Convert ASCII encoded text to human-readable text.',
     href: '/tools/ascii-to-text',
     category: 'Text & AI',
-    icon: Type,
+    iconName: 'Type',
     tags: ['ascii', 'text', 'decoder'],
   },
   {
@@ -173,7 +170,7 @@ export const tools: Tool[] = [
     description: 'Convert typed text into a handwriting-style image using various fonts.',
     href: '/tools/text-to-handwriting',
     category: 'Text & AI',
-    icon: Edit3,
+    iconName: 'Edit3',
     tags: ['text', 'handwriting', 'image', 'font', 'style'],
   },
   {
@@ -182,7 +179,7 @@ export const tools: Tool[] = [
     description: 'Transcribe voice notes and format them with smart headings and bullet points using AI.',
     href: '/tools/voice-notes-to-text',
     category: 'Text & AI',
-    icon: ListVideo,
+    iconName: 'ListVideo',
     aiPowered: true,
     tags: ['voice', 'audio', 'transcribe', 'notes', 'ai', 'format'],
   },
@@ -193,7 +190,7 @@ export const tools: Tool[] = [
     description: 'Client-side video re-encoding to help reduce file size, primarily by scaling resolution. Audio preservation depends on browser support.',
     href: '/tools/video-compressor',
     category: 'Media',
-    icon: FileVideo,
+    iconName: 'FileVideo',
     tags: ['video', 'compression', 'reduce size', 're-encode', 'client-side'],
   },
   {
@@ -202,7 +199,7 @@ export const tools: Tool[] = [
     description: 'Convert video clips into animated GIFs.',
     href: '/tools/video-to-gif',
     category: 'Media',
-    icon: Film,
+    iconName: 'Film',
     tags: ['video', 'gif', 'converter', 'animation'],
   },
   {
@@ -211,7 +208,7 @@ export const tools: Tool[] = [
     description: 'Transcribe speech from audio files into text.',
     href: '/tools/audio-to-text',
     category: 'Media',
-    icon: AudioLines,
+    iconName: 'AudioLines',
     aiPowered: true,
     tags: ['audio', 'speech', 'text', 'transcription', 'ai'],
   },
@@ -222,7 +219,7 @@ export const tools: Tool[] = [
     description: 'Convert WebP images to JPG format.',
     href: '/tools/webp-to-jpg',
     category: 'Converter',
-    icon: FileType2,
+    iconName: 'FileType2',
     tags: ['webp', 'jpg', 'image', 'converter'],
   },
   {
@@ -231,7 +228,7 @@ export const tools: Tool[] = [
     description: 'Convert JPG images to the modern WebP format.',
     href: '/tools/jpg-to-webp',
     category: 'Converter',
-    icon: Replace,
+    iconName: 'Replace',
     tags: ['jpg', 'jpeg', 'webp', 'image', 'converter'],
   },
   {
@@ -240,7 +237,7 @@ export const tools: Tool[] = [
     description: 'Convert PNG images to JPG format.',
     href: '/tools/png-to-jpg',
     category: 'Converter',
-    icon: Replace,
+    iconName: 'Replace',
     tags: ['png', 'jpg', 'image', 'converter'],
   },
   {
@@ -249,7 +246,7 @@ export const tools: Tool[] = [
     description: 'Convert JPG images to PNG format.',
     href: '/tools/jpg-to-png',
     category: 'Converter',
-    icon: FileType2,
+    iconName: 'FileType2',
     tags: ['jpg', 'jpeg', 'png', 'image', 'converter'],
   },
   {
@@ -258,7 +255,7 @@ export const tools: Tool[] = [
     description: 'Convert SVG vector graphics to PNG images.',
     href: '/tools/svg-to-png',
     category: 'Converter',
-    icon: Palette,
+    iconName: 'Palette',
     tags: ['svg', 'png', 'image', 'converter', 'vector'],
   },
   {
@@ -267,7 +264,7 @@ export const tools: Tool[] = [
     description: 'Conceptual tool to convert PNG images to SVG vector format by embedding the PNG. True vectorization is complex.',
     href: '/tools/png-to-svg',
     category: 'Converter',
-    icon: Palette,
+    iconName: 'Palette',
     tags: ['png', 'svg', 'image', 'converter', 'vector', 'conceptual'],
   },
   {
@@ -276,7 +273,7 @@ export const tools: Tool[] = [
     description: 'Convert PDF files to Word documents (.docx) and vice-versa. Client-side conversion with some formatting limitations.',
     href: '/tools/pdf-word-converter',
     category: 'Converter',
-    icon: ArrowRightLeft,
+    iconName: 'ArrowRightLeft',
     tags: ['pdf', 'word', 'docx', 'converter', 'document'],
   },
   {
@@ -285,7 +282,7 @@ export const tools: Tool[] = [
     description: 'Convert Excel spreadsheets (.xlsx) to PDF files and vice-versa. Client-side conversion with some formatting limitations.',
     href: '/tools/excel-pdf-converter',
     category: 'Converter',
-    icon: ArrowRightLeft,
+    iconName: 'ArrowRightLeft',
     tags: ['excel', 'xlsx', 'pdf', 'converter', 'document'],
   },
   {
@@ -294,7 +291,7 @@ export const tools: Tool[] = [
     description: 'Convert PowerPoint (.pptx) to PDF and PDF to PowerPoint (pages as images). Client-side with limitations.',
     href: '/tools/powerpoint-pdf-converter',
     category: 'Converter',
-    icon: ArrowRightLeft,
+    iconName: 'ArrowRightLeft',
     tags: ['powerpoint', 'pptx', 'pdf', 'converter', 'presentation'],
   },
   // Utilities
@@ -304,7 +301,7 @@ export const tools: Tool[] = [
     description: 'Converts length, weight, time, temperature, area, volume, currency, speed, pressure, and more.',
     href: '/tools/unit-converter',
     category: 'Utilities',
-    icon: Cog,
+    iconName: 'Cog',
     tags: ['units', 'measurement', 'conversion', 'length', 'weight', 'temperature', 'currency'],
   },
   {
@@ -313,7 +310,7 @@ export const tools: Tool[] = [
     description: 'Combines a smart calculator (scientific, percentage, GST, EMI) with a unit converter (length, weight, temperature, currency, etc.).',
     href: '/tools/advanced-calculator',
     category: 'Utilities',
-    icon: Calculator,
+    iconName: 'Calculator',
     tags: ['calculator', 'scientific', 'gst', 'emi', 'finance', 'math', 'unit converter'],
   },
   {
@@ -322,7 +319,7 @@ export const tools: Tool[] = [
     description: 'Generate strong, customizable passwords with length, character sets, pronounceable options, and strength meter. Save passwords locally.',
     href: '/tools/password-generator',
     category: 'Utilities',
-    icon: KeyRound,
+    iconName: 'KeyRound',
     tags: ['password', 'security', 'generator', 'secure', 'customizable'],
   },
   {
@@ -331,7 +328,7 @@ export const tools: Tool[] = [
     description: 'Analyze password strength in real-time. Checks length, variety, common patterns, and estimates crack time. Batch checking available.',
     href: '/tools/password-strength-checker',
     category: 'Utilities',
-    icon: ShieldCheck,
+    iconName: 'ShieldCheck',
     tags: ['password', 'security', 'checker', 'strength', 'analyzer'],
   },
 ];

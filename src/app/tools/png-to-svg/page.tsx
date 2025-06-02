@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { PNGToSVGClient } from './png-to-svg-client';
-import { Palette } from 'lucide-react';
+// Palette import not needed for default
 
 export default function PNGToSVGPage() {
   const tool = getToolById('png-to-svg');
@@ -22,7 +22,7 @@ export default function PNGToSVGPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || Palette}
+      iconName={tool.iconName || 'Palette'}
       instructions={instructions}
     >
       <PNGToSVGClient
@@ -35,3 +35,5 @@ export default function PNGToSVGPage() {
     </ToolPageTemplate>
   );
 }
+
+    

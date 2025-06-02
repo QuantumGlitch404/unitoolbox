@@ -22,10 +22,12 @@ export default function VideoToGifPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon}
+      iconName={tool.iconName || 'Film'}
       instructions={instructions}
     >
       <VideoToGifClient />
     </ToolPageTemplate>
   );
 }
+
+    

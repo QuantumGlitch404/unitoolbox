@@ -1,14 +1,16 @@
+
 import type { ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-import { Button } from './ui/button';
+import { ArrowLeft, HelpCircle } from 'lucide-react'; // Added HelpCircle for fallback
+import * as LucideIcons from 'lucide-react';
+import { Button } from '../ui/button';
 
 interface ToolPageTemplateProps {
   title: string;
   description: string;
-  icon?: React.ElementType;
+  iconName?: string; // Changed from icon: React.ElementType
   children: ReactNode;
   instructions?: string[];
   showBackButton?: boolean;
@@ -17,11 +19,12 @@ interface ToolPageTemplateProps {
 export function ToolPageTemplate({
   title,
   description,
-  icon: Icon,
+  iconName,
   children,
   instructions,
   showBackButton = true,
 }: ToolPageTemplateProps) {
+  const IconComponent = iconName ? (LucideIcons as any)[iconName] || HelpCircle : HelpCircle;
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {showBackButton && (
@@ -34,7 +37,7 @@ export function ToolPageTemplate({
       <Card className="shadow-xl">
         <CardHeader className="pb-4">
           <div className="flex items-center gap-3 mb-2">
-            {Icon && <Icon className="w-8 h-8 text-primary" />}
+            <IconComponent className="w-8 h-8 text-primary" />
             <CardTitle className="font-headline text-3xl">{title}</CardTitle>
           </div>
           <CardDescription className="text-md">{description}</CardDescription>
@@ -61,3 +64,5 @@ export function ToolPageTemplate({
     </div>
   );
 }
+
+    

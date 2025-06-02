@@ -1,7 +1,8 @@
+
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { EssaySummarizerClient } from './essay-summarizer-client';
-import { Wand2 } from 'lucide-react'; // Placeholder, tool data has icon
+// Wand2 import is no longer needed here for the default
 
 export default function EssaySummarizerPage() {
   const tool = getToolById('essay-summarizer');
@@ -21,10 +22,12 @@ export default function EssaySummarizerPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || Wand2}
+      iconName={tool.iconName || 'Wand2'} // Pass iconName, provide default string
       instructions={instructions}
     >
       <EssaySummarizerClient />
     </ToolPageTemplate>
   );
 }
+
+    

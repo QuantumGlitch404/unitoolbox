@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { PhotoToPassportSizeClient } from './photo-to-passport-size-client';
-import { Camera } from 'lucide-react';
+// Camera import not needed for default
 
 export default function PhotoToPassportSizePage() {
   const tool = getToolById('photo-to-passport-size');
@@ -23,10 +23,12 @@ export default function PhotoToPassportSizePage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || Camera}
+      iconName={tool.iconName || 'Camera'}
       instructions={instructions}
     >
       <PhotoToPassportSizeClient />
     </ToolPageTemplate>
   );
 }
+
+    

@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { VideoCompressorClient } from './video-compressor-client';
-import { FileVideo } from 'lucide-react';
+// FileVideo import not needed for default
 
 export default function VideoCompressorPage() {
   const tool = getToolById('video-compressor');
@@ -24,10 +24,12 @@ export default function VideoCompressorPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || FileVideo}
+      iconName={tool.iconName || 'FileVideo'}
       instructions={instructions}
     >
       <VideoCompressorClient />
     </ToolPageTemplate>
   );
 }
+
+    

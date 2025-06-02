@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { VoiceNotesToTextClient } from './voice-notes-to-text-client';
-import { ListVideo } from 'lucide-react';
+// ListVideo import not needed for default
 
 export default function VoiceNotesToTextPage() {
   const tool = getToolById('voice-notes-to-text');
@@ -24,10 +24,12 @@ export default function VoiceNotesToTextPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || ListVideo}
+      iconName={tool.iconName || 'ListVideo'}
       instructions={instructions}
     >
       <VoiceNotesToTextClient />
     </ToolPageTemplate>
   );
 }
+
+    

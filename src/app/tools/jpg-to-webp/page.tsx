@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { JPGToWebPClient } from './jpg-to-webp-client';
-import { Replace } from 'lucide-react';
+// Replace import not needed for default
 
 export default function JPGToWebPPage() {
   const tool = getToolById('jpg-to-webp');
@@ -22,7 +22,7 @@ export default function JPGToWebPPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      icon={tool.icon || Replace}
+      iconName={tool.iconName || 'Replace'}
       instructions={instructions}
     >
       <JPGToWebPClient
@@ -34,3 +34,5 @@ export default function JPGToWebPPage() {
     </ToolPageTemplate>
   );
 }
+
+    

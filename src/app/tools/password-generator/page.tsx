@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { PasswordGeneratorClient } from './password-generator-client';
-// KeyRound import not needed for default
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 export default function PasswordGeneratorPage() {
   const tool = getToolById('password-generator');
@@ -30,9 +30,8 @@ export default function PasswordGeneratorPage() {
       iconName={tool.iconName || 'KeyRound'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <PasswordGeneratorClient />
     </ToolPageTemplate>
   );
 }
-
-    

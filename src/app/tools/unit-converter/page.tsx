@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { UnitConverterClient } from './unit-converter-client';
-// Cog import not needed for default
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 export default function UnitConverterPage() {
   const tool = getToolById('unit-converter');
@@ -27,9 +27,8 @@ export default function UnitConverterPage() {
       iconName={tool.iconName || 'Cog'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <UnitConverterClient />
     </ToolPageTemplate>
   );
 }
-
-    

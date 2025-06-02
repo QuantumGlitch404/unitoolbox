@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { EssaySummarizerClient } from './essay-summarizer-client';
-// Wand2 import is no longer needed here for the default
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 export default function EssaySummarizerPage() {
   const tool = getToolById('essay-summarizer');
@@ -22,12 +22,11 @@ export default function EssaySummarizerPage() {
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      iconName={tool.iconName || 'Wand2'} // Pass iconName, provide default string
+      iconName={tool.iconName || 'Wand2'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <EssaySummarizerClient />
     </ToolPageTemplate>
   );
 }
-
-    

@@ -13,12 +13,14 @@ export default function PasswordGeneratorPage() {
 
   const instructions = [
     "Set the desired password length (8-64 characters).",
-    "Choose character sets to include (uppercase, lowercase, numbers, symbols).",
-    "Optionally, exclude similar characters or generate pronounceable passwords.",
+    "Choose character sets to include: uppercase, lowercase, numbers, symbols.",
+    "Optionally, exclude similar characters (e.g., I, l, 1, O, 0) for better readability.",
+    "Opt for pronounceable passwords (alternating consonants/vowels).",
+    "Specify the number of passwords to generate (1-10).",
     "Click 'Generate Password(s)'.",
-    "Copy the generated password or view multiple options.",
-    "Password strength is visually indicated (conceptual).",
-    "Pattern input and local saving are conceptual features."
+    "Copy any generated password. View its strength on the meter.",
+    "The last generated batch is saved in your browser for this session.",
+    "Note: The 'Password Pattern' input is for future advanced customization and does not currently parse specific patterns like LLLNNs.",
   ];
 
   return (
@@ -32,3 +34,5 @@ export default function PasswordGeneratorPage() {
     </ToolPageTemplate>
   );
 }
+
+    

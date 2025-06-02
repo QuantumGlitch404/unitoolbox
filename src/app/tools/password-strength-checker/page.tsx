@@ -13,12 +13,12 @@ export default function PasswordStrengthCheckerPage() {
 
   const instructions = [
     "Type or paste your password into the input field.",
-    "Password strength is evaluated in real-time.",
-    "A color-coded bar indicates strength (red, orange, green).",
-    "Checks include length, character variety, and basic patterns.",
-    "Suggestions for improvement will appear for weak passwords.",
-    "Dictionary checks and crack time estimation are conceptual features.",
-    "Batch checking and full accessibility are target features."
+    "Password strength is evaluated in real-time, shown by a color-coded bar.",
+    "Checks include length, character variety (uppercase, lowercase, digits, symbols), common patterns, and a small list of very common passwords.",
+    "Suggestions for improvement will appear for weaker passwords.",
+    "A simplified 'Estimated Time to Crack' is displayed (note: this is a very rough client-side estimate).",
+    "Use the 'Batch Check' area to analyze multiple passwords at once (one per line).",
+    "Copy the strength summary for your password if needed."
   ];
 
   return (
@@ -32,3 +32,5 @@ export default function PasswordStrengthCheckerPage() {
     </ToolPageTemplate>
   );
 }
+
+    

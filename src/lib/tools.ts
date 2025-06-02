@@ -319,20 +319,20 @@ export const tools: Tool[] = [
   {
     id: 'password-generator',
     title: 'Password Generator',
-    description: 'Generate secure passwords with customizable length and character sets. Includes strength meter.',
+    description: 'Generate strong, customizable passwords with length, character sets, pronounceable options, and strength meter. Save passwords locally.',
     href: '/tools/password-generator',
     category: 'Utilities',
     icon: KeyRound,
-    tags: ['password', 'security', 'generator', 'secure'],
+    tags: ['password', 'security', 'generator', 'secure', 'customizable'],
   },
   {
     id: 'password-strength-checker',
     title: 'Password Strength Checker',
-    description: 'Evaluate password strength in real-time with visual feedback and improvement suggestions.',
+    description: 'Analyze password strength in real-time. Checks length, variety, common patterns, and estimates crack time. Batch checking available.',
     href: '/tools/password-strength-checker',
     category: 'Utilities',
     icon: ShieldCheck,
-    tags: ['password', 'security', 'checker', 'strength'],
+    tags: ['password', 'security', 'checker', 'strength', 'analyzer'],
   },
 ];
 
@@ -342,3 +342,4 @@ export const getToolById = (id: string): Tool | undefined => tools.find(tool => 
 
 export const getToolsByCategory = (category: ToolCategory): Tool[] => tools.filter(tool => tool.category === category);
 
+    

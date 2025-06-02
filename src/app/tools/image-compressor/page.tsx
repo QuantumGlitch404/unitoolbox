@@ -2,7 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { ImageCompressorClient } from './image-compressor-client';
-// Scissors import not needed here for default
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 export default function ImageCompressorPage() {
   const tool = getToolById('image-compressor');
@@ -26,8 +26,9 @@ export default function ImageCompressorPage() {
       instructions={instructions}
     >
       <ImageCompressorClient />
+      <div className="mt-12">
+        <AdPlaceholder type="mediumRectangle" className="mx-auto" />
+      </div>
     </ToolPageTemplate>
   );
 }
-
-    

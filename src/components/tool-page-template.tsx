@@ -48,9 +48,9 @@ export function ToolPageTemplate({
           <div className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-6">
               {children}
-              <div className="mt-8">
+              <section className="mt-8 py-6" aria-label="Advertisement Area">
                 <AdPlaceholder type="mediumRectangle" className="mx-auto" />
-              </div>
+              </section>
             </div>
             {(instructions && instructions.length > 0) && (
               <aside className="md:col-span-1 space-y-4 p-4 bg-secondary/30 rounded-lg border">

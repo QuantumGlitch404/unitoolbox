@@ -4,7 +4,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   Scissors, FileText, Languages, Image as ImageIcon, FileJson, Database, AudioLines, Film, Palette, Type, Settings2, Wand2, FileType2, FileUp, FileDown,
   Replace, Rows, Columns, SlidersHorizontal, TextSearch, Link, BoxSelect, Blend, BringToFront, Sparkles, FileVideo, Edit3, Combine, FileCode, ArrowRightLeft,
-  Ruler, Weight, Clock, Thermometer, Square, Cuboid, Percent, Calculator, Camera, ListVideo, Cog, KeyRound, ShieldCheck, LockKeyhole, BookText as BookTextIcon
+  Ruler, Weight, Clock, Thermometer, Square, Cuboid, Percent, Calculator, Camera, ListVideo, Cog, KeyRound, ShieldCheck, BookText as BookTextIcon
 } from 'lucide-react';
 
 export type ToolCategory = 'Image' | 'Document & Data' | 'Text & AI' | 'Media' | 'Converter' | 'Utilities';
@@ -334,15 +334,6 @@ export const tools: Tool[] = [
     icon: ShieldCheck,
     tags: ['password', 'security', 'checker', 'strength'],
   },
-  {
-    id: 'secure-note-keeper',
-    title: 'Secure Note Keeper (Encrypted)',
-    description: 'Locally encrypt and store notes with AES-256. Master password protection. (Conceptual Encryption)',
-    href: '/tools/secure-note-keeper',
-    category: 'Utilities',
-    icon: LockKeyhole,
-    tags: ['notes', 'secure', 'encrypted', 'privacy', 'storage'],
-  },
 ];
 
 export const featuredTools: Tool[] = tools.filter(tool => ['unit-converter', 'photo-to-passport-size', 'voice-notes-to-text', 'advanced-calculator', 'essay-summarizer', 'image-compressor'].includes(tool.id)).slice(0, 6);
@@ -350,4 +341,3 @@ export const featuredTools: Tool[] = tools.filter(tool => ['unit-converter', 'ph
 export const getToolById = (id: string): Tool | undefined => tools.find(tool => tool.id === id);
 
 export const getToolsByCategory = (category: ToolCategory): Tool[] => tools.filter(tool => tool.category === category);
-

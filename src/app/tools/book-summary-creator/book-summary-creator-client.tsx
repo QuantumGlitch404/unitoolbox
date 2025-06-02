@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -9,10 +9,13 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Slider } from '@/components/ui/slider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from "@/hooks/use-toast";
-import { UploadCloud, Download, Copy, Sparkles, Loader2, FileText } from 'lucide-react';
+import { UploadCloud, Download, Copy, Sparkles, Loader2, FileText, Save, BookOpen } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
+import { summarizeEssay, type SummarizeEssayInput } from '@/ai/flows/essay-summarizer';
+import jsPDF from 'jspdf';
 
 type SummaryLength = "short" | "medium" | "long";
+const LOCAL_STORAGE_KEY = "bookSummaryCreator_lastSummary";
 
 const BookSummaryCreatorClient = () => {
   const { toast } = useToast();
@@ -21,6 +24,25 @@ const BookSummaryCreatorClient = () => {
   const [summaryLength, setSummaryLength] = useState<SummaryLength>('medium');
   const [detailLevel, setDetailLevel] = useState(50); // 0-100
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // Load last saved summary on initial mount
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        const { text, generatedSummary, length, detail } = JSON.parse(saved);
+        setInputText(text || '');
+        setSummary(generatedSummary || '');
+        setSummaryLength(length || 'medium');
+        setDetailLevel(detail || 50);
+        if (generatedSummary) {
+            toast({ title: "Loaded Last Summary", description: "Your previously generated summary has been loaded." });
+        }
+      }
+    } catch (e) {
+        console.error("Failed to load from local storage", e);
+    }
+  }, [toast]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
@@ -44,7 +66,20 @@ const BookSummaryCreatorClient = () => {
     multiple: false
   });
 
-  const handleGenerateSummary = () => {
+  const getDetailAdjective = (level: number): string => {
+    if (level < 25) return "very brief";
+    if (level < 50) return "concise";
+    if (level < 75) return "moderately detailed";
+    return "highly detailed";
+  };
+
+  const getLengthInstruction = (length: SummaryLength): string => {
+    if (length === 'short') return "a short, one to two paragraph summary";
+    if (length === 'medium') return "a medium length summary, about three to five paragraphs";
+    return "a long, comprehensive summary with multiple paragraphs per major section";
+  };
+
+  const handleGenerateSummary = async () => {
     if (!inputText.trim()) {
       toast({ title: "Error", description: "Please enter text to summarize.", variant: "destructive" });
       return;
@@ -52,27 +87,42 @@ const BookSummaryCreatorClient = () => {
     setIsLoading(true);
     setSummary('');
 
-    // Simulate AI summarization
-    setTimeout(() => {
-      let output = "Conceptual Summary: ";
-      const words = inputText.split(' ');
-      let len;
-      switch(summaryLength) {
-        case 'short': len = Math.min(words.length, 25 + Math.floor(detailLevel/10)); break; // 25-35 words
-        case 'medium': len = Math.min(words.length, 75 + Math.floor(detailLevel/5)); break; // 75-95 words
-        case 'long': len = Math.min(words.length, 150 + Math.floor(detailLevel/2)); break; // 150-200 words
-        default: len = Math.min(words.length, 75);
+    const lengthInstruction = getLengthInstruction(summaryLength);
+    const detailAdjective = getDetailAdjective(detailLevel);
+
+    const fullPrompt = `
+      Please generate ${lengthInstruction} for the following text.
+      The summary should be ${detailAdjective}.
+      Identify and list up to 5 key points or main ideas from the text.
+      If the text appears to have distinct chapters or sections, please try to structure your summary accordingly, mentioning these sections if possible.
+
+      Original Text:
+      ---
+      ${inputText}
+      ---
+    `;
+
+    try {
+      const result = await summarizeEssay({ essay: fullPrompt });
+      setSummary(result.summary);
+      toast({ title: "Summary Generated!", description: "AI has generated your summary." });
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify({ text: inputText, generatedSummary: result.summary, length: summaryLength, detail: detailLevel }));
+      } catch (e) {
+        console.error("Failed to save to local storage", e);
+        toast({ title: "Local Save Failed", description: "Could not save summary locally. Storage might be full.", variant: "warning" });
       }
-      output += words.slice(0, len).join(' ') + (words.length > len ? '...' : '');
-      
-      // Placeholder for key points
-      if (words.length > 10) {
-        output += "\n\nKey Points (Conceptual):\n- Point 1 based on text analysis.\n- Point 2 related to main themes.\n- Point 3 highlighted by conceptual AI.";
-      }
-      setSummary(output);
+    } catch (error: any) {
+      console.error("Error generating summary:", error);
+      setSummary("Failed to generate summary. Please try again.");
+      toast({
+        title: "AI Error",
+        description: error.message || "Could not generate summary.",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-      toast({ title: "Summary Generated (Conceptual)", description: "AI features are simulated." });
-    }, 1500);
+    }
   };
 
   const handleCopySummary = () => {
@@ -83,17 +133,60 @@ const BookSummaryCreatorClient = () => {
   };
   
   const handleDownloadSummary = (format: 'txt' | 'pdf') => {
-    if (!summary) return;
-    const blob = new Blob([summary], { type: format === 'txt' ? 'text/plain' : 'application/pdf' });
+    if (!summary) {
+        toast({ title: "Nothing to download", description: "Please generate a summary first.", variant: "destructive" });
+        return;
+    }
+    const blob = new Blob([summary], { type: format === 'txt' ? 'text/plain;charset=utf-8;' : 'application/pdf' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `summary.${format}`;
+    
+    if (format === 'txt') {
+        a.download = `summary.txt`;
+    } else { // PDF
+        const pdf = new jsPDF();
+        const lines = pdf.splitTextToSize(summary, pdf.internal.pageSize.getWidth() - 20);
+        let y = 15;
+        const pageHeight = pdf.internal.pageSize.getHeight() - 20;
+        lines.forEach((line: string) => {
+            if(y > pageHeight) {
+                pdf.addPage();
+                y = 15;
+            }
+            pdf.text(line, 10, y);
+            y += 7; // line height
+        });
+        pdf.save('summary.pdf');
+        URL.revokeObjectURL(url); // Clean up blob URL for txt only, pdf.save handles its own.
+        toast({ title: "Download Started", description: `summary.pdf`});
+        return; // Return early for PDF as jsPDF handles download
+    }
+
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     toast({ title: "Download Started", description: `summary.${format}`});
+  };
+
+  const handleLoadLastSummary = () => {
+     try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (saved) {
+        const { text, generatedSummary, length, detail } = JSON.parse(saved);
+        setInputText(text || '');
+        setSummary(generatedSummary || '');
+        setSummaryLength(length || 'medium');
+        setDetailLevel(detail || 50);
+        toast({ title: "Last Summary Loaded", description: "Restored from local storage." });
+      } else {
+        toast({ title: "No Saved Summary", description: "Nothing found in local storage.", variant: "default" });
+      }
+    } catch (e) {
+        console.error("Failed to load from local storage", e);
+        toast({ title: "Load Error", description: "Could not load from local storage.", variant: "destructive" });
+    }
   };
 
   return (
@@ -140,14 +233,14 @@ const BookSummaryCreatorClient = () => {
               </RadioGroup>
             </div>
             <div>
-              <Label htmlFor="detailLevel">Summary Detail Slider (Conceptual): {detailLevel}%</Label>
-              <Slider id="detailLevel" value={[detailLevel]} onValueChange={(val) => setDetailLevel(val[0])} min={0} max={100} step={10} disabled/>
+              <Label htmlFor="detailLevel">Summary Detail Level: {detailLevel}%</Label>
+              <Slider id="detailLevel" value={[detailLevel]} onValueChange={(val) => setDetailLevel(val[0])} min={0} max={100} step={10} />
             </div>
             <Button onClick={handleGenerateSummary} disabled={isLoading || !inputText.trim()} className="w-full">
               {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Sparkles className="mr-2 h-4 w-4" />}
-              Generate Summary (Conceptual AI)
+              Generate Summary with AI
             </Button>
-            <p className="text-xs text-muted-foreground">Chapter-wise summarization is a conceptual feature.</p>
+            <p className="text-xs text-muted-foreground">Chapter-wise summarization and key point extraction will be attempted by the AI based on the prompt.</p>
           </CardContent>
         </Card>
       </div>
@@ -156,18 +249,20 @@ const BookSummaryCreatorClient = () => {
         <Card>
           <CardHeader>
             <CardTitle>Generated Summary</CardTitle>
-            <CardDescription>Review the conceptual summary below.</CardDescription>
+            <CardDescription>Review the AI-generated summary below.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Textarea value={summary} readOnly placeholder="Summary will appear here..." className="min-h-[300px] bg-muted/30" />
+            <Textarea value={summary} readOnly placeholder="Summary will appear here..." className="min-h-[300px] bg-muted/30 whitespace-pre-wrap" />
             {summary && (
               <div className="flex flex-wrap gap-2">
                 <Button onClick={handleCopySummary} variant="outline"><Copy className="mr-2 h-4 w-4"/>Copy</Button>
                 <Button onClick={() => handleDownloadSummary('txt')} variant="outline"><FileText className="mr-2 h-4 w-4"/>Download .txt</Button>
-                <Button onClick={() => handleDownloadSummary('pdf')} variant="outline" disabled><Download className="mr-2 h-4 w-4"/>Download .pdf (Conceptual)</Button>
+                <Button onClick={() => handleDownloadSummary('pdf')} variant="outline"><Download className="mr-2 h-4 w-4"/>Download .pdf</Button>
               </div>
             )}
-            <Button variant="ghost" size="sm" disabled>Save Summary Locally (Conceptual)</Button>
+             <Button onClick={handleLoadLastSummary} variant="ghost" size="sm">
+                <BookOpen className="mr-2 h-4 w-4" /> Load Last Saved Summary
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -176,4 +271,3 @@ const BookSummaryCreatorClient = () => {
 };
 
 export { BookSummaryCreatorClient };
-

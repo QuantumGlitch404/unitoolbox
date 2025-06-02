@@ -6,6 +6,7 @@ import { featuredTools, Tool } from '@/lib/tools';
 import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import { ToolCard } from '@/components/tools/tool-card';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 export default function HomePage() {
   return (
@@ -32,7 +33,7 @@ export default function HomePage() {
       </section>
       
       <section className="container mx-auto px-4">
-        {/* Placeholder Image Removed */}
+        <AdPlaceholder type="leaderboard" className="mx-auto max-w-3xl" />
       </section>
 
       <section className="container mx-auto px-4">
@@ -61,8 +62,8 @@ export default function HomePage() {
               </Link>
             </Button>
           </div>
-          <div className="flex-shrink-0">
-            {/* Placeholder Image Removed */}
+          <div className="flex-shrink-0 md:w-1/3">
+            <AdPlaceholder type="mediumRectangle" className="mx-auto" />
           </div>
         </div>
       </section>

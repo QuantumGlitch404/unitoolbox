@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Search } from 'lucide-react';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 export default function AllToolsPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -42,12 +43,16 @@ export default function AllToolsPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <header className="mb-10 text-center">
+      <header className="mb-6 text-center">
         <h1 className="font-headline text-4xl font-bold tracking-tight">Our Suite of Tools</h1>
         <p className="mt-3 text-lg text-muted-foreground max-w-xl mx-auto">
           Discover a wide range of utilities to help you with your daily digital tasks.
         </p>
       </header>
+
+      <div className="mb-6">
+        <AdPlaceholder type="leaderboard" className="mx-auto max-w-4xl" />
+      </div>
 
       <div className="mb-8 sticky top-16 bg-background/80 backdrop-blur-md py-4 z-10">
         <div className="relative">
@@ -63,14 +68,13 @@ export default function AllToolsPage() {
         
         <div className="mt-4">
           {!hasMounted ? (
-            <div className="h-10 w-full rounded-md bg-muted animate-pulse" /> // Placeholder for filter UI
+            <div className="h-10 w-full rounded-md bg-muted animate-pulse" /> 
           ) : isMobile ? (
             <div className="px-1">
               <Label htmlFor="category-select-mobile" className="sr-only">Filter by category</Label>
               <Select
                 value={activeCategory}
                 onValueChange={(value) => setActiveCategory(value as ToolCategory | 'All')}
-                
               >
                 <SelectTrigger id="category-select-mobile" className="w-full" aria-label="Filter by category">
                   <SelectValue placeholder="Select a category" />

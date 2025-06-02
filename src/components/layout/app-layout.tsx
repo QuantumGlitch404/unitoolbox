@@ -16,6 +16,27 @@ import {
   Film,
   Database,
   type LucideIcon,
+  Calculator,
+  KeyRound,
+  ShieldCheck,
+  BookText as BookTextIcon, // Renamed to avoid conflict with NextImage
+  Camera,
+  FileVideo,
+  ListVideo,
+  Palette,
+  Replace,
+  Combine,
+  FileDown,
+  Type,
+  Edit3,
+  AudioLines,
+  SlidersHorizontal,
+  BoxSelect,
+  ArrowRightLeft,
+  TextSearch,
+  Scissors,
+  FileJson,
+  Cog,
 } from 'lucide-react';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import {
@@ -39,6 +60,8 @@ import { AppLogo } from '@/components/icons/app-logo';
 import { type ToolCategory, toolCategories } from '@/lib/tools';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from "@/lib/utils";
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+
 
 interface NavItem {
   href: string;
@@ -54,7 +77,7 @@ const categoryIcons: Record<ToolCategory, LucideIcon> = {
   'Text & AI': Wand2,
   'Media': Film,
   'Converter': Settings2,
-  'Utilities': Settings2,
+  'Utilities': Cog,
 };
 
 const navItems: NavItem[] = [
@@ -177,6 +200,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
+            <div className="p-4 group-data-[collapsible=icon]:hidden">
+              <AdPlaceholder type="smallSquare" className="mx-auto" />
+            </div>
           </SidebarContent>
         </ScrollArea>
         <SidebarFooter className="p-4">

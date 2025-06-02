@@ -3,14 +3,15 @@ import type { ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import Link from 'next/link';
-import { ArrowLeft, HelpCircle } from 'lucide-react'; // Added HelpCircle for fallback
+import { ArrowLeft, HelpCircle } from 'lucide-react'; 
 import * as LucideIcons from 'lucide-react';
 import { Button } from '../ui/button';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 interface ToolPageTemplateProps {
   title: string;
   description: string;
-  iconName?: string; // Changed from icon: React.ElementType
+  iconName?: string; 
   children: ReactNode;
   instructions?: string[];
   showBackButton?: boolean;
@@ -47,6 +48,9 @@ export function ToolPageTemplate({
           <div className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-6">
               {children}
+              <div className="mt-8">
+                <AdPlaceholder type="mediumRectangle" className="mx-auto" />
+              </div>
             </div>
             {(instructions && instructions.length > 0) && (
               <aside className="md:col-span-1 space-y-4 p-4 bg-secondary/30 rounded-lg border">
@@ -64,5 +68,3 @@ export function ToolPageTemplate({
     </div>
   );
 }
-
-    

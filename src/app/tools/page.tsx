@@ -5,11 +5,16 @@ import { tools, Tool, ToolCategory, toolCategories } from '@/lib/tools';
 import { ToolCard } from '@/components/tools/tool-card';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Search } from 'lucide-react';
 
 export default function AllToolsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState<ToolCategory | 'All'>('All');
+  const { isMobile, hasMounted } = useIsMobile();
 
   const filteredTools = useMemo(() => {
     return tools.filter(tool => {
@@ -56,14 +61,42 @@ export default function AllToolsPage() {
           />
         </div>
         
-        <Tabs value={activeCategory} onValueChange={(value) => setActiveCategory(value as ToolCategory | 'All')} className="mt-4">
-          <TabsList className="flex flex-wrap justify-center w-full gap-1 sm:gap-2">
-            <TabsTrigger value="All">All</TabsTrigger>
-            {toolCategories.map(category => (
-              <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+        <div className="mt-4">
+          {!hasMounted ? (
+            <div className="h-10 w-full rounded-md bg-muted animate-pulse" /> // Placeholder for filter UI
+          ) : isMobile ? (
+            <div className="px-1">
+              <Label htmlFor="category-select-mobile" className="sr-only">Filter by category</Label>
+              <Select
+                value={activeCategory}
+                onValueChange={(value) => setActiveCategory(value as ToolCategory | 'All')}
+                
+              >
+                <SelectTrigger id="category-select-mobile" className="w-full" aria-label="Filter by category">
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All Categories</SelectItem>
+                  {toolCategories.map(category => (
+                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <Tabs value={activeCategory} onValueChange={(value) => setActiveCategory(value as ToolCategory | 'All')}>
+              <ScrollArea className="w-full whitespace-nowrap rounded-md">
+                <TabsList className="inline-flex h-10 items-center justify-start rounded-md bg-muted p-1 text-muted-foreground gap-1">
+                  <TabsTrigger value="All">All</TabsTrigger>
+                  {toolCategories.map(category => (
+                    <TabsTrigger key={category} value={category}>{category}</TabsTrigger>
+                  ))}
+                </TabsList>
+                <ScrollBar orientation="horizontal" className="h-2" />
+              </ScrollArea>
+            </Tabs>
+          )}
+        </div>
       </div>
       
       {Object.keys(toolsByCategory).length === 0 && (

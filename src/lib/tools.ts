@@ -4,7 +4,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   Scissors, FileText, Languages, Image as ImageIcon, FileJson, Database, AudioLines, Film, Palette, Type, Settings2, Wand2, FileType2, FileUp, FileDown,
   Replace, Rows, Columns, SlidersHorizontal, TextSearch, Link, BoxSelect, Blend, BringToFront, Sparkles, FileVideo, Edit3, Combine, FileCode, ArrowRightLeft,
-  Ruler, Weight, Clock, Thermometer, Square, Cuboid, Percent, Calculator, Camera, ListVideo, Cog
+  Ruler, Weight, Clock, Thermometer, Square, Cuboid, Percent, Calculator, Camera, ListVideo, Cog, KeyRound, ShieldCheck, LockKeyhole, BookText as BookTextIcon
 } from 'lucide-react';
 
 export type ToolCategory = 'Image' | 'Document & Data' | 'Text & AI' | 'Media' | 'Converter' | 'Utilities';
@@ -43,6 +43,16 @@ export const tools: Tool[] = [
     icon: Languages,
     aiPowered: true,
     tags: ['ai', 'text', 'translation'],
+  },
+  {
+    id: 'book-summary-creator',
+    title: 'Book Summary Creator',
+    description: 'Summarize large texts or uploaded .txt files at various lengths. Extracts key points. (Conceptual AI)',
+    href: '/tools/book-summary-creator',
+    category: 'Text & AI',
+    icon: BookTextIcon,
+    aiPowered: true, // Conceptually AI-powered
+    tags: ['summary', 'text', 'books', 'ai', 'reader'],
   },
   // Image Tools
   {
@@ -306,6 +316,33 @@ export const tools: Tool[] = [
     icon: Calculator,
     tags: ['calculator', 'scientific', 'gst', 'emi', 'finance', 'math', 'unit converter'],
   },
+  {
+    id: 'password-generator',
+    title: 'Password Generator',
+    description: 'Generate secure passwords with customizable length and character sets. Includes strength meter.',
+    href: '/tools/password-generator',
+    category: 'Utilities',
+    icon: KeyRound,
+    tags: ['password', 'security', 'generator', 'secure'],
+  },
+  {
+    id: 'password-strength-checker',
+    title: 'Password Strength Checker',
+    description: 'Evaluate password strength in real-time with visual feedback and improvement suggestions.',
+    href: '/tools/password-strength-checker',
+    category: 'Utilities',
+    icon: ShieldCheck,
+    tags: ['password', 'security', 'checker', 'strength'],
+  },
+  {
+    id: 'secure-note-keeper',
+    title: 'Secure Note Keeper (Encrypted)',
+    description: 'Locally encrypt and store notes with AES-256. Master password protection. (Conceptual Encryption)',
+    href: '/tools/secure-note-keeper',
+    category: 'Utilities',
+    icon: LockKeyhole,
+    tags: ['notes', 'secure', 'encrypted', 'privacy', 'storage'],
+  },
 ];
 
 export const featuredTools: Tool[] = tools.filter(tool => ['unit-converter', 'photo-to-passport-size', 'voice-notes-to-text', 'advanced-calculator', 'essay-summarizer', 'image-compressor'].includes(tool.id)).slice(0, 6);
@@ -313,3 +350,4 @@ export const featuredTools: Tool[] = tools.filter(tool => ['unit-converter', 'ph
 export const getToolById = (id: string): Tool | undefined => tools.find(tool => tool.id === id);
 
 export const getToolsByCategory = (category: ToolCategory): Tool[] => tools.filter(tool => tool.category === category);
+

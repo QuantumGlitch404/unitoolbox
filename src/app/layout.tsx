@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { AppLayout } from '@/components/layout/app-layout';
@@ -32,14 +33,14 @@ export default function RootLayout({
         {/* Adsterra Social Bar Script */}
         <Script
           id="adsterra-social-bar"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
           src="//pl26831079.profitableratecpm.com/87/e1/8a/87e18add19e515ff8b82df0f5e14081f.js"
         />
 
         {/* Adsterra PopUnder Script */}
         <Script
           id="adsterra-popunder"
-          strategy="lazyOnload"
+          strategy="afterInteractive"
           src="//pl26831125.profitableratecpm.com/64/c9/b2/64c9b266abb4946d4e09e1ed39cf8760.js"
         />
       </body>

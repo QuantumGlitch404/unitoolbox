@@ -14,30 +14,32 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable'; 
+import 'jspdf-autotable';
 import mammoth from 'mammoth';
 import * as XLSX from 'xlsx';
-import * as pdfjsLib from 'pdfjs-dist';
+// Removed: import * as pdfjsLib from 'pdfjs-dist';
 import { Document, Packer, Paragraph, TextRun } from 'docx';
 import html2canvas from 'html2canvas';
 
-// Configure PDF.js worker from CDN, only in browser environment
-if (typeof window !== 'undefined') {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-}
+// Note: pdfjsLib.GlobalWorkerOptions.workerSrc will be set dynamically before use.
 
 const iconMap: { [key: string]: React.ElementType } = {
   FileText: FileText,
   FileCode: FileCodeIcon,
   FileSpreadsheet: FileSpreadsheet,
   Info: Info,
+  // Add other icons used by specific DocumentConverterClient instances if needed
+  Presentation: ({ className }: { className?: string }) => ( // Placeholder for Presentation icon
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className || "lucide lucide-presentation"}><path d="M2 3h20"/><path d="M4 7v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7"/><path d="M12 12v5"/><path d="M8 12h8"/><path d="M12 5v2"/></svg>
+  ),
 };
+
 
 interface ConversionOption {
   label: string;
-  value: string; 
-  sourceFormat: string; 
-  targetFormat: string; 
+  value: string;
+  sourceFormat: string;
+  targetFormat: string;
   accept: Accept;
   sourceIconName: string;
   targetIconName: string;
@@ -56,7 +58,7 @@ interface ConversionHistoryItem {
   targetFormat: string;
   status: 'success' | 'error';
   timestamp: number;
-  downloadUrl?: string; 
+  downloadUrl?: string;
   downloadName?: string;
   error?: string;
 }
@@ -95,7 +97,7 @@ export function DocumentConverterClient({
   const addToHistory = (item: Omit<ConversionHistoryItem, 'id' | 'timestamp'>) => {
     const newItem = { ...item, id: Date.now().toString(), timestamp: Date.now() };
     setHistory(prev => {
-      const newHistory = [newItem, ...prev].slice(0, 5); 
+      const newHistory = [newItem, ...prev].slice(0, 5);
       try {
         localStorage.setItem(`${toolName}-conversionHistory`, JSON.stringify(newHistory));
       } catch (error) {
@@ -104,11 +106,11 @@ export function DocumentConverterClient({
       return newHistory;
     });
   };
-  
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
-      if (file.size > 25 * 1024 * 1024) { 
+      if (file.size > 25 * 1024 * 1024) {
         toast({
           title: "File Too Large",
           description: "Please upload a file smaller than 25MB for client-side conversion.",
@@ -127,6 +129,10 @@ export function DocumentConverterClient({
         reader.onload = async (e) => {
           if (e.target?.result && canvasRef.current) {
             try {
+              const pdfjsLib = await import('pdfjs-dist');
+              if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+              }
               const typedArray = new Uint8Array(e.target.result as ArrayBuffer);
               const loadingTask = pdfjsLib.getDocument({ data: typedArray });
               const pdf = await loadingTask.promise;
@@ -158,7 +164,7 @@ export function DocumentConverterClient({
         description: `${file.name} is ready for conversion.`,
       });
     }
-  }, [toast]);
+  }, [toast, toolName]);
 
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -181,10 +187,9 @@ export function DocumentConverterClient({
   const handleDocxToPdf = async (file: File): Promise<Blob> => {
     setStatusMessage("Converting Word to HTML...");
     setConversionProgress(30);
-    
+
     const arrayBuffer = await file.arrayBuffer();
     const { value: html } = await mammoth.convertToHtml({ arrayBuffer });
-    // Inject style for black text to ensure visibility
     const styledHtml = `<style>body { color: black; font-family:sans-serif;margin:20px;} p{margin-bottom:10px;line-height:1.4;} h1,h2,h3,h4,h5,h6{margin-bottom:12px;margin-top:20px;} ul,ol{margin-left:20px;margin-bottom:10px;} table{border-collapse:collapse;width:100%;margin-bottom:10px;} th,td{border:1px solid #ccc;padding:4px;text-align:left;} </style>${html}`;
 
     setStatusMessage("Rendering HTML to PDF...");
@@ -192,22 +197,22 @@ export function DocumentConverterClient({
 
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = styledHtml;
-    tempDiv.style.width = '794px'; 
-    tempDiv.style.padding = '40px'; 
-    tempDiv.style.backgroundColor = 'white'; // Ensure white background for html2canvas
+    tempDiv.style.width = '794px';
+    tempDiv.style.padding = '40px';
+    tempDiv.style.backgroundColor = 'white';
     tempDiv.style.position = 'absolute';
-    tempDiv.style.left = '-9999px'; 
-    tempDiv.style.fontFamily = 'Arial, sans-serif'; 
+    tempDiv.style.left = '-9999px';
+    tempDiv.style.fontFamily = 'Arial, sans-serif';
     document.body.appendChild(tempDiv);
-    
+
     const canvas = await html2canvas(tempDiv, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
     document.body.removeChild(tempDiv);
-    
+
     const imgData = canvas.toDataURL('image/png');
     const pdf = new jsPDF({
         orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
         unit: 'px',
-        format: [canvas.width, canvas.height] 
+        format: [canvas.width, canvas.height]
     });
     pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
     return pdf.output('blob');
@@ -216,6 +221,10 @@ export function DocumentConverterClient({
   const handlePdfToDocx = async (file: File): Promise<Blob> => {
     setStatusMessage("Extracting text from PDF...");
     setConversionProgress(20);
+    const pdfjsLib = await import('pdfjs-dist');
+    if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+    }
     const arrayBuffer = await file.arrayBuffer();
     const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
     const paragraphs: Paragraph[] = [];
@@ -224,30 +233,28 @@ export function DocumentConverterClient({
       const page = await pdfDoc.getPage(i);
       const textContent = await page.getTextContent();
       let pageText = "";
-      // Concatenate text items, trying to respect line breaks if hasEOL is present or by y-coordinate similarity.
-      // This is a simplified approach for text extraction.
       let lastY = -1;
-      textContent.items.forEach((item: any) => { // item is TextItem
-        if (lastY !== -1 && Math.abs(item.transform[5] - lastY) > (item.height || 10) * 0.5) { // Heuristic for new line
+      textContent.items.forEach((item: any) => {
+        if (lastY !== -1 && Math.abs(item.transform[5] - lastY) > (item.height || 10) * 0.5) {
             pageText += "\n";
         }
         pageText += item.str + (item.hasEOL ? "\n" : "");
         lastY = item.transform[5];
       });
-      
-      const lines = pageText.split('\n').map(line => line.trim()); // Split by explicit newlines now
+
+      const lines = pageText.split('\n').map(line => line.trim());
       lines.forEach(line => {
-        if (line.length > 0) { // Add only non-empty lines as paragraphs
+        if (line.length > 0) {
             paragraphs.push(new Paragraph({ children: [new TextRun(line)] }));
         }
       });
 
-      if (i < pdfDoc.numPages && lines.some(l => l.length > 0)) { // Add page break if there was content and it's not the last page
+      if (i < pdfDoc.numPages && lines.some(l => l.length > 0)) {
          paragraphs.push(new Paragraph({ children: [new TextRun({ text: "", break: 1 })]}));
       }
       setConversionProgress(20 + Math.floor((i / pdfDoc.numPages) * 60));
     }
-    
+
     if (paragraphs.length === 0) {
         paragraphs.push(new Paragraph({ children: [new TextRun("No text content found in PDF.")]}));
     }
@@ -257,7 +264,7 @@ export function DocumentConverterClient({
     const buffer = await Packer.toBuffer(doc);
     return new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
   };
-  
+
   const handleXlsxToPdf = async (file: File): Promise<Blob> => {
     const arrayBuffer = await file.arrayBuffer();
     setStatusMessage("Parsing Excel file...");
@@ -266,10 +273,10 @@ export function DocumentConverterClient({
     const firstSheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[firstSheetName];
     const jsonData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
-    
+
     setStatusMessage("Generating PDF from Excel data...");
     setConversionProgress(60);
-    const pdf = new jsPDF('landscape'); 
+    const pdf = new jsPDF('landscape');
     (pdf as any).autoTable({
         head: jsonData.length > 0 ? [jsonData[0].map(String)] : [],
         body: jsonData.length > 1 ? jsonData.slice(1).map(row => row.map(String)) : [],
@@ -284,23 +291,23 @@ export function DocumentConverterClient({
     const arrayBuffer = await file.arrayBuffer();
     setStatusMessage("Extracting text from PDF for Excel...");
     setConversionProgress(30);
+    const pdfjsLib = await import('pdfjs-dist');
+    if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+    }
     const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
     const dataForExcel: string[][] = [];
 
     for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
       const page = await pdfDoc.getPage(pageNum);
       const textContent = await page.getTextContent();
-      
-      // Simplified: treat each text item as a cell in a new row.
-      // This is very basic and won't preserve table structure accurately from complex PDFs.
+
       const pageRows: string[][] = [];
       let currentRow: string[] = [];
       let lastY = -Infinity;
 
-      textContent.items.forEach((item: any) => { // item is TextItem
+      textContent.items.forEach((item: any) => {
         if (item.str.trim() === '') return;
-
-        // Heuristic to start a new row if y-coordinate changes significantly
         if (Math.abs(item.transform[5] - lastY) > (item.height || 10) * 0.7 && lastY !== -Infinity) {
           if (currentRow.length > 0) pageRows.push(currentRow);
           currentRow = [];
@@ -308,15 +315,13 @@ export function DocumentConverterClient({
         currentRow.push(item.str.trim());
         lastY = item.transform[5];
       });
-      if (currentRow.length > 0) pageRows.push(currentRow); // Add last collected row
-      
+      if (currentRow.length > 0) pageRows.push(currentRow);
+
       pageRows.forEach(row => dataForExcel.push(row));
-
-      if (pageNum < pdfDoc.numPages && pageRows.length > 0) dataForExcel.push([]); // Add an empty row as a separator between pages.
-
+      if (pageNum < pdfDoc.numPages && pageRows.length > 0) dataForExcel.push([]);
       setConversionProgress(30 + Math.floor((pageNum / pdfDoc.numPages) * 50));
     }
-    
+
     if (dataForExcel.length === 0) {
         dataForExcel.push(["No text content extractable for Excel."]);
     }
@@ -328,7 +333,7 @@ export function DocumentConverterClient({
     setConversionProgress(90);
     return new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   };
-  
+
   const handleConvert = async () => {
     if (!selectedFile) {
       toast({ title: "No File", description: "Please upload a file first.", variant: "destructive" });
@@ -343,7 +348,7 @@ export function DocumentConverterClient({
     try {
       let convertedBlob: Blob | null = null;
       let convertedFileName = `${selectedFile.name.split('.').slice(0, -1).join('.') || 'converted'}.${currentConversion.targetFormat}`;
-      
+
       if (currentConversion.value === 'docx-to-pdf') {
         convertedBlob = await handleDocxToPdf(selectedFile);
       } else if (currentConversion.value === 'pdf-to-docx') {
@@ -353,13 +358,87 @@ export function DocumentConverterClient({
       } else if (currentConversion.value === 'pdf-to-xlsx') {
         convertedBlob = await handlePdfToXlsx(selectedFile);
       }
+      // Handle PowerPoint to PDF
+      else if (currentConversion.value === 'pptx-to-pdf') {
+        // Note: pptxgenjs does not directly parse .pptx files to extract content.
+        // This will be a simplified "text extraction" if possible, or placeholder.
+        // True client-side pptx to pdf with formatting is extremely complex.
+        // For now, we'll simulate text extraction for PDF.
+        setStatusMessage("Extracting text from PPTX (simplified)...");
+        setConversionProgress(30);
+        const arrayBuffer = await selectedFile.arrayBuffer();
+        // Using JSZip to attempt to read text content from slides (basic implementation)
+        const JSZip = (await import('jszip')).default;
+        const zip = await JSZip.loadAsync(arrayBuffer);
+        let allText = "";
+        const slidePromises = [];
+        for (const filePath in zip.files) {
+            if (filePath.startsWith("ppt/slides/slide") && filePath.endsWith(".xml")) {
+                slidePromises.push(zip.files[filePath].async("string"));
+            }
+        }
+        const slideXmls = await Promise.all(slidePromises);
+        slideXmls.forEach(xmlString => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlString, "application/xml");
+            const textNodes = xmlDoc.getElementsByTagName("a:t");
+            for (let k = 0; k < textNodes.length; k++) {
+                if(textNodes[k].textContent) allText += textNodes[k].textContent + "\n";
+            }
+        });
+        setConversionProgress(60);
+        if (!allText.trim()) {
+            allText = "No text content could be extracted from the PowerPoint file. Outputting blank PDF.";
+        }
+        const pdf = new jsPDF();
+        const lines = pdf.splitTextToSize(allText, 180);
+        pdf.text(lines, 10, 10);
+        convertedBlob = pdf.output('blob');
+
+      }
+      // Handle PDF to PowerPoint
+      else if (currentConversion.value === 'pdf-to-pptx') {
+        setStatusMessage("Converting PDF pages to images for PPTX...");
+        setConversionProgress(20);
+        const pdfjsLib = await import('pdfjs-dist');
+         if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+        }
+        const arrayBuffer = await selectedFile.arrayBuffer();
+        const pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) }).promise;
+        
+        const PptxGenJS = (await import('pptxgenjs')).default;
+        const pres = new PptxGenJS();
+
+        for (let i = 1; i <= pdfDoc.numPages; i++) {
+            const page = await pdfDoc.getPage(i);
+            const viewport = page.getViewport({ scale: 1.5 });
+            const tempCanvas = document.createElement('canvas');
+            const tempCtx = tempCanvas.getContext('2d');
+            if (!tempCtx) throw new Error("Failed to get canvas context for PDF page.");
+            tempCanvas.width = viewport.width;
+            tempCanvas.height = viewport.height;
+            await page.render({ canvasContext: tempCtx, viewport: viewport }).promise;
+            const imageDataUrl = tempCanvas.toDataURL('image/png');
+            
+            const slide = pres.addSlide();
+            // PPTXGenJS uses inches for image dimensions. Assuming A4-like aspect ratio for positioning.
+            // Default slide dimensions are 10x5.625 inches.
+            // This is a rough fit; aspect ratio might not match perfectly.
+            slide.addImage({ data: imageDataUrl, x: 0.5, y: 0.5, w: 9.0, h: 5.0 });
+             setConversionProgress(20 + Math.floor((i / pdfDoc.numPages) * 60));
+        }
+        setStatusMessage("Generating PPTX file...");
+        convertedBlob = await pres.write('blob') as Blob;
+      }
+
 
       if (convertedBlob) {
         setConversionProgress(100);
-        const dataUrl = URL.createObjectURL(convertedBlob); 
+        const dataUrl = URL.createObjectURL(convertedBlob);
         setStatusMessage("Conversion successful!");
         setResult({ name: convertedFileName, dataUrl: dataUrl, blob: convertedBlob });
-        triggerDownload(convertedBlob, convertedFileName); 
+        triggerDownload(convertedBlob, convertedFileName);
         addToHistory({
           fileName: selectedFile.name,
           originalFormat: currentConversion.sourceFormat,
@@ -388,7 +467,7 @@ export function DocumentConverterClient({
       setIsLoading(false);
     }
   };
-  
+
   const handleRemoveFile = () => {
     setSelectedFile(null);
     setFilePreview(null);
@@ -432,7 +511,7 @@ export function DocumentConverterClient({
             value={conversionType}
             onValueChange={(value) => {
               setConversionType(value);
-              handleRemoveFile(); 
+              handleRemoveFile();
             }}
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
           >
@@ -529,8 +608,8 @@ export function DocumentConverterClient({
           </CardContent>
         </Card>
       )}
-      
-      { !isLoading && result && ( 
+
+      { !isLoading && result && (
          <Card className="mt-6 bg-secondary/30">
           <CardHeader>
             <CardTitle className="font-headline text-xl">Conversion Result</CardTitle>
@@ -572,7 +651,7 @@ export function DocumentConverterClient({
           </CardContent>
         </Card>
       )}
-      
+
       <Alert variant="default" className="mt-6">
         <Info className="h-4 w-4" />
         <AlertTitle>Client-Side Conversion Notes</AlertTitle>
@@ -585,7 +664,7 @@ export function DocumentConverterClient({
               PDF to Word/Excel involves text extraction and basic structuring; complex layouts may not be fully preserved.
             </li>
             <li>**Performance**: Larger files or more complex documents may take longer to process and could impact browser performance. A 25MB file size limit is suggested.</li>
-             <li>**PDF.js Worker**: This tool uses a CDN-hosted worker for PDF processing. An internet connection is required for this component.</li>
+            <li>**PDF.js Worker**: This tool uses a CDN-hosted worker for PDF processing. Ensure your browser can access `cdnjs.cloudflare.com`.</li>
           </ul>
         </AlertDescription>
       </Alert>

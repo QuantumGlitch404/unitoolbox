@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { useToast } from "@/hooks/use-toast";
 import { UploadCloud, Download, Loader2, XCircle, FileImage } from 'lucide-react';
-import * as pdfjsLib from 'pdfjs-dist';
+// Removed: import * as pdfjsLib from 'pdfjs-dist';
 
 interface PageImage {
   id: string;
@@ -25,20 +25,7 @@ export function PdfToImageClient() {
   const [convertedImages, setConvertedImages] = useState<PageImage[]>([]);
   const { toast } = useToast();
 
-  useEffect(() => {
-    // pdf.js worker configuration
-    // IMPORTANT: Ensure `pdf.worker.min.mjs` (or .js) is in your /public directory.
-    // The version might need to match your installed pdfjs-dist version.
-    const workerSrcPath = `/pdf.worker.min.mjs`; // Updated to .mjs
-    pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrcPath;
-    console.log(
-      `PDF.js version: ${pdfjsLib.version}. Attempting to set worker path for PDF.js to: ${workerSrcPath}.
-      Please ensure 'pdf.worker.min.mjs' (or .js if that's your file) is in your project's /public directory.
-      If issues persist, verify the worker file version matches your 'pdfjs-dist' package version (${pdfjsLib.version}).
-      You might need to copy it from 'node_modules/pdfjs-dist/build/pdf.worker.min.mjs'.
-      A server restart and browser hard refresh might be needed after adding/changing the worker file.`
-    );
-  }, []);
+  // Note: pdfjsLib.GlobalWorkerOptions.workerSrc will be set dynamically before use.
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
@@ -62,16 +49,6 @@ export function PdfToImageClient() {
   });
 
   const handleConvertPdfToImages = async () => {
-    if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-        toast({
-            title: "Worker Configuration Error",
-            description: "PDF.js workerSrc not set. This indicates an issue with component initialization or the worker file is missing from /public.",
-            variant: "destructive",
-        });
-        setIsLoading(false);
-        return;
-    }
-
     if (!pdfFile) {
       toast({ title: "No PDF", description: "Please upload a PDF file first.", variant: "destructive" });
       return;
@@ -88,8 +65,14 @@ export function PdfToImageClient() {
         setIsLoading(false);
         return;
       }
-      
+
       try {
+        const pdfjsLib = await import('pdfjs-dist');
+        if (typeof window !== 'undefined' && !pdfjsLib.GlobalWorkerOptions.workerSrc) {
+            // Use the version from the dynamically imported module
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+        }
+
         const typedArray = new Uint8Array(event.target.result as ArrayBuffer);
         const loadingTask = pdfjsLib.getDocument({ data: typedArray });
         const pdf = await loadingTask.promise;
@@ -98,10 +81,10 @@ export function PdfToImageClient() {
 
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale: 1.5 }); // Scale can be adjusted
+          const viewport = page.getViewport({ scale: 1.5 });
           const canvas = document.createElement('canvas');
           const context = canvas.getContext('2d');
-          
+
           if(!context){
             throw new Error("Could not get canvas context for page " + i);
           }
@@ -114,7 +97,7 @@ export function PdfToImageClient() {
             viewport: viewport,
           };
           await page.render(renderContext).promise;
-          
+
           images.push({
             id: `page-${i}`,
             dataUrl: canvas.toDataURL('image/png'),
@@ -126,7 +109,7 @@ export function PdfToImageClient() {
         toast({ title: "Conversion Complete!", description: `${pdf.numPages} page(s) converted to images.` });
       } catch (error: any) {
         console.error("Error converting PDF to images:", error);
-        toast({ title: "Conversion Error", description: error.message || "Failed to process PDF. Ensure the worker file is in /public and accessible, and the PDF is valid.", variant: "destructive" });
+        toast({ title: "Conversion Error", description: error.message || "Failed to process PDF. Ensure the worker file is accessible via CDN and the PDF is valid.", variant: "destructive" });
       } finally {
         setIsLoading(false);
       }
@@ -137,7 +120,7 @@ export function PdfToImageClient() {
     }
     fileReader.readAsArrayBuffer(pdfFile);
   };
-  
+
   const handleRemovePdf = () => {
     setPdfFile(null);
     setConvertedImages([]);

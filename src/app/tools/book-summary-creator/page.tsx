@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { BookSummaryCreatorClient } from './book-summary-creator-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 // BookText import not needed for default
 
 export default function BookSummaryCreatorPage() {
@@ -26,6 +27,7 @@ export default function BookSummaryCreatorPage() {
       iconName={tool.iconName || 'BookText'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <BookSummaryCreatorClient />
     </ToolPageTemplate>
   );

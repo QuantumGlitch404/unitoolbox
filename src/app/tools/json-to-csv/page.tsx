@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { JsonToCsvClient } from './json-to-csv-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 // FileJson import not needed here for default
 
 export default function JsonToCsvPage() {
@@ -27,6 +28,7 @@ export default function JsonToCsvPage() {
       iconName={tool.iconName || 'FileJson'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <JsonToCsvClient />
     </ToolPageTemplate>
   );

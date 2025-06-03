@@ -25,10 +25,12 @@ export default function ImageCompressorPage() {
       iconName={tool.iconName || 'Scissors'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <ImageCompressorClient />
-      <div className="mt-12">
+      {/* The AdPlaceholder below was already here, it is part of the ToolPageTemplate now */}
+      {/* <div className="mt-12">
         <AdPlaceholder type="mediumRectangle" className="mx-auto" />
-      </div>
+      </div> */}
     </ToolPageTemplate>
   );
 }

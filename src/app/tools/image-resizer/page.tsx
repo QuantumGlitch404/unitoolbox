@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { ImageResizerClient } from './image-resizer-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 export default function ImageResizerPage() {
   const tool = getToolById('image-resizer');
@@ -24,6 +25,7 @@ export default function ImageResizerPage() {
       iconName={tool.iconName || 'SlidersHorizontal'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <ImageResizerClient />
     </ToolPageTemplate>
   );

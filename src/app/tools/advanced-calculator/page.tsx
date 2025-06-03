@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { AdvancedCalculatorClient } from './advanced-calculator-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 // Calculator import not needed for default
 
 export default function AdvancedCalculatorPage() {
@@ -26,6 +27,7 @@ export default function AdvancedCalculatorPage() {
       iconName={tool.iconName || 'Calculator'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <AdvancedCalculatorClient />
     </ToolPageTemplate>
   );

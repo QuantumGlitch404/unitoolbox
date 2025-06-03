@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { DocumentConverterClient } from '@/components/tools/document-converter-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 const conversionOptions = [
   {
@@ -47,6 +48,7 @@ export default function PdfWordConverterPage() {
       iconName={tool.iconName || 'ArrowRightLeft'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <DocumentConverterClient
         toolName="pdf-word-converter"
         conversionOptions={conversionOptions}

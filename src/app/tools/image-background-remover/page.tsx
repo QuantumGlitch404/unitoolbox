@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { ImageBackgroundRemoverClient } from './image-background-remover-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 export default function ImageBackgroundRemoverPage() {
   const tool = getToolById('image-background-remover');
@@ -24,6 +25,7 @@ export default function ImageBackgroundRemoverPage() {
       iconName={tool.iconName || 'Wand2'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <ImageBackgroundRemoverClient />
     </ToolPageTemplate>
   );

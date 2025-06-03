@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { PasswordStrengthCheckerClient } from './password-strength-checker-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 // ShieldCheck import not needed for default
 
 export default function PasswordStrengthCheckerPage() {
@@ -28,6 +29,7 @@ export default function PasswordStrengthCheckerPage() {
       iconName={tool.iconName || 'ShieldCheck'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <PasswordStrengthCheckerClient />
     </ToolPageTemplate>
   );

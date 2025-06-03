@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { LanguageTranslatorClient } from './language-translator-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 // Languages import not needed here for default
 
 export default function LanguageTranslatorPage() {
@@ -25,6 +26,7 @@ export default function LanguageTranslatorPage() {
       iconName={tool.iconName || 'Languages'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <LanguageTranslatorClient />
     </ToolPageTemplate>
   );

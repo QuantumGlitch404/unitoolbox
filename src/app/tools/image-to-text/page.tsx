@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { ImageToTextClient } from './image-to-text-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 export default function ImageToTextPage() {
   const tool = getToolById('image-to-text');
@@ -24,6 +25,7 @@ export default function ImageToTextPage() {
       iconName={tool.iconName || 'TextSearch'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <ImageToTextClient />
     </ToolPageTemplate>
   );

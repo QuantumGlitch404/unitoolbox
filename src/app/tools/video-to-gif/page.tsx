@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { VideoToGifClient } from './video-to-gif-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 export default function VideoToGifPage() {
   const tool = getToolById('video-to-gif');
@@ -25,6 +26,7 @@ export default function VideoToGifPage() {
       iconName={tool.iconName || 'Film'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <VideoToGifClient />
     </ToolPageTemplate>
   );

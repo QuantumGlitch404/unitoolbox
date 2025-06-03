@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { SVGToPNGClient } from './svg-to-png-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 // Palette import not needed for default
 
 export default function SVGToPNGPage() {
@@ -25,6 +26,7 @@ export default function SVGToPNGPage() {
       iconName={tool.iconName || 'Palette'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <SVGToPNGClient
         sourceFormat="SVG"
         targetFormat="PNG"

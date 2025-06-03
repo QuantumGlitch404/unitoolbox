@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { PhotoToPassportSizeClient } from './photo-to-passport-size-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 // Camera import not needed for default
 
 export default function PhotoToPassportSizePage() {
@@ -26,6 +27,7 @@ export default function PhotoToPassportSizePage() {
       iconName={tool.iconName || 'Camera'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <PhotoToPassportSizeClient />
     </ToolPageTemplate>
   );

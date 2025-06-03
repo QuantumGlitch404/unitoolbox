@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { ImageToIcoClient } from './image-to-ico-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 export default function ImageToIcoPage() {
   const tool = getToolById('image-to-ico');
@@ -25,6 +26,7 @@ export default function ImageToIcoPage() {
       iconName={tool.iconName || 'BoxSelect'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <ImageToIcoClient />
     </ToolPageTemplate>
   );

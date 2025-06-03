@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { ImageToPdfClient } from './image-to-pdf-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 export default function ImageToPdfPage() {
   const tool = getToolById('image-to-pdf');
@@ -25,6 +26,7 @@ export default function ImageToPdfPage() {
       iconName={tool.iconName || 'Combine'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <ImageToPdfClient />
     </ToolPageTemplate>
   );

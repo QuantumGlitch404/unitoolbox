@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { PNGToJPGClient } from './png-to-jpg-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 // Replace import not needed for default
 
 export default function PNGToJPGPage() {
@@ -25,6 +26,7 @@ export default function PNGToJPGPage() {
       iconName={tool.iconName || 'Replace'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <PNGToJPGClient
         sourceFormat="PNG"
         targetFormat="JPG"

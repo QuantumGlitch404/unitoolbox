@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { AudioToTextClient } from './audio-to-text-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 export default function AudioToTextPage() {
   const tool = getToolById('audio-to-text');
@@ -25,6 +26,7 @@ export default function AudioToTextPage() {
       iconName={tool.iconName || 'AudioLines'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <AudioToTextClient />
     </ToolPageTemplate>
   );

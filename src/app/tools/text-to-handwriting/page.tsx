@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { TextToHandwritingClient } from './text-to-handwriting-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 export default function TextToHandwritingPage() {
   const tool = getToolById('text-to-handwriting');
@@ -25,6 +26,7 @@ export default function TextToHandwritingPage() {
       iconName={tool.iconName || 'Edit3'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <TextToHandwritingClient />
     </ToolPageTemplate>
   );

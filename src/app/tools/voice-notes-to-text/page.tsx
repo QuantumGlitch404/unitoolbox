@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { VoiceNotesToTextClient } from './voice-notes-to-text-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 // ListVideo import not needed for default
 
 export default function VoiceNotesToTextPage() {
@@ -27,6 +28,7 @@ export default function VoiceNotesToTextPage() {
       iconName={tool.iconName || 'ListVideo'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <VoiceNotesToTextClient />
     </ToolPageTemplate>
   );

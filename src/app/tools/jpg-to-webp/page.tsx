@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { JPGToWebPClient } from './jpg-to-webp-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 // Replace import not needed for default
 
 export default function JPGToWebPPage() {
@@ -25,6 +26,7 @@ export default function JPGToWebPPage() {
       iconName={tool.iconName || 'Replace'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <JPGToWebPClient
         sourceFormat="JPG/JPEG"
         targetFormat="WebP"

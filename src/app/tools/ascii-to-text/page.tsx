@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { AsciiToTextClient } from './ascii-to-text-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 
 export default function AsciiToTextPage() {
   const tool = getToolById('ascii-to-text');
@@ -23,6 +24,7 @@ export default function AsciiToTextPage() {
       iconName={tool.iconName || 'Type'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <AsciiToTextClient />
     </ToolPageTemplate>
   );

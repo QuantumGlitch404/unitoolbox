@@ -2,6 +2,7 @@
 import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { VideoCompressorClient } from './video-compressor-client';
+import { AdPlaceholder } from '@/components/ads/ad-placeholder';
 // FileVideo import not needed for default
 
 export default function VideoCompressorPage() {
@@ -27,6 +28,7 @@ export default function VideoCompressorPage() {
       iconName={tool.iconName || 'FileVideo'}
       instructions={instructions}
     >
+      <AdPlaceholder type="banner" className="mb-6" />
       <VideoCompressorClient />
     </ToolPageTemplate>
   );

@@ -18,11 +18,23 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        <meta charSet="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        
         {/* Adsterra Verification */}
         <meta name="ppck-ver" content="e1ff2af4cc3c6d70735eaa632607be02" />
+        
         {/* AdSense Verification Meta Tag */}
         <meta name="google-adsense-account" content="ca-pub-7031136340185694" />
+
+        {/* AdSense Site-Level Script for Auto Ads */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7031136340185694"
+          crossOrigin="anonymous"
+          strategy="beforeInteractive"
+          id="adsense-main-script"
+        />
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -34,7 +46,7 @@ export default function RootLayout({
         {/* Adsterra PopUnder Script - Placed before closing </head> */}
         <Script
           id="adsterra-popunder-script" 
-          strategy="beforeInteractive"
+          strategy="beforeInteractive" // Changed from afterInteractive
           dangerouslySetInnerHTML={{
             __html: `
               (function() {

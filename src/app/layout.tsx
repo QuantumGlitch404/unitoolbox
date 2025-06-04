@@ -27,9 +27,18 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap" rel="stylesheet" />
         
+        {/* AdSense Code Snippet */}
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7031136340185694"
+          crossOrigin="anonymous"
+          strategy="afterInteractive" // Loads after the page becomes interactive
+          id="adsense-main-script"
+        />
+
         {/* Adsterra PopUnder Script - Placed right before closing </head> tag as per Adsterra instruction */}
         <Script
-          id="adsterra-popunder-script" // Unique ID
+          id="adsterra-popunder-script" 
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
@@ -49,7 +58,7 @@ export default function RootLayout({
 
         {/* Adsterra Social Bar Script - Placed right above closing </body> tag as per Adsterra instruction */}
         <Script
-          id="adsterra-social-bar-script" // Unique ID
+          id="adsterra-social-bar-script" 
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `

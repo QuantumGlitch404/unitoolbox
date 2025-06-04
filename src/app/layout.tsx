@@ -24,10 +24,8 @@ export default function RootLayout({
         {/* Adsterra Verification */}
         <meta name="ppck-ver" content="e1ff2af4cc3c6d70735eaa632607be02" />
         
-        {/* AdSense Verification Meta Tag */}
+        {/* AdSense Verification Meta Tag & Site-Level Script for Auto Ads */}
         <meta name="google-adsense-account" content="ca-pub-7031136340185694" />
-
-        {/* AdSense Site-Level Script for Auto Ads */}
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7031136340185694"

@@ -19,6 +19,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="ppck-ver" content="e1ff2af4cc3c6d70735eaa632607be02" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
@@ -29,7 +30,7 @@ export default function RootLayout({
         {/* Adsterra PopUnder Script - Placed right before closing </head> tag */}
         <Script
           id="adsterra-popunder"
-          strategy="afterInteractive" // Loads after page is interactive but good for head placement
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
@@ -49,7 +50,7 @@ export default function RootLayout({
         {/* Adsterra Social Bar Script - Placed right above closing </body> tag */}
         <Script
           id="adsterra-social-bar"
-          strategy="lazyOnload" // Loads late, good for body-end scripts
+          strategy="afterInteractive" 
           dangerouslySetInnerHTML={{
             __html: `
               (function() {

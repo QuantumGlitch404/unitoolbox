@@ -19,7 +19,11 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        {/* Adsterra Verification */}
         <meta name="ppck-ver" content="e1ff2af4cc3c6d70735eaa632607be02" />
+        {/* AdSense Verification Meta Tag */}
+        <meta name="google-adsense-account" content="ca-pub-7031136340185694" />
+
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
@@ -27,19 +31,10 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap" rel="stylesheet" />
         
-        {/* AdSense Code Snippet - Strategy changed to beforeInteractive */}
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7031136340185694"
-          crossOrigin="anonymous"
-          strategy="beforeInteractive" 
-          id="adsense-main-script"
-        />
-
         {/* Adsterra PopUnder Script - Placed before closing </head> */}
         <Script
           id="adsterra-popunder-script" 
-          strategy="beforeInteractive" // Changed from afterInteractive for potentially earlier load
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function() {

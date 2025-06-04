@@ -27,9 +27,9 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap" rel="stylesheet" />
         
-        {/* Adsterra PopUnder Script - Placed right before closing </head> tag */}
+        {/* Adsterra PopUnder Script - Placed right before closing </head> tag as per Adsterra instruction */}
         <Script
-          id="adsterra-popunder"
+          id="adsterra-popunder-script" // Unique ID
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
@@ -47,10 +47,10 @@ export default function RootLayout({
         <AppLayout>{children}</AppLayout>
         <Toaster />
 
-        {/* Adsterra Social Bar Script - Placed right above closing </body> tag */}
+        {/* Adsterra Social Bar Script - Placed right above closing </body> tag as per Adsterra instruction */}
         <Script
-          id="adsterra-social-bar"
-          strategy="afterInteractive" 
+          id="adsterra-social-bar-script" // Unique ID
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function() {

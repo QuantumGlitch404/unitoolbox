@@ -32,11 +32,11 @@ export default function RootLayout({
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7031136340185694"
           crossOrigin="anonymous"
-          strategy="afterInteractive" // Loads after the page becomes interactive
+          strategy="afterInteractive"
           id="adsense-main-script"
         />
 
-        {/* Adsterra PopUnder Script - Placed right before closing </head> tag as per Adsterra instruction */}
+        {/* Adsterra PopUnder Script */}
         <Script
           id="adsterra-popunder-script" 
           strategy="afterInteractive"
@@ -56,7 +56,7 @@ export default function RootLayout({
         <AppLayout>{children}</AppLayout>
         <Toaster />
 
-        {/* Adsterra Social Bar Script - Placed right above closing </body> tag as per Adsterra instruction */}
+        {/* Adsterra Social Bar Script */}
         <Script
           id="adsterra-social-bar-script" 
           strategy="afterInteractive"

@@ -1,19 +1,20 @@
 
 "use client";
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useId } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import Script from 'next/script';
 
 const adTypeDimensions: Record<string, { width: string; height: string }> = {
-  banner: { width: '100%', height: '90px' },
-  leaderboard: { width: '100%', height: '90px' }, // Often 728x90 on desktop
+  banner: { width: '100%', height: '90px' }, // Will be overridden by 728x90 ad
+  leaderboard: { width: '100%', height: '90px' }, // Will be overridden by 728x90 ad
   mediumRectangle: { width: '300px', height: '250px' },
   largeRectangle: { width: '336px', height: '280px' },
   square: { width: '250px', height: '250px' },
   skyscraper: { width: '160px', height: '600px' },
   smallSquare: { width: '200px', height: '200px' },
+  native: { width: '100%', height: 'auto' }, // Native ads can be flexible
 };
 
 interface AdPlaceholderProps {
@@ -21,7 +22,7 @@ interface AdPlaceholderProps {
   height?: string | number;
   label?: string;
   className?: string;
-  type?: keyof typeof adTypeDimensions | 'native'; // Added 'native' type
+  type?: keyof typeof adTypeDimensions;
 }
 
 export function AdPlaceholder({
@@ -29,70 +30,77 @@ export function AdPlaceholder({
   height: customHeight,
   label = "Advertisement",
   className,
-  type = 'banner', // Default to banner if no type is provided
+  type = 'banner',
 }: AdPlaceholderProps) {
   const dimensions = adTypeDimensions[type] || adTypeDimensions.banner;
   const styleWidth = customWidth ?? dimensions.width;
   const styleHeight = customHeight ?? dimensions.height;
+  const uniqueAdId = useId(); // Generate a unique ID for script tags if needed
 
+  // Adsterra Codes
   const nativeAdContainerId = "container-908fcf666666a1f8ab3d42398e87b77e";
   const nativeAdScriptSrc = "//pl26831149.profitableratecpm.com/908fcf666666a1f8ab3d42398e87b77e/invoke.js";
+  
   const banner728x90Key = '7b914269a04118556b63666b58b8fc11';
   const banner728x90InvokeSrc = `//www.highperformanceformat.com/${banner728x90Key}/invoke.js`;
 
-  // Ref for the container div of the 728x90 banner, if needed by its script
-  const banner728x90ContainerRef = useRef<HTMLDivElement>(null);
+  const bannerContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // For Banner 728x90, the atOptions script needs to be executed.
-    // The invoke.js script will then use these options.
-    // We create and append the atOptions script dynamically if the container is present.
-    if ((type === 'leaderboard' || type === 'banner') && banner728x90ContainerRef.current) {
-        const atOptionsScript = document.createElement('script');
-        atOptionsScript.type = 'text/javascript';
-        atOptionsScript.innerHTML = `
-            atOptions = {
-                'key' : '${banner728x90Key}',
-                'format' : 'iframe',
-                'height' : 90,
-                'width' : 728,
-                'params' : {}
-            };
-        `;
-        // Prepend atOptions script so it's defined before invoke.js runs
-        banner728x90ContainerRef.current.prepend(atOptionsScript);
-    }
+    if ((type === 'leaderboard' || type === 'banner') && bannerContainerRef.current) {
+      const container = bannerContainerRef.current;
+      // Clear previous scripts if any, to avoid multiple initializations on re-renders
+      container.innerHTML = '';
 
-    // For Native Banner, the invoke.js script targets a div with a specific ID.
-    // We ensure that script is loaded. The div is rendered in the JSX.
-    // No special useEffect logic needed for the native banner script if using next/script
-    // as long as the div#id exists when it runs.
-    // If this placeholder is used multiple times for native ads on the same page,
-    // the fixed ID 'container-908fcf666666a1f8ab3d42398e87b77e' will cause issues.
-    // Only the first instance of this ID on the page will likely work correctly.
-    if (type === 'mediumRectangle' || type === 'smallSquare' || type === 'native') {
-        // console.warn("AdPlaceholder: Native Banner (4:1) uses a fixed container ID. Only one instance per page will function correctly.");
-    }
+      const atOptionsScript = document.createElement('script');
+      atOptionsScript.type = 'text/javascript';
+      atOptionsScript.innerHTML = `
+        atOptions = {
+            'key' : '${banner728x90Key}',
+            'format' : 'iframe',
+            'height' : 90,
+            'width' : 728,
+            'params' : {}
+        };
+      `;
+      container.appendChild(atOptionsScript);
 
-  }, [type, banner728x90Key]);
+      const invokeScript = document.createElement('script');
+      invokeScript.type = 'text/javascript';
+      invokeScript.src = banner728x90InvokeSrc;
+      invokeScript.async = true;
+      container.appendChild(invokeScript);
+
+      // Set explicit size for the container of 728x90 ad
+      container.style.width = '728px';
+      container.style.height = '90px';
+      container.style.margin = '0 auto'; // Center it
+    }
+  }, [type, banner728x90Key, banner728x90InvokeSrc]);
 
   const renderAdContent = () => {
     switch (type) {
       case 'leaderboard':
       case 'banner':
-        return (
-          <div ref={banner728x90ContainerRef} className="adsterra-banner-728x90-container">
-            {/* atOptions script is prepended in useEffect */}
-            <Script strategy="lazyOnload" src={banner728x90InvokeSrc} />
-          </div>
-        );
+        // This div will be populated by the useEffect logic
+        return <div ref={bannerContainerRef} className={`adsterra-banner-728x90-container-${uniqueAdId}`} />;
+      
       case 'mediumRectangle':
       case 'smallSquare':
-      case 'native': // Added a generic 'native' type
+      case 'native':
+        // Note: Using the same nativeAdContainerId for all these types means
+        // only one of them will work correctly if multiple are on the same page.
+        // For distinct native ads, you'd need different Adsterra ad unit codes & container IDs.
         return (
           <>
-            <Script async={true} data-cfasync="false" strategy="lazyOnload" src={nativeAdScriptSrc} />
-            <div id={nativeAdContainerId}></div>
+            <Script
+              id={`adsterra-native-invoke-${uniqueAdId}`} // Unique ID for the script tag itself
+              strategy="afterInteractive"
+              async={true}
+              data-cfasync="false" 
+              src={nativeAdScriptSrc}
+            />
+            <div id={nativeAdContainerId}></div> {/* Adsterra targets this specific ID */}
           </>
         );
       default:
@@ -117,7 +125,12 @@ export function AdPlaceholder({
         `flex items-center justify-center bg-muted/10 border-dashed border-muted-foreground/20 rounded-lg shadow-sm overflow-hidden`,
         className
       )}
-      style={{ width: styleWidth, height: styleHeight, minHeight: styleHeight }}
+      style={{ 
+        width: (type === 'leaderboard' || type === 'banner') ? 'auto' : styleWidth, // Allow 728x90 container to self-size or be centered
+        height: (type === 'leaderboard' || type === 'banner') ? 'auto' : styleHeight,
+        minHeight: (type === 'leaderboard' || type === 'banner') ? '90px' : styleHeight, // Ensure min height for banners
+        maxWidth: '100%', // Ensure ad placeholders don't overflow their parent
+      }}
       aria-label={label}
     >
       {renderAdContent()}

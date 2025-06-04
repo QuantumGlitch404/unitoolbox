@@ -27,19 +27,19 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&display=swap" rel="stylesheet" />
         <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400..700&display=swap" rel="stylesheet" />
         
-        {/* AdSense Code Snippet */}
+        {/* AdSense Code Snippet - Strategy changed to beforeInteractive */}
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7031136340185694"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
+          strategy="beforeInteractive" 
           id="adsense-main-script"
         />
 
-        {/* Adsterra PopUnder Script */}
+        {/* Adsterra PopUnder Script - Placed before closing </head> */}
         <Script
           id="adsterra-popunder-script" 
-          strategy="afterInteractive"
+          strategy="beforeInteractive" // Changed from afterInteractive for potentially earlier load
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
@@ -56,7 +56,7 @@ export default function RootLayout({
         <AppLayout>{children}</AppLayout>
         <Toaster />
 
-        {/* Adsterra Social Bar Script */}
+        {/* Adsterra Social Bar Script - Placed before closing </body> */}
         <Script
           id="adsterra-social-bar-script" 
           strategy="afterInteractive"

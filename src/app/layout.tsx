@@ -46,7 +46,7 @@ export default function RootLayout({
         {/* Adsterra PopUnder Script - Placed before closing </head> */}
         <Script
           id="adsterra-popunder-script" 
-          strategy="beforeInteractive" // Changed from afterInteractive
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function() {

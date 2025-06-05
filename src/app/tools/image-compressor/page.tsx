@@ -3,6 +3,22 @@ import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { ImageCompressorClient } from './image-compressor-client';
 import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+import type { Metadata } from 'next';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const tool = getToolById('image-compressor');
+  if (!tool) {
+    return {
+      title: 'Tool Not Found | UniToolBox',
+      description: 'The requested tool could not be found.',
+    };
+  }
+  return {
+    title: tool.title,
+    description: tool.description,
+    keywords: tool.keywords,
+  };
+}
 
 export default function ImageCompressorPage() {
   const tool = getToolById('image-compressor');
@@ -12,25 +28,27 @@ export default function ImageCompressorPage() {
   }
 
   const instructions = [
-    "Click 'Upload Image' or drag and drop an image file.",
-    "Adjust the compression level using the slider (if available).",
+    "Upload an image file (JPG, PNG, WebP, GIF) using the dropzone or file selector.",
+    "Adjust the 'Compression Level' slider to your desired setting (higher percentage means more compression, potentially lower quality).",
     "Click the 'Compress Image' button.",
-    "The compressed image details and a download link will appear."
+    "The tool will process your image (simulated for this client-side version).",
+    "View the compression results, including original size, new size, and reduction percentage.",
+    "Download the compressed image."
   ];
 
   return (
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      iconName={tool.iconName || 'Scissors'}
+      iconName={tool.iconName}
+      whatItDoes={tool.whatItDoes}
+      benefits={tool.benefits}
       instructions={instructions}
     >
       <AdPlaceholder type="banner" className="mb-6" />
       <ImageCompressorClient />
-      {/* The AdPlaceholder below was already here, it is part of the ToolPageTemplate now */}
-      {/* <div className="mt-12">
-        <AdPlaceholder type="mediumRectangle" className="mx-auto" />
-      </div> */}
     </ToolPageTemplate>
   );
 }
+
+    

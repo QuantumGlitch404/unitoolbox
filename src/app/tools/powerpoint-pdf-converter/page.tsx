@@ -3,6 +3,22 @@ import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { DocumentConverterClient } from '@/components/tools/document-converter-client';
 import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+import type { Metadata } from 'next';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const tool = getToolById('powerpoint-pdf-converter');
+  if (!tool) {
+    return {
+      title: 'Tool Not Found | UniToolBox',
+      description: 'The requested tool could not be found.',
+    };
+  }
+  return {
+    title: tool.title,
+    description: tool.description,
+    keywords: tool.keywords,
+  };
+}
 
 const conversionOptions = [
   {
@@ -11,7 +27,7 @@ const conversionOptions = [
     sourceFormat: "pptx",
     targetFormat: "pdf",
     accept: { 'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'] },
-    sourceIconName: "Presentation", // This will need to be mapped if not a direct Lucide name
+    sourceIconName: "Presentation",
     targetIconName: "FileText",
   },
   {
@@ -21,7 +37,7 @@ const conversionOptions = [
     targetFormat: "pptx",
     accept: { 'application/pdf': ['.pdf'] },
     sourceIconName: "FileText",
-    targetIconName: "Presentation", // This will need to be mapped
+    targetIconName: "Presentation",
   }
 ];
 
@@ -33,19 +49,22 @@ export default function PowerPointPdfConverterPage() {
   }
 
   const instructions = [
-    "Select the conversion direction (e.g., PowerPoint to PDF or PDF to PowerPoint).",
-    "Upload your file (PPTX or PDF). Max 25MB for client-side processing.",
-    "Click the 'Convert File' button. The conversion happens directly in your browser.",
-    "Once complete, a download link for the converted file will appear.",
-    "**PPTX to PDF**: Extracts text content from your .pptx file and generates a PDF. Images, shapes, colors, and complex layouts from the original PowerPoint are NOT preserved in this client-side conversion. The output is a text-based PDF.",
-    "**PDF to PPTX**: Each page of your PDF will be converted into a static, non-editable image. These images will be placed onto individual slides in a new .pptx presentation. The content will not be editable as native PowerPoint elements."
+    "Choose your conversion type: 'PowerPoint (.pptx) to PDF' or 'PDF to PowerPoint (.pptx)'.",
+    "Upload your PPTX or PDF file (max 25MB for client-side processing).",
+    "Click the 'Convert File' button. The conversion happens in your browser.",
+    "Wait for the process to complete. Progress will be updated.",
+    "A download link for the converted file will be provided automatically.",
+    "**PPTX to PDF Note**: This conversion primarily extracts text content from your .pptx slides and generates a text-based PDF. Images, shapes, colors, and complex layouts from the original PowerPoint are NOT preserved due to client-side limitations.",
+    "**PDF to PPTX Note**: Each page of your PDF will be converted into a static, non-editable image. These images will then be placed onto individual slides in a new .pptx presentation. The content will not be editable as native PowerPoint elements (text, shapes, etc.)."
   ];
 
   return (
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      iconName={tool.iconName || 'ArrowRightLeft'}
+      iconName={tool.iconName}
+      whatItDoes={tool.whatItDoes}
+      benefits={tool.benefits}
       instructions={instructions}
     >
       <AdPlaceholder type="banner" className="mb-6" />

@@ -3,7 +3,22 @@ import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { JPGToWebPClient } from './jpg-to-webp-client';
 import { AdPlaceholder } from '@/components/ads/ad-placeholder';
-// Replace import not needed for default
+import type { Metadata } from 'next';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const tool = getToolById('jpg-to-webp');
+  if (!tool) {
+    return {
+      title: 'Tool Not Found | UniToolBox',
+      description: 'The requested tool could not be found.',
+    };
+  }
+  return {
+    title: tool.title,
+    description: tool.description,
+    keywords: tool.keywords,
+  };
+}
 
 export default function JPGToWebPPage() {
   const tool = getToolById('jpg-to-webp');
@@ -13,17 +28,20 @@ export default function JPGToWebPPage() {
   }
 
   const instructions = [
-    `Upload your JPG or JPEG image file.`,
+    `Upload your JPG or JPEG image file using the dropzone or file selector.`,
     "Click the 'Convert to WebP' button.",
-    "Wait for the (simulated) conversion to complete.",
-    "Preview and download your WebP image."
+    "Wait for the client-side conversion to complete. Progress will be indicated.",
+    "A preview of the converted WebP image will be displayed (if your browser supports WebP preview), and a download link will become available.",
+    "Download your newly converted WebP image."
   ];
 
   return (
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      iconName={tool.iconName || 'Replace'}
+      iconName={tool.iconName}
+      whatItDoes={tool.whatItDoes}
+      benefits={tool.benefits}
       instructions={instructions}
     >
       <AdPlaceholder type="banner" className="mb-6" />

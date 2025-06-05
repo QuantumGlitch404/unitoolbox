@@ -3,6 +3,22 @@ import { ToolPageTemplate } from '@/components/tools/tool-page-template';
 import { getToolById } from '@/lib/tools';
 import { DocumentConverterClient } from '@/components/tools/document-converter-client';
 import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+import type { Metadata } from 'next';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const tool = getToolById('excel-pdf-converter');
+  if (!tool) {
+    return {
+      title: 'Tool Not Found | UniToolBox',
+      description: 'The requested tool could not be found.',
+    };
+  }
+  return {
+    title: tool.title,
+    description: tool.description,
+    keywords: tool.keywords,
+  };
+}
 
 const conversionOptions = [
   {
@@ -18,7 +34,7 @@ const conversionOptions = [
     label: "PDF to Excel (.xlsx)",
     value: "pdf-to-xlsx",
     sourceFormat: "pdf",
-    targetFormat: "xlsx", 
+    targetFormat: "xlsx",
     accept: { 'application/pdf': ['.pdf'] },
     sourceIconName: "FileText",
     targetIconName: "FileSpreadsheet",
@@ -33,19 +49,22 @@ export default function ExcelPdfConverterPage() {
   }
 
   const instructions = [
-    "Select the conversion direction (e.g., Excel to PDF or PDF to Excel).",
-    "Upload your file (XLSX or PDF). Max 25MB for client-side processing.",
-    "Click the 'Convert File' button. The conversion happens directly in your browser.",
-    "Once complete, a download link for the converted file will appear.",
-    "PDF to Excel: Attempts to extract text-based table data into an .xlsx file. Success varies with PDF structure and complexity. Formatting is not preserved.",
-    "Excel to PDF: Converts the first sheet of your .xlsx to .pdf, focusing on tabular data layout."
+    "Select your desired conversion: 'Excel (.xlsx) to PDF' or 'PDF to Excel (.xlsx)'.",
+    "Upload your file (XLSX or PDF, based on your choice). Max file size is 25MB for client-side processing.",
+    "Click the 'Convert File' button. The conversion will be processed in your browser.",
+    "Wait for the process to complete. Progress will be shown.",
+    "A download link for your converted file will appear automatically once done.",
+    "Note on Excel to PDF: Converts the first sheet of your .xlsx file into a PDF table, aiming to preserve tabular data layout.",
+    "Note on PDF to Excel: Attempts to extract text-based table data from the PDF into an .xlsx file. The success and accuracy of table structure preservation vary significantly with PDF complexity and how the table was originally created in the PDF. Formatting is generally not preserved."
   ];
 
   return (
     <ToolPageTemplate
       title={tool.title}
       description={tool.description}
-      iconName={tool.iconName || 'ArrowRightLeft'}
+      iconName={tool.iconName}
+      whatItDoes={tool.whatItDoes}
+      benefits={tool.benefits}
       instructions={instructions}
     >
       <AdPlaceholder type="banner" className="mb-6" />

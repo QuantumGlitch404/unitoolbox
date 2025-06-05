@@ -84,20 +84,20 @@ export function AdblockDetector({ children }: AdblockDetectorProps) {
             <AlertDialogTitle className="text-2xl lg:text-3xl font-headline">Ad Blocker Detected</AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogDescription className="text-center text-base md:text-lg space-y-4 py-2">
-            <p>
+            <div>
               We&apos;ve noticed you&apos;re using an ad blocker. UniToolBox relies on advertisements to keep our comprehensive suite of tools free for everyone.
-            </p>
-            <p>
+            </div>
+            <div>
               To continue using our website, we kindly ask you to
               <strong className="text-foreground"> disable your ad blocker for unitoolbox.vercel.app</strong>.
-            </p>
-            <p>
+            </div>
+            <div>
               Don&apos;t worry, our ads are selected to be as unobtrusive as possible.
               After disabling, please <strong className="text-foreground">refresh this page</strong> to access the tools.
-            </p>
-            <p className="mt-3 font-semibold">
+            </div>
+            <div className="mt-3 font-semibold">
               Thank you for your understanding and support!
-            </p>
+            </div>
           </AlertDialogDescription>
           {/* No actions are provided to ensure the dialog is persistent */}
         </AlertDialogContent>

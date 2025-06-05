@@ -1,0 +1,6 @@
+# Allow all user agents to crawl all content
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://unitoolbox.vercel.app/sitemap.xml

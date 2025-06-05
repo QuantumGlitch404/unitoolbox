@@ -1,5 +1,6 @@
 
 import Link from 'next/link';
+import type { Metadata } from 'next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { featuredTools, Tool } from '@/lib/tools';
@@ -7,6 +8,18 @@ import { ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import { ToolCard } from '@/components/tools/tool-card';
 import { AdPlaceholder } from '@/components/ads/ad-placeholder';
+
+export const metadata: Metadata = {
+  title: 'UniToolBox - Free Online Tools for Every Need',
+  description: 'Boost your productivity with UniToolBox! Access a wide array of free online tools for image editing, document conversion, text processing, AI assistance, media utilities, and much more. Simplify your digital tasks today.',
+  keywords: ['free tools', 'online utilities', 'image converter', 'pdf editor', 'text tools', 'ai summarizer', 'media tools', 'all-in-one toolkit', 'productivity software', 'UniToolBox'],
+  openGraph: {
+    title: 'UniToolBox - Free Online Tools for Every Need',
+    description: 'Your ultimate destination for free, powerful online tools. Enhance your productivity with UniToolBox.',
+    url: 'https://unitoolbox.vercel.app',
+    type: 'website',
+  },
+};
 
 export default function HomePage() {
   return (

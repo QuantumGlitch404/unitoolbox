@@ -26,13 +26,12 @@ export default function RootLayout({
         
         {/* AdSense Verification Meta Tag & Site-Level Script for Auto Ads */}
         <meta name="google-adsense-account" content="ca-pub-7031136340185694" />
-        <Script
+        {/* Use a standard HTML script tag for the main AdSense script */}
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7031136340185694"
           crossOrigin="anonymous"
-          strategy="beforeInteractive"
-          id="adsense-main-script"
-        />
+        ></script>
 
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

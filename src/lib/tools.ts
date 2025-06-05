@@ -32,7 +32,7 @@ export const tools: Tool[] = [
     iconName: 'Wand2',
     aiPowered: true,
     tags: ['ai', 'text', 'summary', 'summarize', 'article summarizer', 'text summarizer', 'abstract'],
-    keywords: ['ai essay summarizer', 'text summarizer', 'summarize articles online', 'free summary tool', 'abstract generator', 'text condensation'],
+    keywords: ['ai essay summarizer', 'text summarizer', 'summarize articles online', 'free summary tool', 'quick text summary'],
     whatItDoes: 'This AI-powered tool intelligently analyzes your provided text—be it essays, articles, or reports—and extracts the core information to generate a shorter, coherent summary. It helps you grasp the main ideas efficiently without needing to read the entire document.',
     benefits: [
       'Saves significant reading time on lengthy documents.',
@@ -50,7 +50,7 @@ export const tools: Tool[] = [
     iconName: 'Languages',
     aiPowered: true,
     tags: ['ai', 'text', 'translation', 'language converter', 'multilingual'],
-    keywords: ['language translator', 'ai translation', 'free online translator', 'translate text', 'multilingual tool', 'language conversion'],
+    keywords: ['language translator', 'ai translation tool', 'free online translator', 'translate text online', 'multilingual text translation'],
     whatItDoes: 'Our AI Language Translator enables you to effortlessly translate text between a wide array of languages. Simply input your text, select the source and target languages, and the AI will provide an accurate translation.',
     benefits: [
       'Break down language barriers in communication and content consumption.',
@@ -68,7 +68,7 @@ export const tools: Tool[] = [
     iconName: 'BookText',
     aiPowered: true,
     tags: ['summary', 'text', 'books', 'ai', 'reader', 'summarize', 'chapter summary', 'key points'],
-    keywords: ['book summary generator', 'ai text summarizer', 'summarize .txt file', 'chapter summarizer', 'key points extractor', 'long text summary'],
+    keywords: ['book summary generator', 'ai text summarizer', 'summarize .txt online', 'chapter summary tool', 'extract key points book'],
     whatItDoes: 'The AI Book Summary Creator processes large blocks of text or uploaded .txt files to produce structured summaries. You can customize the desired length and level of detail. The AI also attempts to identify and list key takeaways and main ideas from the content.',
     benefits: [
       'Efficiently digest long-form content like books or lengthy reports.',
@@ -85,7 +85,7 @@ export const tools: Tool[] = [
     category: 'Text & AI',
     iconName: 'Type',
     tags: ['ascii', 'text', 'decoder', 'char code', 'converter'],
-    keywords: ['ascii to text', 'ascii decoder', 'convert ascii codes', 'online ascii converter', 'char to text'],
+    keywords: ['ascii to text converter', 'decode ascii online', 'ascii character codes', 'free ascii decoder', 'text from ascii'],
     whatItDoes: 'This tool decodes ASCII (American Standard Code for Information Interchange) representations back into standard text. It can handle common ASCII formats, such as space-separated character codes.',
     benefits: [
       'Quickly convert encoded ASCII messages or data into readable format.',
@@ -102,7 +102,7 @@ export const tools: Tool[] = [
     category: 'Text & AI',
     iconName: 'Edit3',
     tags: ['text', 'handwriting', 'image', 'font', 'style', 'generator'],
-    keywords: ['text to handwriting', 'handwriting generator', 'handwritten font image', 'online handwriting converter', 'custom text image'],
+    keywords: ['text to handwriting', 'handwriting generator online', 'handwritten font image', 'create handwriting text', 'custom text to image'],
     whatItDoes: 'This tool converts your digital text into an image that mimics handwriting. You can select different handwriting-style fonts, customize the font size, color, and the dimensions of the output image to create a personalized handwritten effect.',
     benefits: [
       'Create personalized notes, letters, or digital artwork with a handwritten feel.',
@@ -120,7 +120,7 @@ export const tools: Tool[] = [
     iconName: 'ListVideo',
     aiPowered: true,
     tags: ['voice', 'audio', 'transcribe', 'notes', 'ai', 'format', 'speech to text', 'organize'],
-    keywords: ['voice to text ai', 'transcribe audio notes', 'ai text formatter', 'speech recognition online', 'organize voice memos', 'smart transcription'],
+    keywords: ['voice notes to text', 'ai audio transcription', 'format transcribed text', 'speech to text online', 'organize voice memos'],
     whatItDoes: 'This tool first transcribes your uploaded audio file or live recording into raw text using AI speech recognition. Then, another AI process analyzes this transcription to structure it logically with appropriate headings, paragraphs, and bullet points, making it easier to read and understand.',
     benefits: [
       'Convert spoken ideas from voice notes into well-organized written text.',
@@ -139,7 +139,7 @@ export const tools: Tool[] = [
     category: 'Image',
     iconName: 'Scissors',
     tags: ['image', 'compression', 'optimizer', 'reduce size', 'photo compressor'],
-    keywords: ['image compressor', 'reduce image size', 'photo optimizer', 'compress jpg', 'compress png', 'online image compression'],
+    keywords: ['image compressor online', 'reduce image file size', 'photo optimizer tool', 'compress jpg free', 'compress png online'],
     whatItDoes: 'Our Image Compressor helps you shrink the file size of your images. This is useful for faster web page loading, easier sharing, and saving storage space. You can typically adjust the compression level to balance size and quality.',
     benefits: [
       'Significantly reduces image file sizes.',
@@ -157,7 +157,7 @@ export const tools: Tool[] = [
     category: 'Image',
     iconName: 'SlidersHorizontal',
     tags: ['image', 'resize', 'dimensions', 'photo resizer', 'scale image'],
-    keywords: ['image resizer', 'resize photo online', 'change image dimensions', 'online picture resizer', 'scale image free'],
+    keywords: ['image resizer online', 'resize photo free', 'change image dimensions tool', 'picture resizer', 'scale image online'],
     whatItDoes: 'The Image Resizer allows you to change the dimensions (width and height) of your images. You can specify exact pixel values to fit various requirements, such as social media posts, website banners, or email attachments.',
     benefits: [
       'Adjust image dimensions to specific pixel requirements.',
@@ -175,7 +175,7 @@ export const tools: Tool[] = [
     iconName: 'Wand2',
     aiPowered: true,
     tags: ['image', 'background', 'remove', 'ai', 'edit', 'cutout', 'transparent'],
-    keywords: ['background remover', 'ai image editing', 'remove image background free', 'photo background eraser', 'white background image'],
+    keywords: ['ai background remover', 'remove image background free', 'photo background eraser online', 'image cutout tool', 'white background generator'],
     whatItDoes: 'This AI-powered tool automatically detects the main subject in your uploaded image and removes its background, replacing it with a clean, plain white background. This is ideal for product photos, portraits, or any image where you need to isolate the subject.',
     benefits: [
       'Quickly and automatically remove image backgrounds.',
@@ -193,7 +193,7 @@ export const tools: Tool[] = [
     iconName: 'TextSearch',
     aiPowered: true,
     tags: ['image', 'text', 'ocr', 'extract', 'scan to text'],
-    keywords: ['image to text', 'ocr online', 'extract text from image', 'photo to text converter', 'ai ocr', 'scan to text free'],
+    keywords: ['image to text converter', 'online ocr tool', 'extract text from image free', 'photo to text ai', 'scan to text online'],
     whatItDoes: 'Our Image to Text (OCR) tool employs AI to recognize and extract textual content from your uploaded images. This allows you to convert non-editable text within pictures, scans, or screenshots into a selectable and editable format.',
     benefits: [
       'Convert text from images or scanned documents into editable format.',
@@ -210,7 +210,7 @@ export const tools: Tool[] = [
     category: 'Image',
     iconName: 'BoxSelect',
     tags: ['image', 'icon', 'ico', 'converter', 'favicon generator'],
-    keywords: ['image to ico', 'favicon converter', 'create ico file', 'png to ico online', 'icon generator'],
+    keywords: ['image to ico converter', 'favicon generator online', 'create .ico file free', 'png to ico tool', 'online icon maker'],
     whatItDoes: 'This tool converts your images (JPG, PNG, WebP) into fixed-size square PNGs, commonly used for icons like favicons. You can select standard icon dimensions, and the output is downloadable as a .ico file (which is essentially a PNG in this client-side version).',
     benefits: [
       'Easily create basic icons or favicons from existing images.',
@@ -227,7 +227,7 @@ export const tools: Tool[] = [
     category: 'Image',
     iconName: 'Camera',
     tags: ['photo', 'passport', 'id', 'resize', 'crop', 'official', 'visa photo'],
-    keywords: ['passport photo generator', 'visa photo maker', 'official photo size', 'online passport photo', 'id photo creator', 'photo cropper'],
+    keywords: ['passport photo generator', 'visa photo maker online', 'official photo size tool', 'id photo creator free', 'passport photo cropper'],
     whatItDoes: 'This tool helps you create passport or visa-sized photos from your existing images. Select a country preset, and the tool will resize and crop your photo to the specified dimensions, applying a white background as typically required.',
     benefits: [
       'Quickly format photos for passport, visa, or ID applications.',
@@ -246,7 +246,7 @@ export const tools: Tool[] = [
     category: 'Document & Data',
     iconName: 'FileText',
     tags: ['text', 'pdf', 'converter', 'document', 'create pdf'],
-    keywords: ['text to pdf', 'convert text to pdf', 'online pdf creator', 'free text to pdf', 'plain text pdf'],
+    keywords: ['text to pdf converter', 'convert text to pdf online', 'create pdf from text free', 'plain text to pdf tool', 'online document creator'],
     whatItDoes: 'The Text to PDF Converter takes your plain text input and transforms it into a standard PDF file. You can customize basic formatting options like font family and font size before generating the PDF.',
     benefits: [
       'Create simple PDF documents from plain text quickly.',
@@ -263,7 +263,7 @@ export const tools: Tool[] = [
     category: 'Document & Data',
     iconName: 'FileJson',
     tags: ['json', 'csv', 'converter', 'data', 'denormalize', 'data transformation'],
-    keywords: ['json to csv', 'convert json to csv online', 'json data converter', 'free json to csv', 'nested json to csv'],
+    keywords: ['json to csv converter', 'convert json to csv online free', 'json data to csv tool', 'nested json to csv', 'online data converter'],
     whatItDoes: 'This tool converts JSON (JavaScript Object Notation) data into CSV (Comma-Separated Values) format. It intelligently handles arrays of objects, single objects, and can flatten nested structures and denormalize arrays of sub-objects to ensure all data is represented in the CSV output.',
     benefits: [
       'Convert complex JSON structures into tabular CSV data.',
@@ -280,7 +280,7 @@ export const tools: Tool[] = [
     category: 'Document & Data',
     iconName: 'Database',
     tags: ['csv', 'json', 'converter', 'data', 'data transformation'],
-    keywords: ['csv to json', 'convert csv to json online', 'csv data converter', 'free csv to json', 'table to json'],
+    keywords: ['csv to json converter', 'convert csv to json online free', 'csv data to json tool', 'table to json online', 'free data converter'],
     whatItDoes: 'The CSV to JSON Converter transforms data from CSV format (typically plain text with comma-separated values) into JSON format, usually as an array of objects where each object represents a row from the CSV.',
     benefits: [
       'Convert tabular CSV data into a structured JSON format.',
@@ -297,7 +297,7 @@ export const tools: Tool[] = [
     category: 'Document & Data',
     iconName: 'Combine',
     tags: ['image', 'pdf', 'converter', 'document', 'merge', 'combine images'],
-    keywords: ['image to pdf', 'jpg to pdf', 'png to pdf', 'combine images to pdf', 'free image to pdf converter', 'online pdf creator from images'],
+    keywords: ['image to pdf converter', 'jpg to pdf online', 'png to pdf free', 'combine images to pdf tool', 'create pdf from images'],
     whatItDoes: 'This tool allows you to combine multiple images (such as JPG, PNG, or WebP) into a single PDF file. Each selected image will be placed on a separate page within the generated PDF, scaled to fit.',
     benefits: [
       'Easily compile multiple images into one shareable PDF document.',
@@ -314,7 +314,7 @@ export const tools: Tool[] = [
     category: 'Document & Data',
     iconName: 'FileDown',
     tags: ['pdf', 'image', 'converter', 'extract', 'pages', 'pdf to png'],
-    keywords: ['pdf to image', 'pdf to png converter', 'extract pdf pages as images', 'free pdf to image', 'online pdf page extractor'],
+    keywords: ['pdf to image converter', 'pdf to png online', 'extract pdf pages as images free', 'convert pdf page to image', 'online pdf tool'],
     whatItDoes: 'The PDF to Image Converter processes your uploaded PDF file and renders each page as a separate PNG image. This is useful when you need individual pages of a PDF as image files for presentations, web use, or further editing.',
     benefits: [
       'Extract individual pages from a PDF as high-quality PNG images.',
@@ -333,7 +333,7 @@ export const tools: Tool[] = [
     category: 'Media',
     iconName: 'FileVideo',
     tags: ['video', 'compression', 'reduce size', 're-encode', 'client-side', 'video optimizer'],
-    keywords: ['video compressor', 'reduce video size online', 'compress mp4 free', 'video file optimizer', 'client-side video compression'],
+    keywords: ['video compressor online', 'reduce video file size free', 'compress mp4 client-side', 'video optimizer tool', 'online video re-encoder'],
     whatItDoes: 'This tool re-encodes your uploaded video files directly in your browser to help reduce their size, mainly by adjusting the video resolution (scaling). It aims to make videos more manageable for sharing or storage. Audio track preservation depends on browser capabilities.',
     benefits: [
       'Reduces video file size, making them easier to share and store.',
@@ -350,7 +350,7 @@ export const tools: Tool[] = [
     category: 'Media',
     iconName: 'Film',
     tags: ['video', 'gif', 'converter', 'animation', 'create gif'],
-    keywords: ['video to gif', 'mp4 to gif converter', 'create animated gif online', 'free video to gif', 'online gif maker'],
+    keywords: ['video to gif converter', 'mp4 to gif online', 'create animated gif free', 'online gif maker from video', 'video clip to gif'],
     whatItDoes: 'This tool (currently conceptual for full conversion) aims to convert segments of your video files into animated GIF images. You can specify start and end times to select a portion of the video for conversion.',
     benefits: [
       'Create animated GIFs from your video clips for sharing or web use.',
@@ -368,7 +368,7 @@ export const tools: Tool[] = [
     iconName: 'AudioLines',
     aiPowered: true,
     tags: ['audio', 'speech', 'text', 'transcription', 'ai', 'speech to text'],
-    keywords: ['audio to text', 'transcribe audio online', 'speech to text converter', 'ai transcription free', 'mp3 to text'],
+    keywords: ['audio to text converter', 'transcribe audio online free', 'speech to text ai', 'ai transcription tool', 'mp3 to text converter'],
     whatItDoes: 'Our Audio to Text tool uses advanced AI speech recognition to convert spoken words from your audio files into written text. It helps you quickly get a transcript of interviews, lectures, voice memos, or any other audio content.',
     benefits: [
       'Accurately transcribe audio content into editable text.',
@@ -387,7 +387,7 @@ export const tools: Tool[] = [
     category: 'Converter',
     iconName: 'FileType2',
     tags: ['webp', 'jpg', 'image', 'converter', 'image format'],
-    keywords: ['webp to jpg', 'convert webp to jpg online', 'free webp converter', 'image format conversion', '.webp to .jpg'],
+    keywords: ['webp to jpg converter', 'convert webp to jpg online', 'free webp to jpg tool', 'image format converter', '.webp to .jpg free'],
     whatItDoes: 'This tool converts images from the modern WebP format to the more traditional JPG (JPEG) format. This is useful when you need to use images on platforms or applications that do not yet fully support WebP.',
     benefits: [
       'Convert WebP images to the universally compatible JPG format.',
@@ -404,7 +404,7 @@ export const tools: Tool[] = [
     category: 'Converter',
     iconName: 'Replace',
     tags: ['jpg', 'jpeg', 'webp', 'image', 'converter', 'image optimization'],
-    keywords: ['jpg to webp', 'convert jpg to webp online', 'free webp converter', 'image optimization webp', '.jpg to .webp'],
+    keywords: ['jpg to webp converter', 'convert jpg to webp online', 'free jpg to webp tool', 'optimize images to webp', '.jpg to .webp converter'],
     whatItDoes: 'Our JPG to WebP Converter transforms your JPEG images into the WebP format, which typically offers better compression and quality characteristics compared to older formats, leading to smaller file sizes and faster web loading times.',
     benefits: [
       'Convert JPG images to the efficient WebP format.',
@@ -421,7 +421,7 @@ export const tools: Tool[] = [
     category: 'Converter',
     iconName: 'Replace',
     tags: ['png', 'jpg', 'image', 'converter', 'image format'],
-    keywords: ['png to jpg', 'convert png to jpg online', 'free png converter', 'image format conversion', '.png to .jpg'],
+    keywords: ['png to jpg converter', 'convert png to jpg online', 'free png to jpg tool', 'image format change', '.png to .jpg free'],
     whatItDoes: 'This tool converts images from PNG (Portable Network Graphics) format, often used for images with transparency, to JPG (JPEG) format, which is typically used for photographs and results in smaller file sizes by discarding transparency.',
     benefits: [
       'Convert PNG images to JPG, often reducing file size.',
@@ -438,7 +438,7 @@ export const tools: Tool[] = [
     category: 'Converter',
     iconName: 'FileType2',
     tags: ['jpg', 'jpeg', 'png', 'image', 'converter', 'image format'],
-    keywords: ['jpg to png', 'convert jpg to png online', 'free png converter', 'image format conversion', '.jpg to .png'],
+    keywords: ['jpg to png converter', 'convert jpg to png online', 'free jpg to png tool', 'change image format', '.jpg to .png free'],
     whatItDoes: 'The JPG to PNG Converter transforms your JPEG images into PNG format. PNG is a lossless compression format, which means it retains all image data and quality. It also supports transparency, though converting from JPG (which doesn\'t support transparency) will result in an opaque PNG.',
     benefits: [
       'Convert JPG images to the lossless PNG format.',
@@ -455,7 +455,7 @@ export const tools: Tool[] = [
     category: 'Converter',
     iconName: 'Palette',
     tags: ['svg', 'png', 'image', 'converter', 'vector', 'rasterize'],
-    keywords: ['svg to png', 'convert svg to png online', 'vector to raster', 'free svg converter', '.svg to .png'],
+    keywords: ['svg to png converter', 'convert svg to png online', 'vector to raster tool', 'free svg to png', '.svg to .png converter'],
     whatItDoes: 'This tool converts SVG (Scalable Vector Graphics) files into PNG (Portable Network Graphics) raster images. It renders the SVG onto a canvas at its natural or a default size and then exports that rendering as a PNG file.',
     benefits: [
       'Convert scalable SVG graphics into a widely supported raster PNG format.',
@@ -472,7 +472,7 @@ export const tools: Tool[] = [
     category: 'Converter',
     iconName: 'Palette',
     tags: ['png', 'svg', 'image', 'converter', 'vector', 'conceptual', 'embed'],
-    keywords: ['png to svg conceptual', 'embed png in svg', 'raster to svg placeholder', 'online image converter'],
+    keywords: ['png to svg conceptual tool', 'embed png in svg online', 'raster to svg wrapper', 'image to svg placeholder'],
     whatItDoes: 'This tool creates an SVG file that embeds your uploaded PNG image. It is a conceptual converter because true conversion from a raster format (like PNG) to a vector format (SVG) involves complex image tracing (vectorization), which is not performed here. The output SVG will display your PNG.',
     benefits: [
       'Wraps your PNG image within an SVG container.',
@@ -489,7 +489,7 @@ export const tools: Tool[] = [
     category: 'Converter',
     iconName: 'ArrowRightLeft',
     tags: ['pdf', 'word', 'docx', 'converter', 'document', 'edit pdf'],
-    keywords: ['pdf to word converter', 'word to pdf converter', 'free pdf docx tool', 'online document conversion', 'edit pdf as word'],
+    keywords: ['pdf to word converter', 'word to pdf converter free', 'pdf docx tool online', 'document format conversion', 'edit pdf content'],
     whatItDoes: 'This tool provides bidirectional conversion between PDF and Word (.docx) formats. PDF to Word attempts to extract text and basic structure into an editable DOCX. Word to PDF converts your DOCX into a PDF, aiming to preserve layout via HTML rendering.',
     benefits: [
       'Convert documents between PDF and Word formats.',
@@ -506,7 +506,7 @@ export const tools: Tool[] = [
     category: 'Converter',
     iconName: 'ArrowRightLeft',
     tags: ['excel', 'xlsx', 'pdf', 'converter', 'document', 'spreadsheet to pdf'],
-    keywords: ['excel to pdf converter', 'pdf to excel converter', 'free xlsx pdf tool', 'online spreadsheet conversion', 'pdf table to excel'],
+    keywords: ['excel to pdf converter', 'pdf to excel converter free', 'xlsx pdf tool online', 'spreadsheet conversion', 'pdf table to excel data'],
     whatItDoes: 'This converter allows you to change Excel (.xlsx) files into PDFs and vice-versa. Excel to PDF converts your spreadsheet data into a PDF table. PDF to Excel attempts to extract tabular data from PDFs into an XLSX file (text-based extraction, formatting may vary).',
     benefits: [
       'Convert spreadsheets to PDFs for sharing or printing.',
@@ -523,7 +523,7 @@ export const tools: Tool[] = [
     category: 'Converter',
     iconName: 'ArrowRightLeft',
     tags: ['powerpoint', 'pptx', 'pdf', 'converter', 'presentation', 'slides to pdf'],
-    keywords: ['powerpoint to pdf converter', 'pdf to powerpoint converter', 'free pptx pdf tool', 'online presentation conversion', 'slides to pdf online'],
+    keywords: ['powerpoint to pdf converter', 'pdf to powerpoint converter free', 'pptx pdf tool online', 'presentation conversion', 'slides to pdf online free'],
     whatItDoes: 'This tool converts PowerPoint (.pptx) files to PDF and PDF files to PowerPoint. PPTX to PDF aims to create a PDF from your presentation (text extraction focus). PDF to PPTX converts each PDF page into a static image placed on a new slide in a PPTX file.',
     benefits: [
       'Convert presentations for easier sharing (PPTX to PDF).',
@@ -542,7 +542,7 @@ export const tools: Tool[] = [
     category: 'Utilities',
     iconName: 'Cog',
     tags: ['units', 'measurement', 'conversion', 'length', 'weight', 'temperature', 'currency', 'calculator'],
-    keywords: ['unit converter', 'measurement converter', 'online conversion tool', 'length converter', 'weight converter', 'temperature converter', 'currency converter tool'],
+    keywords: ['unit converter online', 'measurement conversion tool', 'convert units free', 'length converter', 'weight converter', 'temperature converter', 'currency converter'],
     whatItDoes: 'Our All-in-One Unit Converter provides quick and easy conversions across a wide range of measurement categories, including length, weight, temperature, time, area, volume, speed, pressure, and even simulated currency rates.',
     benefits: [
       'Convert between numerous units across various categories.',
@@ -559,7 +559,7 @@ export const tools: Tool[] = [
     category: 'Utilities',
     iconName: 'Calculator',
     tags: ['calculator', 'scientific', 'gst', 'emi', 'finance', 'math', 'unit converter', 'percentage'],
-    keywords: ['advanced calculator online', 'scientific calculator', 'gst calculator', 'emi calculator', 'unit converter tool', 'percentage calculator', 'financial calculator'],
+    keywords: ['advanced calculator online', 'scientific calculator tool', 'gst calculator free', 'emi calculator online', 'math and unit converter', 'percentage calculator'],
     whatItDoes: 'This versatile tool integrates an advanced calculator supporting standard arithmetic, scientific functions, percentage calculations, GST (Goods and Services Tax), and EMI (Equated Monthly Instalment) with a comprehensive unit converter. It\'s designed for a wide range of mathematical and conversion tasks.',
     benefits: [
       'Perform diverse calculations: basic, scientific, financial (GST, EMI), and percentages.',
@@ -576,7 +576,7 @@ export const tools: Tool[] = [
     category: 'Utilities',
     iconName: 'KeyRound',
     tags: ['password', 'security', 'generator', 'secure', 'customizable', 'random password'],
-    keywords: ['password generator', 'strong password creator', 'random password generator', 'secure password tool', 'custom password options', 'pronounceable password'],
+    keywords: ['secure password generator', 'strong password creator online', 'random password tool', 'customizable password generator', 'pronounceable password maker'],
     whatItDoes: 'Our Password Generator helps you create strong, unique passwords tailored to your security needs. You can customize the length, include or exclude character types (uppercase, lowercase, numbers, symbols), opt for pronounceable passwords, and even exclude visually similar characters. Generated passwords can be saved locally for the session.',
     benefits: [
       'Generate highly secure and random passwords.',
@@ -594,7 +594,7 @@ export const tools: Tool[] = [
     category: 'Utilities',
     iconName: 'ShieldCheck',
     tags: ['password', 'security', 'checker', 'strength', 'analyzer', 'password meter'],
-    keywords: ['password strength checker', 'analyze password security', 'password meter online', 'check password strength', 'secure password test', 'password safety'],
+    keywords: ['password strength checker', 'analyze password security online', 'password meter tool', 'check password safety', 'secure password test free'],
     whatItDoes: 'This tool evaluates the strength of your passwords based on several criteria, including length, use of different character types (uppercase, lowercase, numbers, symbols), and common weak patterns. It provides a strength score, textual feedback, suggestions for improvement, and a very rough estimate of the time it might take to crack.',
     benefits: [
       'Get an instant assessment of your password\'s security level.',
